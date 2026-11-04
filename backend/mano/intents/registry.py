@@ -102,10 +102,12 @@ class Skill:
 
     def intents(self) -> list[Intent]:
         found = []
-        for _, fn in inspect.getmembers(self, predicate=inspect.ismethod):
-            meta = getattr(fn, "__intent__", None)
+        # varre a classe (não a instância) para não disparar @property das skills
+        for attr, raw in inspect.getmembers(type(self), predicate=inspect.isfunction):
+            meta = getattr(raw, "__intent__", None)
             if not meta:
                 continue
+            fn = getattr(self, attr)
             found.append(
                 Intent(
                     name=meta["name"],

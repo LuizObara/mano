@@ -3,23 +3,27 @@ import { Alerts } from "./components/Alerts";
 import { Clock } from "./components/Clock";
 import { CommandBar } from "./components/CommandBar";
 import { History } from "./components/History";
+import { NowPlaying } from "./components/NowPlaying";
 import { Timers } from "./components/Timers";
 import { Today } from "./components/Today";
+import { VideoOverlay } from "./components/VideoOverlay";
 import { VoiceOrb } from "./components/VoiceOrb";
 import { useMano, type Mano } from "./lib/mano";
 import { HabitsPage } from "./pages/Habits";
 import { MedsPage } from "./pages/Meds";
+import { SettingsPage } from "./pages/Settings";
 
 const PAGES = [
   { id: "inicio", label: "Início" },
   { id: "remedios", label: "Remédios" },
   { id: "habitos", label: "Hábitos" },
+  { id: "ajustes", label: "Ajustes" },
 ] as const;
 type Page = (typeof PAGES)[number]["id"];
 
 function usePage(): [Page, (p: string) => void] {
   const read = (): Page => {
-    const h = location.hash.replace(/^#\/?/, "");
+    const h = location.hash.replace(/^#\/?/, "").split("?")[0];
     return (PAGES.find((p) => p.id === h)?.id ?? "inicio") as Page;
   };
   const [page, setPage] = useState<Page>(read);
@@ -96,9 +100,11 @@ export default function App() {
         {page === "inicio" && <Home mano={mano} go={go} voiceOk={voiceOk} />}
         {page === "remedios" && <MedsPage mano={mano} />}
         {page === "habitos" && <HabitsPage mano={mano} />}
+        {page === "ajustes" && <SettingsPage mano={mano} />}
       </main>
 
       <Alerts mano={mano} />
+      <VideoOverlay mano={mano} />
     </div>
   );
 }
@@ -115,7 +121,9 @@ function Home({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voic
           ) : mano.lastReply ? (
             <>
               <p className="text-sm text-muted">“{mano.lastReply.log.text}”</p>
-              {mano.lastReply.display.includes("\n") ? (
+              {mano.lastReply.data?.card ? (
+                <WikiCard card={mano.lastReply.data.card} />
+              ) : mano.lastReply.display.includes("\n") ? (
                 <ul className="mt-3 flex flex-col gap-1.5 text-left text-base text-text/90">
                   {mano.lastReply.display.split("\n").map((line) => (
                     <li key={line} className="rounded-lg bg-ink/60 px-3 py-2">
@@ -125,6 +133,16 @@ function Home({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voic
                 </ul>
               ) : (
                 <p className="mt-2 text-2xl leading-snug">{mano.lastReply.display}</p>
+              )}
+              {mano.lastReply.data?.link && (
+                <a
+                  href={mano.lastReply.data.link.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-3 inline-block rounded-lg border border-line px-3 py-1.5 text-sm text-muted hover:border-ember/50 hover:text-text"
+                >
+                  {mano.lastReply.data.link.label} ↗
+                </a>
               )}
             </>
           ) : (
@@ -149,9 +167,27 @@ function Home({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voic
 
       <aside className="flex min-w-0 flex-col gap-6">
         <Today mano={mano} go={go} />
+        <NowPlaying mano={mano} go={go} />
         <Timers timers={mano.timers} />
         <History entries={mano.history} />
       </aside>
+    </div>
+  );
+}
+
+function WikiCard({ card }: { card: { title: string; extract: string; url?: string; image?: string | null } }) {
+  return (
+    <div className="mt-3 flex gap-4 rounded-2xl border border-line bg-ink/60 p-4 text-left">
+      {card.image && <img src={card.image} alt="" className="h-28 w-24 shrink-0 rounded-lg object-cover" />}
+      <div className="min-w-0">
+        <div className="text-lg font-medium">{card.title}</div>
+        <p className="mt-1 line-clamp-6 whitespace-pre-line text-sm leading-relaxed text-text/85">{card.extract}</p>
+        {card.url && (
+          <a href={card.url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-ember hover:underline">
+            Wikipedia ↗
+          </a>
+        )}
+      </div>
     </div>
   );
 }

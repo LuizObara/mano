@@ -37,6 +37,14 @@ class Settings(BaseSettings):
     med_snooze_min: int = 10
     med_give_up_min: int = 120  # depois disso a dose vira "não tomada"
 
+    # Spotify (Web API com PKCE: só o Client ID, sem segredo). Também pode ser salvo pela aba Ajustes.
+    spotify_client_id: str | None = None
+    spotify_redirect_uri: str = "http://127.0.0.1:8765/api/spotify/callback"
+    spotify_poll_s: int = 5
+
+    # Internet (Wikipedia exige um User-Agent identificável)
+    http_user_agent: str = "Mano/0.1 (https://www.mediawiki.org/wiki/API:Etiquette; assistente pessoal local) httpx/0.28"
+
     # Timers
     timer_ring_repeat_s: int = 30  # repete o aviso falado enquanto o timer toca
     timer_ring_max_s: int = 300  # desiste de tocar depois disso

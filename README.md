@@ -34,6 +34,17 @@ O visor fica em http://127.0.0.1:8765. No Edge, menu ⋯ → Aplicativos → "In
 - Ajustes no `.env`: `MANO_MED_REPEAT_MIN`, `MANO_MED_SNOOZE_MIN`, `MANO_MED_GIVE_UP_MIN`, `MANO_TOAST_ENABLED`.
 - Com o notebook desligado ou suspenso não há aviso (aviso no celular está previsto na fase 7).
 
+## Mídia e pesquisa
+
+- **Spotify** (Premium): configure na aba **Ajustes** (Client ID do app criado em developer.spotify.com,
+  sem segredo) e clique em Conectar. "Toca Djavan", "toca a playlist treino", "toca o álbum Acabou Chorare",
+  "toca minhas músicas curtidas", "pausa", "próxima música", "volume 40", "que música é essa?".
+  Sem aparelho ativo, o Mano abre o Spotify do PC.
+- **YouTube**: "abre um vídeo de receita de pão no YouTube" toca no visor; "pesquisa no YouTube aula de violão"
+  mostra os resultados para escolher. "Fecha o vídeo" ou Esc fecha. Abrir vídeo pausa o Spotify.
+- **Pesquisa**: "o que é fotossíntese?" / "quem foi Machado de Assis?" respondem falando com o resumo
+  da Wikipedia (e cartão na tela); "pesquisa preço do dólar" abre o Google no navegador do PC.
+
 ## Desenvolvimento
 
 ```powershell
@@ -60,7 +71,7 @@ Configuração por `.env` na raiz (variáveis `MANO_*`, ver `backend/mano/config
 0. ✅ Fundação: backend, visor, parser PT-BR, voz de saída (Maria/SAPI), hora/data, timers
 1. ✅ Voz: frase de ativação, reconhecimento offline (Vosk), push-to-talk
 2. ✅ Rotina: remédios (repete até confirmar), hábitos, lembretes
-3. Spotify, YouTube, pesquisa rápida
+3. ✅ Spotify, YouTube, pesquisa rápida
 4. Gmail, Google Agenda, Google Tasks
 5. Segundo cérebro (vault do Obsidian)
 6. LLM local (Ollama) + briefing de notícias

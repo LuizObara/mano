@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import webbrowser
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -25,6 +27,10 @@ class Ctx:
     speaker: Speaker
     registry: Registry = field(default=None)  # type: ignore[assignment]
     voice_state: str = "idle"  # idle | listening | thinking | speaking
+    open_url: Callable[[str], object] = webbrowser.open  # abre no navegador padrão do PC (trocado nos testes)
+
+    def skill(self, name: str):
+        return next((s for s in self.registry.skills if s.name == name), None)
 
     def set_voice_state(self, state: str) -> None:
         """Pode ser chamado de qualquer thread."""

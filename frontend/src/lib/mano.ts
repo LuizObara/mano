@@ -42,6 +42,21 @@ export type Habit = {
   history: string[]; // ISO dates
 };
 
+export type NowPlaying = {
+  title: string;
+  artist: string;
+  album: string | null;
+  image: string | null;
+  is_playing: boolean;
+  progress_ms: number;
+  duration_ms: number;
+  device: string | null;
+  volume: number | null;
+  at: number;
+};
+export type SpotifyStatus = { configured: boolean; connected: boolean; redirect_uri: string; now: NowPlaying | null };
+export type Video = { id: string; title: string; channel?: string; duration?: number | null; thumb?: string };
+
 export type Reminder = { id: number; text: string; due_at: number; status: "pending" | "fired" };
 
 export type LogEntry = {
@@ -53,7 +68,17 @@ export type LogEntry = {
   reply: string;
 };
 
-export type Reply = { intent: string | null; speech: string; display: string; log: LogEntry };
+export type Reply = {
+  intent: string | null;
+  speech: string;
+  display: string;
+  log: LogEntry;
+  data?: {
+    card?: { title: string; extract: string; url?: string; image?: string | null };
+    link?: { label: string; url: string };
+    [k: string]: unknown;
+  } | null;
+};
 export type VoiceState = "idle" | "listening" | "thinking" | "speaking";
 export type VoiceStatus = { available: boolean; reason: string; wake_phrases: string[] };
 export type Notice = { id: number; text: string; level: string; title: string };
@@ -89,6 +114,9 @@ export function useMano() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
+  const [spotify, setSpotify] = useState<SpotifyStatus | null>(null);
+  const [video, setVideo] = useState<Video | null>(null);
+  const [videoResults, setVideoResults] = useState<{ q: string; results: Video[] } | null>(null);
   const [lastReply, setLastReply] = useState<Reply | null>(null);
   const [history, setHistory] = useState<LogEntry[]>([]);
   const [busy, setBusy] = useState(false);
@@ -106,6 +134,7 @@ export function useMano() {
       if ("doses" in msg) setDoses(msg.doses as Dose[]);
       if ("habits" in msg) setHabits(msg.habits as Habit[]);
       if ("reminders" in msg) setReminders(msg.reminders as Reminder[]);
+      if ("spotify" in msg) setSpotify(msg.spotify as SpotifyStatus);
     };
 
     const connect = () => {
@@ -132,7 +161,19 @@ export function useMano() {
           case "meds":
           case "habits":
           case "reminders":
+          case "spotify":
             apply(msg);
+            break;
+          case "youtube":
+            setVideoResults(null);
+            setVideo(msg.video);
+            break;
+          case "youtube.results":
+            setVideoResults({ q: msg.q, results: msg.results });
+            break;
+          case "youtube.close":
+            setVideo(null);
+            setVideoResults(null);
             break;
           case "voice":
             setVoice(msg.state);
@@ -179,6 +220,7 @@ export function useMano() {
   return {
     connected, voice, voiceStatus, partial, timers, meds, doses, habits, reminders, notices,
     lastReply, history, busy, send, listen, dismissNotice,
+    spotify, video, setVideo, videoResults, setVideoResults,
   };
 }
 

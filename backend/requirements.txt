@@ -7,5 +7,7 @@ pywin32==308; sys_platform == "win32"
 vosk==0.3.45
 sounddevice==0.5.1
 winotify==1.1.0; sys_platform == "win32"
-pytest==8.3.4
+spotipy==2.25.1
+yt-dlp==2025.6.30
 httpx==0.28.1
+pytest==8.3.4
