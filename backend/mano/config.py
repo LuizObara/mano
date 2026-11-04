@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     google_redirect_uri: str = "http://127.0.0.1:8765/"
     event_heads_up_min: int = 10  # avisa antes de compromissos da agenda
 
+    # Segundo cérebro: pasta do vault do Obsidian (também configurável na aba Ajustes)
+    vault_path: Path | None = None
+
     # Internet (Wikipedia exige um User-Agent identificável)
     http_user_agent: str = "Mano/0.1 (https://www.mediawiki.org/wiki/API:Etiquette; assistente pessoal local) httpx/0.28"
 

@@ -35,6 +35,7 @@ export function SettingsPage({ mano }: { mano: Mano }) {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       {flash && <div className="rounded-xl border border-ember/50 bg-ember-soft px-4 py-3 text-sm">{flash}</div>}
 
+      <VaultSettings mano={mano} />
       <GoogleSettings mano={mano} />
 
       <Card title="Spotify">
@@ -200,6 +201,74 @@ function GoogleSettings({ mano }: { mano: Mano }) {
         O Mano só lê seus e-mails (não envia nem apaga). Na agenda, ele lê e cria compromissos; nas tarefas, lê, cria e
         conclui. Tudo fica nesta máquina.
       </p>
+    </Card>
+  );
+}
+
+function VaultSettings({ mano }: { mano: Mano }) {
+  const st = mano.notes;
+  const [found, setFound] = useState<string[] | null>(null);
+  const [path, setPath] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!st?.configured) api<string[]>("/api/notes/detect").then(setFound).catch(() => setFound([]));
+  }, [st?.configured]);
+
+  const use = async (p: string) => {
+    setError("");
+    try {
+      await api("/api/notes/config", { vault: p });
+      setPath("");
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  return (
+    <Card title="Segundo cérebro (Obsidian)">
+      {st?.configured ? (
+        <div className="flex flex-col gap-2 text-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="size-2 rounded-full bg-emerald-400" />
+            Vault <b>{st.vault_name}</b> · {st.total} notas
+          </div>
+          <code className="block break-all rounded-lg bg-ink px-3 py-2 text-xs text-muted">{st.vault}</code>
+          <p className="text-xs text-muted">
+            Capturas vão para <b>{st.daily}</b>, numa seção “## Capturas”. O Mano só acrescenta texto, nunca apaga.
+          </p>
+          <details className="text-xs text-muted">
+            <summary className="cursor-pointer">Trocar de vault</summary>
+            <form onSubmit={(e) => { e.preventDefault(); void use(path); }} className="mt-2 flex gap-2">
+              <input className={`${input} min-w-0 flex-1`} placeholder="C:\caminho\do\vault" value={path} onChange={(e) => setPath(e.target.value)} />
+              <button className={btn.ghost} disabled={!path.trim()}>Usar</button>
+            </form>
+          </details>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 text-sm">
+          {found === null && <p className="text-muted">Procurando vaults neste PC…</p>}
+          {found && found.length > 0 && (
+            <>
+              <p>Encontrei {found.length === 1 ? "este vault" : "estes vaults"}:</p>
+              <ul className="flex flex-col gap-2">
+                {found.map((f) => (
+                  <li key={f} className="flex items-center gap-2">
+                    <code className="min-w-0 flex-1 break-all rounded-lg bg-ink px-3 py-2 text-xs">{f}</code>
+                    <button className={btn.primary} onClick={() => use(f)}>Usar</button>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          {found && found.length === 0 && <p className="text-muted">Não achei nenhum vault automaticamente.</p>}
+          <form onSubmit={(e) => { e.preventDefault(); void use(path); }} className="flex gap-2">
+            <input className={`${input} min-w-0 flex-1`} placeholder="Ou cole o caminho da pasta do vault" value={path} onChange={(e) => setPath(e.target.value)} aria-label="Caminho do vault" />
+            <button className={btn.ghost} disabled={!path.trim()}>Usar</button>
+          </form>
+        </div>
+      )}
+      {error && <p className="mt-2 text-sm text-alert">{error}</p>}
     </Card>
   );
 }

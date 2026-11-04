@@ -77,6 +77,9 @@ export type CalendarData = Feed & { events: CalEvent[] };
 export type GmailData = Feed & { unread: number | null; important?: number; messages: Mail[] };
 export type TasksData = Feed & { tasks: Task[] };
 
+export type NotesStatus = { configured: boolean; vault: string | null; vault_name: string | null; total: number; daily: string | null };
+export type NoteHit = { path: string; title: string; folder: string; mtime: number; snippet?: string };
+
 export type Reminder = { id: number; text: string; due_at: number; status: "pending" | "fired" };
 
 export type LogEntry = {
@@ -96,6 +99,7 @@ export type Reply = {
   data?: {
     card?: { title: string; extract: string; url?: string; image?: string | null };
     link?: { label: string; url: string };
+    notes?: NoteHit[];
     [k: string]: unknown;
   } | null;
 };
@@ -139,6 +143,7 @@ export function useMano() {
   const [calendar, setCalendar] = useState<CalendarData | null>(null);
   const [gmail, setGmail] = useState<GmailData | null>(null);
   const [tasks, setTasks] = useState<TasksData | null>(null);
+  const [notes, setNotes] = useState<NotesStatus | null>(null);
   const [video, setVideo] = useState<Video | null>(null);
   const [videoResults, setVideoResults] = useState<{ q: string; results: Video[] } | null>(null);
   const [lastReply, setLastReply] = useState<Reply | null>(null);
@@ -163,6 +168,7 @@ export function useMano() {
       if ("calendar" in msg) setCalendar(msg.calendar as CalendarData);
       if ("gmail" in msg) setGmail(msg.gmail as GmailData);
       if ("tasks" in msg) setTasks(msg.tasks as TasksData);
+      if ("notes" in msg) setNotes(msg.notes as NotesStatus);
     };
 
     const connect = () => {
@@ -194,7 +200,11 @@ export function useMano() {
           case "calendar":
           case "gmail":
           case "tasks":
+          case "notes":
             apply(msg);
+            break;
+          case "notes.open":
+            location.hash = `/notas?n=${encodeURIComponent(msg.path)}`;
             break;
           case "youtube":
             setVideoResults(null);
@@ -253,7 +263,7 @@ export function useMano() {
     connected, voice, voiceStatus, partial, timers, meds, doses, habits, reminders, notices,
     lastReply, history, busy, send, listen, dismissNotice,
     spotify, video, setVideo, videoResults, setVideoResults,
-    google, calendar, gmail, tasks,
+    google, calendar, gmail, tasks, notes,
   };
 }
 

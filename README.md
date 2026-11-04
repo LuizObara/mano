@@ -58,6 +58,17 @@ envio do JSON e "Conectar". Credenciais e token ficam em `data/` (fora do git).
 - **Tarefas** (lista padrão do Google Tasks, sincroniza com o celular): "adiciona tarefa comprar pão amanhã",
   "coloca pagar internet nas tarefas", "quais são minhas tarefas?", "conclui a tarefa comprar pão".
 
+## Segundo cérebro (Obsidian)
+
+Aponte o vault na aba **Ajustes** (o Mano procura sozinho pastas com `.obsidian`). A aba **Notas** busca no vault
+inteiro ignorando acentos, mostra a nota renderizada com `[[links]]` clicáveis, menções e botão "Abrir no Obsidian".
+
+- "Anota que a reunião foi remarcada pra sexta" → acrescenta `- HH:MM texto` na seção `## Capturas` da nota do dia
+  (pasta e formato lidos do plugin Daily Notes; sem configuração, usa a pasta onde já estão suas diárias e copia
+  o frontmatter da diária mais recente). O Mano só acrescenta, nunca apaga nem reescreve.
+- "Procura nas notas sobre lógica", "o que eu anotei sobre SIA?", "lê a nota sobre RenovarTech", "o que eu anotei hoje?".
+- O índice (SQLite FTS5, dentro de `data/mano.db`) se atualiza a cada minuto.
+
 ## Desenvolvimento
 
 ```powershell
@@ -86,6 +97,6 @@ Configuração por `.env` na raiz (variáveis `MANO_*`, ver `backend/mano/config
 2. ✅ Rotina: remédios (repete até confirmar), hábitos, lembretes
 3. ✅ Spotify, YouTube, pesquisa rápida
 4. ✅ Gmail, Google Agenda, Google Tasks
-5. Segundo cérebro (vault do Obsidian)
+5. ✅ Segundo cérebro (vault do Obsidian)
 6. LLM local (Ollama) + briefing de notícias
 7. Opcional: mini servidor (alertas no celular via ntfy, LLM remoto)

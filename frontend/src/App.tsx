@@ -12,12 +12,14 @@ import { VoiceOrb } from "./components/VoiceOrb";
 import { useMano, type Mano } from "./lib/mano";
 import { HabitsPage } from "./pages/Habits";
 import { MedsPage } from "./pages/Meds";
+import { NotesPage } from "./pages/Notes";
 import { SettingsPage } from "./pages/Settings";
 
 const PAGES = [
   { id: "inicio", label: "Início" },
   { id: "remedios", label: "Remédios" },
   { id: "habitos", label: "Hábitos" },
+  { id: "notas", label: "Notas" },
   { id: "ajustes", label: "Ajustes" },
 ] as const;
 type Page = (typeof PAGES)[number]["id"];
@@ -101,6 +103,7 @@ export default function App() {
         {page === "inicio" && <Home mano={mano} go={go} voiceOk={voiceOk} />}
         {page === "remedios" && <MedsPage mano={mano} />}
         {page === "habitos" && <HabitsPage mano={mano} />}
+        {page === "notas" && <NotesPage mano={mano} go={go} />}
         {page === "ajustes" && <SettingsPage mano={mano} />}
       </main>
 
@@ -135,6 +138,21 @@ function Home({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voic
                 </ul>
               ) : (
                 <p className="mt-2 text-2xl leading-snug">{mano.lastReply.display}</p>
+              )}
+              {mano.lastReply.data?.notes && (
+                <ul className="mt-3 flex flex-col gap-1.5 text-left">
+                  {mano.lastReply.data.notes.slice(0, 5).map((n) => (
+                    <li key={n.path}>
+                      <button
+                        onClick={() => go(`notas?n=${encodeURIComponent(n.path)}`)}
+                        className="w-full rounded-lg bg-ink/60 px-3 py-2 text-left text-sm hover:bg-ink"
+                      >
+                        <span className="font-medium">{n.title}</span>
+                        <span className="ml-2 text-xs text-muted">{n.folder}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
               {mano.lastReply.data?.link && (
                 <a
