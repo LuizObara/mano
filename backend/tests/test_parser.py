@@ -59,8 +59,8 @@ def test_say_duration():
     ("cancela o timer do arroz", "timer.cancel", {}),
     ("cancela todos os timers", "timer.cancel", {}),
     ("quanto tempo falta?", "timer.list", {}),
-    ("para", "timer.dismiss", {}),
-    ("para o alarme", "timer.dismiss", {}),
+    ("para", "alerts.dismiss", {}),
+    ("para o alarme", "alerts.dismiss", {}),
     ("o que você sabe fazer", "help", {}),
 ])
 def test_registry_routes(registry, text, intent, slots):

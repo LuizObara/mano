@@ -123,3 +123,35 @@ def say_duration(seconds: int) -> str:
     if len(parts) == 1:
         return parts[0]
     return ", ".join(parts[:-1]) + " e " + parts[-1]
+
+
+def best_match(query: str, names: dict[int, str], cutoff: float = 0.72) -> int | None:
+    """Acha o item cujo nome mais combina com `query` (texto normalizado). Retorna o id."""
+    import difflib
+
+    q = normalize(query)
+    if not q:
+        return None
+    norm = {k: normalize(v) for k, v in names.items()}
+    for k, v in norm.items():  # nome inteiro dentro da frase ou vice-versa
+        if v and (re.search(rf"\b{re.escape(v)}\b", q) or re.search(rf"\b{re.escape(q)}\b", v)):
+            return k
+    best, score = None, cutoff
+    for k, v in norm.items():
+        for cand in (q, *q.split()):
+            r = difflib.SequenceMatcher(None, cand, v).ratio()
+            if r > score:
+                best, score = k, r
+    return best
+
+
+def restore_accents(norm: str, raw: str) -> str:
+    """Devolve acentos/maiúsculas a um trecho normalizado usando a frase original.
+
+    restore_accents("tomar agua", "Mano, me lembra de tomar água às 8") -> "tomar água"
+    """
+    lookup: dict[str, str] = {}
+    for i, tok in enumerate(re.findall(r"[\w']+", raw)):
+        # a primeira palavra da frase vem maiúscula só por ser começo de frase
+        lookup.setdefault(strip_accents(tok.lower()), tok.lower() if i == 0 else tok)
+    return " ".join(lookup.get(t, t) for t in norm.split())

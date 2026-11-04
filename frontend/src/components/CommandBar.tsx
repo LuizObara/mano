@@ -1,6 +1,11 @@
 import { useState } from "react";
 
-const SUGGESTIONS = ["que horas são?", "timer de 5 minutos", "timer de 10 minutos pro arroz", "o que você sabe fazer?"];
+const SUGGESTIONS = [
+  "timer de 10 minutos pro arroz",
+  "me lembra de beber água em 30 minutos",
+  "quais hábitos faltam?",
+  "o que você sabe fazer?",
+];
 
 export function CommandBar({
   onSend,

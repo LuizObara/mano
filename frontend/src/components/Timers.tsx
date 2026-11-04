@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { api, fmtLeft, useNow, type Timer } from "../lib/mano";
+import { Card } from "./ui";
 
 export function Timers({ timers }: { timers: Timer[] }) {
   const now = useNow(250);
@@ -65,14 +66,5 @@ export function Timers({ timers }: { timers: Timer[] }) {
         <button className="rounded-lg bg-line px-3 py-1.5 text-sm hover:bg-ember hover:text-ink">Criar</button>
       </form>
     </Card>
-  );
-}
-
-export function Card({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
-  return (
-    <section className={`rounded-2xl border border-line bg-panel p-4 ${className}`}>
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">{title}</h2>
-      {children}
-    </section>
   );
 }

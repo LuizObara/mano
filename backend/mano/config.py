@@ -29,6 +29,14 @@ class Settings(BaseSettings):
     max_utterance_s: float = 15.0
     mic_device: int | str | None = None  # None = microfone padrão do Windows
 
+    # Avisos
+    toast_enabled: bool = True  # notificação do Windows
+
+    # Remédios
+    med_repeat_min: int = 5  # repete o alerta até confirmar
+    med_snooze_min: int = 10
+    med_give_up_min: int = 120  # depois disso a dose vira "não tomada"
+
     # Timers
     timer_ring_repeat_s: int = 30  # repete o aviso falado enquanto o timer toca
     timer_ring_max_s: int = 300  # desiste de tocar depois disso

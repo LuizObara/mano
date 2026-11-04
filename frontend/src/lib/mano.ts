@@ -8,6 +8,42 @@ export type Timer = {
   status: "running" | "ringing" | "done" | "cancelled";
 };
 
+export type Med = {
+  id: number;
+  name: string;
+  dose: string;
+  times: string[];
+  days: number[];
+  stock: number | null;
+  low_stock: number;
+  notes: string;
+  active: boolean;
+};
+
+export type Dose = {
+  id: number;
+  medication_id: number;
+  name: string;
+  dose: string;
+  scheduled_at: number;
+  status: "pending" | "taken" | "skipped" | "missed";
+  taken_at: number | null;
+  reminders: number;
+};
+
+export type Habit = {
+  id: number;
+  name: string;
+  icon: string;
+  days: number[];
+  today_scheduled: boolean;
+  done_today: boolean;
+  streak: number;
+  history: string[]; // ISO dates
+};
+
+export type Reminder = { id: number; text: string; due_at: number; status: "pending" | "fired" };
+
 export type LogEntry = {
   id: number;
   at: number;
@@ -20,14 +56,24 @@ export type LogEntry = {
 export type Reply = { intent: string | null; speech: string; display: string; log: LogEntry };
 export type VoiceState = "idle" | "listening" | "thinking" | "speaking";
 export type VoiceStatus = { available: boolean; reason: string; wake_phrases: string[] };
+export type Notice = { id: number; text: string; level: string; title: string };
 
-export async function api<T = unknown>(path: string, body?: unknown): Promise<T> {
+export async function api<T = unknown>(path: string, body?: unknown, method?: string): Promise<T> {
   const res = await fetch(path, {
-    method: body === undefined ? "GET" : "POST",
+    method: method ?? (body === undefined ? "GET" : "POST"),
     headers: body === undefined ? undefined : { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`${res.status} ${path}`);
+  if (!res.ok) {
+    let detail = `${res.status}`;
+    try {
+      const j = await res.json();
+      detail = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail);
+    } catch {
+      /* sem corpo */
+    }
+    throw new Error(detail);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -38,15 +84,29 @@ export function useMano() {
   const [voiceStatus, setVoiceStatus] = useState<VoiceStatus | null>(null);
   const [partial, setPartial] = useState("");
   const [timers, setTimers] = useState<Timer[]>([]);
+  const [meds, setMeds] = useState<Med[]>([]);
+  const [doses, setDoses] = useState<Dose[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [lastReply, setLastReply] = useState<Reply | null>(null);
   const [history, setHistory] = useState<LogEntry[]>([]);
   const [busy, setBusy] = useState(false);
   const retry = useRef(0);
+  const noticeId = useRef(0);
 
   useEffect(() => {
     let ws: WebSocket | null = null;
     let closed = false;
     let timeout: number | undefined;
+
+    const apply = (msg: Record<string, unknown>) => {
+      if ("timers" in msg) setTimers(msg.timers as Timer[]);
+      if ("meds" in msg) setMeds(msg.meds as Med[]);
+      if ("doses" in msg) setDoses(msg.doses as Dose[]);
+      if ("habits" in msg) setHabits(msg.habits as Habit[]);
+      if ("reminders" in msg) setReminders(msg.reminders as Reminder[]);
+    };
 
     const connect = () => {
       const proto = location.protocol === "https:" ? "wss" : "ws";
@@ -64,12 +124,15 @@ export function useMano() {
         const msg = JSON.parse(ev.data);
         switch (msg.type) {
           case "hello":
-            setTimers(msg.timers);
+            apply(msg);
             setVoice(msg.voice);
             setVoiceStatus(msg.voice_status);
             break;
           case "timers":
-            setTimers(msg.timers);
+          case "meds":
+          case "habits":
+          case "reminders":
+            apply(msg);
             break;
           case "voice":
             setVoice(msg.state);
@@ -78,6 +141,12 @@ export function useMano() {
           case "voice.partial":
             setPartial(msg.text);
             break;
+          case "notice": {
+            const id = ++noticeId.current;
+            setNotices((n) => [...n.slice(-2), { id, text: msg.text, level: msg.level, title: msg.title }]);
+            window.setTimeout(() => setNotices((n) => n.filter((x) => x.id !== id)), 12000);
+            break;
+          }
           case "reply":
             setLastReply(msg);
             setPartial("");
@@ -105,9 +174,15 @@ export function useMano() {
   }, []);
 
   const listen = useCallback(() => api("/api/voice/listen", {}).catch(() => {}), []);
+  const dismissNotice = useCallback((id: number) => setNotices((n) => n.filter((x) => x.id !== id)), []);
 
-  return { connected, voice, voiceStatus, partial, timers, lastReply, history, busy, send, listen };
+  return {
+    connected, voice, voiceStatus, partial, timers, meds, doses, habits, reminders, notices,
+    lastReply, history, busy, send, listen, dismissNotice,
+  };
 }
+
+export type Mano = ReturnType<typeof useMano>;
 
 export function useNow(intervalMs = 1000) {
   const [now, setNow] = useState(() => Date.now());
@@ -126,3 +201,17 @@ export function fmtLeft(ms: number) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return h ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
 }
+
+export const hhmm = (ms: number) =>
+  new Date(ms).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+export const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+
+/** Data local em ISO (yyyy-mm-dd), sem fuso. */
+export function isoDay(d: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** 0 = segunda, como no backend. */
+export const weekdayMon0 = (d: Date) => (d.getDay() + 6) % 7;

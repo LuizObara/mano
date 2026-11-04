@@ -6,5 +6,6 @@ pydantic-settings==2.7.1
 pywin32==308; sys_platform == "win32"
 vosk==0.3.45
 sounddevice==0.5.1
+winotify==1.1.0; sys_platform == "win32"
 pytest==8.3.4
 httpx==0.28.1

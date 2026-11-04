@@ -76,16 +76,11 @@ class TimerSkill(Skill):
             speech = f"Ok, timer de {say_duration(t.duration_s)}."
         return Reply(speech, data={"timer": t.public()})
 
-    @intent(
-        "timer.dismiss",
-        patterns=[r"^(para|pare|chega|ok|silencio|desliga|beleza|valeu|ja vi)$",
-                  rf"^(para|pare|desliga|silencia)( o| os)? (alarme|alarmes|aviso)$"],
-        examples=["para (quando um timer está tocando)"],
-        priority=30,
-    )
-    async def dismiss_intent(self, slots: dict) -> Reply:
-        n = await self.dismiss_all()
-        return Reply("Beleza." if n else "Não tem nada tocando.")
+    async def dismiss_alerts(self) -> int:  # "para" (ver skills/alerts.py)
+        return await self.dismiss_all()
+
+    def snapshot(self) -> dict:
+        return {"timers": [t.public() for t in self.active()]}
 
     @intent(
         "timer.cancel",

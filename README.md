@@ -21,6 +21,19 @@ O visor fica em http://127.0.0.1:8765. No Edge, menu ⋯ → Aplicativos → "In
 - Ajustes no `.env`: `MANO_WAKE_CONF` (0–1; suba se disparar à toa, desça se não te ouvir),
   `MANO_MIC_DEVICE` (índice ou nome do microfone), `MANO_VOICE_ENABLED=false` para desligar.
 
+## Rotina
+
+- **Remédios** (aba Remédios): nome, dose, horários, dias e estoque opcional. No horário o Mano avisa
+  por voz, na tela e com notificação do Windows, e repete a cada 5 min até "tomei" (ou o botão).
+  "Adiar" empurra 10 min; após 2 h sem resposta a dose fica como não tomada. Estoque baixo gera aviso.
+  Por voz: "tomei", "pula o remédio", "adia", "quais remédios de hoje?", "já tomei o remédio hoje?".
+- **Hábitos** (aba Hábitos): checklist diário, sequência e grade de 35 dias (clique para marcar dias passados).
+  Por voz: "fiz exercício", "desmarca leitura", "quais hábitos faltam?".
+- **Lembretes**: "me lembra de pagar o boleto amanhã às 10", "me lembra em 20 minutos de tirar o bolo",
+  "quais são meus lembretes?", "cancela o lembrete do boleto". "Ok"/"para" dispensa o que estiver tocando.
+- Ajustes no `.env`: `MANO_MED_REPEAT_MIN`, `MANO_MED_SNOOZE_MIN`, `MANO_MED_GIVE_UP_MIN`, `MANO_TOAST_ENABLED`.
+- Com o notebook desligado ou suspenso não há aviso (aviso no celular está previsto na fase 7).
+
 ## Desenvolvimento
 
 ```powershell
@@ -46,7 +59,7 @@ Configuração por `.env` na raiz (variáveis `MANO_*`, ver `backend/mano/config
 
 0. ✅ Fundação: backend, visor, parser PT-BR, voz de saída (Maria/SAPI), hora/data, timers
 1. ✅ Voz: frase de ativação, reconhecimento offline (Vosk), push-to-talk
-2. Rotina: remédios (repete até confirmar), hábitos, lembretes
+2. ✅ Rotina: remédios (repete até confirmar), hábitos, lembretes
 3. Spotify, YouTube, pesquisa rápida
 4. Gmail, Google Agenda, Google Tasks
 5. Segundo cérebro (vault do Obsidian)

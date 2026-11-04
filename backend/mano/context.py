@@ -31,8 +31,13 @@ class Ctx:
         self.voice_state = state
         self.hub.broadcast_threadsafe("voice", {"state": state})
 
-    async def notify(self, text: str, *, speak: bool = True, level: str = "info") -> None:
-        """Aviso proativo do Mano (timer acabou, remédio, etc.): tela + voz."""
-        await self.hub.broadcast("notice", {"text": text, "level": level})
+    async def notify(self, text: str, *, speak: bool = True, level: str = "info", title: str = "Mano",
+                     toast: bool = True) -> None:
+        """Aviso proativo do Mano (remédio, lembrete...): tela + voz + notificação do Windows."""
+        await self.hub.broadcast("notice", {"text": text, "level": level, "title": title})
         if speak:
             self.speaker.say(text)
+        if toast and self.settings.toast_enabled:
+            from .notify import toast as show_toast
+
+            show_toast(title, text)

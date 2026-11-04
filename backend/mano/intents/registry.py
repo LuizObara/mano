@@ -92,6 +92,14 @@ class Skill:
     async def stop(self) -> None:
         pass
 
+    def snapshot(self) -> dict:
+        """Estado inicial enviado a cada tela que conecta (mesclado na mensagem 'hello')."""
+        return {}
+
+    async def dismiss_alerts(self) -> int:
+        """Responde ao "para"/"ok": dispensa avisos tocando. Retorna quantos dispensou."""
+        return 0
+
     def intents(self) -> list[Intent]:
         found = []
         for _, fn in inspect.getmembers(self, predicate=inspect.ismethod):
@@ -135,6 +143,7 @@ class Registry:
         for it in self._intents:
             slots = it.match(text)
             if slots is not None:
+                slots["_raw"] = raw  # frase original, para recuperar acentos
                 return Match(it, slots, text)
         return None
 

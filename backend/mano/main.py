@@ -96,13 +96,10 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
     @app.websocket("/ws")
     async def ws(websocket: WebSocket):
         await hub.connect(websocket)
-        timers = next(s for s in registry.skills if s.name == "timers")
-        await websocket.send_json({
-            "type": "hello",
-            "voice": ctx.voice_state,
-            "voice_status": voice.status(),
-            "timers": [t.public() for t in timers.active()],
-        })
+        hello = {"type": "hello", "voice": ctx.voice_state, "voice_status": voice.status()}
+        for skill in registry.skills:
+            hello.update(skill.snapshot())
+        await websocket.send_json(hello)
         try:
             while True:
                 msg = await websocket.receive_json()

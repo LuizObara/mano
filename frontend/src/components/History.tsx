@@ -1,5 +1,5 @@
 import type { LogEntry } from "../lib/mano";
-import { Card } from "./Timers";
+import { Card } from "./ui";
 
 const timeFmt = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
