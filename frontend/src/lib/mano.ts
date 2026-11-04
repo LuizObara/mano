@@ -57,6 +57,26 @@ export type NowPlaying = {
 export type SpotifyStatus = { configured: boolean; connected: boolean; redirect_uri: string; now: NowPlaying | null };
 export type Video = { id: string; title: string; channel?: string; duration?: number | null; thumb?: string };
 
+export type CalEvent = {
+  id: string;
+  title: string;
+  start: number;
+  end: number;
+  all_day: boolean;
+  location?: string | null;
+  link?: string | null;
+  calendar?: string | null;
+  color?: string | null;
+  meet?: string | null;
+};
+export type Mail = { id: string; from: string; subject: string; snippet: string; date: number; url: string };
+export type Task = { id: string; title: string; notes?: string | null; due: string | null };
+export type GoogleStatus = { configured: boolean; connected: boolean; email: string | null; redirect_uri: string };
+type Feed = { error: string | null; updated: number | null };
+export type CalendarData = Feed & { events: CalEvent[] };
+export type GmailData = Feed & { unread: number | null; important?: number; messages: Mail[] };
+export type TasksData = Feed & { tasks: Task[] };
+
 export type Reminder = { id: number; text: string; due_at: number; status: "pending" | "fired" };
 
 export type LogEntry = {
@@ -115,6 +135,10 @@ export function useMano() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [spotify, setSpotify] = useState<SpotifyStatus | null>(null);
+  const [google, setGoogle] = useState<GoogleStatus | null>(null);
+  const [calendar, setCalendar] = useState<CalendarData | null>(null);
+  const [gmail, setGmail] = useState<GmailData | null>(null);
+  const [tasks, setTasks] = useState<TasksData | null>(null);
   const [video, setVideo] = useState<Video | null>(null);
   const [videoResults, setVideoResults] = useState<{ q: string; results: Video[] } | null>(null);
   const [lastReply, setLastReply] = useState<Reply | null>(null);
@@ -135,6 +159,10 @@ export function useMano() {
       if ("habits" in msg) setHabits(msg.habits as Habit[]);
       if ("reminders" in msg) setReminders(msg.reminders as Reminder[]);
       if ("spotify" in msg) setSpotify(msg.spotify as SpotifyStatus);
+      if ("google" in msg) setGoogle(msg.google as GoogleStatus);
+      if ("calendar" in msg) setCalendar(msg.calendar as CalendarData);
+      if ("gmail" in msg) setGmail(msg.gmail as GmailData);
+      if ("tasks" in msg) setTasks(msg.tasks as TasksData);
     };
 
     const connect = () => {
@@ -162,6 +190,10 @@ export function useMano() {
           case "habits":
           case "reminders":
           case "spotify":
+          case "google":
+          case "calendar":
+          case "gmail":
+          case "tasks":
             apply(msg);
             break;
           case "youtube":
@@ -221,6 +253,7 @@ export function useMano() {
     connected, voice, voiceStatus, partial, timers, meds, doses, habits, reminders, notices,
     lastReply, history, busy, send, listen, dismissNotice,
     spotify, video, setVideo, videoResults, setVideoResults,
+    google, calendar, gmail, tasks,
   };
 }
 

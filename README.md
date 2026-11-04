@@ -45,6 +45,19 @@ O visor fica em http://127.0.0.1:8765. No Edge, menu ⋯ → Aplicativos → "In
 - **Pesquisa**: "o que é fotossíntese?" / "quem foi Machado de Assis?" respondem falando com o resumo
   da Wikipedia (e cartão na tela); "pesquisa preço do dólar" abre o Google no navegador do PC.
 
+## Cockpit Google
+
+Configure na aba **Ajustes** (passo a passo na tela): projeto no Google Cloud com Gmail, Calendar e Tasks API,
+app publicado "Em produção" (no modo Teste o login expira a cada 7 dias), cliente OAuth **App para computador**,
+envio do JSON e "Conectar". Credenciais e token ficam em `data/` (fora do git).
+
+- **Agenda**: próximos 7 dias de todas as agendas visíveis; aviso falado 10 min antes (`MANO_EVENT_HEADS_UP_MIN`).
+  "Qual minha agenda de hoje/amanhã/da semana?", "qual meu próximo compromisso?",
+  "marca dentista sexta às 10", "coloca na agenda reunião com a Ana amanhã às 15" (1 h na agenda principal).
+- **E-mail** (só leitura): não lidos da caixa principal (sem promoções/social). "Tenho e-mail novo?", "lê meus e-mails".
+- **Tarefas** (lista padrão do Google Tasks, sincroniza com o celular): "adiciona tarefa comprar pão amanhã",
+  "coloca pagar internet nas tarefas", "quais são minhas tarefas?", "conclui a tarefa comprar pão".
+
 ## Desenvolvimento
 
 ```powershell
@@ -72,7 +85,7 @@ Configuração por `.env` na raiz (variáveis `MANO_*`, ver `backend/mano/config
 1. ✅ Voz: frase de ativação, reconhecimento offline (Vosk), push-to-talk
 2. ✅ Rotina: remédios (repete até confirmar), hábitos, lembretes
 3. ✅ Spotify, YouTube, pesquisa rápida
-4. Gmail, Google Agenda, Google Tasks
+4. ✅ Gmail, Google Agenda, Google Tasks
 5. Segundo cérebro (vault do Obsidian)
 6. LLM local (Ollama) + briefing de notícias
 7. Opcional: mini servidor (alertas no celular via ntfy, LLM remoto)

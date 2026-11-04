@@ -69,6 +69,7 @@ export function Today({ mano, go }: { mano: Mano; go: (page: string) => void }) 
                     type="checkbox"
                     checked={h.done_today}
                     onChange={(e) => api(`/api/habits/${h.id}/toggle`, { done: e.target.checked })}
+                    aria-label={`${h.done_today ? "Desmarcar" : "Marcar"} ${h.name}`}
                     className="size-4 accent-ember"
                   />
                   <span className={`flex-1 ${h.done_today ? "text-muted line-through" : ""}`}>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Alerts } from "./components/Alerts";
 import { Clock } from "./components/Clock";
 import { CommandBar } from "./components/CommandBar";
+import { AgendaCard, InboxCard, TasksCard } from "./components/GoogleCards";
 import { History } from "./components/History";
 import { NowPlaying } from "./components/NowPlaying";
 import { Timers } from "./components/Timers";
@@ -73,7 +74,7 @@ export default function App() {
   }, [voiceOk, listen]);
 
   return (
-    <div className="mx-auto flex min-h-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-8 sm:py-8">
+    <div className="mx-auto flex min-h-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-8 sm:py-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <Clock />
         <div className="flex flex-col items-end gap-3">
@@ -112,8 +113,9 @@ export default function App() {
 function Home({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voiceOk: boolean }) {
   const [speak, setSpeak] = useStoredBool("mano.speak", true);
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-      <section className="flex min-w-0 flex-col items-center justify-center gap-6 rounded-3xl border border-line bg-panel p-6 sm:p-10">
+    <div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="flex min-w-0 flex-col gap-6">
+      <section className="flex min-w-0 flex-col items-center justify-center gap-6 rounded-3xl border border-line bg-panel p-6 sm:p-8">
         <VoiceOrb state={mano.voice} />
         <div className="min-h-24 w-full max-w-xl text-center">
           {mano.voice === "listening" || (mano.voice === "thinking" && mano.partial) ? (
@@ -164,13 +166,20 @@ function Home({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voic
           }}
         />
       </section>
-
-      <aside className="flex min-w-0 flex-col gap-6">
-        <Today mano={mano} go={go} />
         <NowPlaying mano={mano} go={go} />
         <Timers timers={mano.timers} />
+      </div>
+
+      <div className="flex min-w-0 flex-col gap-6">
+        <AgendaCard mano={mano} go={go} />
+        <TasksCard mano={mano} go={go} />
+      </div>
+
+      <div className="flex min-w-0 flex-col gap-6 md:col-span-2 xl:col-span-1">
+        <Today mano={mano} go={go} />
+        <InboxCard mano={mano} go={go} />
         <History entries={mano.history} />
-      </aside>
+      </div>
     </div>
   );
 }

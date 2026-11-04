@@ -15,6 +15,8 @@ export function SettingsPage({ mano }: { mano: Mano }) {
     const p = new URLSearchParams(q);
     if (p.get("spotify") === "ok") setFlash("Spotify conectado!");
     if (p.get("spotify") === "erro") setFlash(`O Spotify recusou a conexão (${p.get("motivo") ?? "erro"}).`);
+    if (p.get("google") === "ok") setFlash("Conta Google conectada! Agenda, e-mail e tarefas já estão no início.");
+    if (p.get("google") === "erro") setFlash(`O Google recusou a conexão (${p.get("motivo") ?? "erro"}).`);
     history.replaceState(null, "", "#/ajustes");
   }, []);
 
@@ -32,6 +34,8 @@ export function SettingsPage({ mano }: { mano: Mano }) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       {flash && <div className="rounded-xl border border-ember/50 bg-ember-soft px-4 py-3 text-sm">{flash}</div>}
+
+      <GoogleSettings mano={mano} />
 
       <Card title="Spotify">
         {sp?.connected ? (
@@ -104,5 +108,98 @@ export function SettingsPage({ mano }: { mano: Mano }) {
         )}
       </Card>
     </div>
+  );
+}
+
+function GoogleSettings({ mano }: { mano: Mano }) {
+  const g = mano.google;
+  const [error, setError] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const upload = async (file: File | undefined) => {
+    if (!file) return;
+    setError("");
+    setSending(true);
+    try {
+      const config = JSON.parse(await file.text());
+      await api("/api/google/client", { config });
+    } catch (err) {
+      setError(err instanceof SyntaxError ? "Esse arquivo não é um JSON válido." : (err as Error).message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const link = (href: string, text: string) => (
+    <a className="text-ember underline-offset-2 hover:underline" href={href} target="_blank" rel="noreferrer">
+      {text}
+    </a>
+  );
+
+  return (
+    <Card title="Google (Gmail, Agenda, Tarefas)">
+      {g?.connected ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="flex items-center gap-2 text-sm">
+            <span className="size-2 rounded-full bg-emerald-400" /> Conectado{g.email ? ` como ${g.email}` : ""}
+          </span>
+          <button className={btn.ghost} onClick={() => api("/api/google/refresh", {})}>
+            Atualizar agora
+          </button>
+          <button className={`${btn.danger} ml-auto`} onClick={() => api("/api/google/logout", {})}>
+            Desconectar
+          </button>
+        </div>
+      ) : (
+        <ol className="flex list-decimal flex-col gap-3 pl-5 text-sm">
+          <li>
+            Em {link("https://console.cloud.google.com/projectcreate", "console.cloud.google.com")}, crie um projeto
+            (ex.: Mano).
+          </li>
+          <li>
+            Ative as APIs do projeto: {link("https://console.cloud.google.com/apis/library/gmail.googleapis.com", "Gmail API")},{" "}
+            {link("https://console.cloud.google.com/apis/library/calendar-json.googleapis.com", "Google Calendar API")} e{" "}
+            {link("https://console.cloud.google.com/apis/library/tasks.googleapis.com", "Google Tasks API")}.
+          </li>
+          <li>
+            Em {link("https://console.cloud.google.com/auth/branding", "Google Auth Platform")}, configure: público{" "}
+            <b>Externo</b>, nome Mano e seu e-mail. Em <b>Público-alvo</b>, clique em <b>Publicar app</b> (“Em
+            produção”). No modo “Teste” o Google desconecta a cada 7 dias.
+          </li>
+          <li>
+            Em {link("https://console.cloud.google.com/auth/clients", "Clientes")}, crie um cliente OAuth do tipo{" "}
+            <b>App para computador</b> e baixe o JSON.
+          </li>
+          <li>
+            Envie o JSON aqui:
+            <label className={`${btn.ghost} ml-2 inline-block cursor-pointer`}>
+              {sending ? "Enviando…" : g?.configured ? "Trocar arquivo" : "Escolher arquivo"}
+              <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => upload(e.target.files?.[0])} />
+            </label>
+            {g?.configured && <span className="ml-2 text-emerald-300">✓ recebido</span>}
+            {error && <p className="mt-1 text-alert">{error}</p>}
+          </li>
+          <li>
+            {g?.configured ? (
+              <>
+                <a href="/api/google/login" className={`${btn.primary} inline-block`}>
+                  Conectar minha conta Google
+                </a>
+                <p className="mt-2 text-xs text-muted">
+                  Vai aparecer “O Google não verificou este app”: é o seu próprio app. Clique em <b>Avançado</b> →{" "}
+                  <b>Acessar Mano</b> e marque as permissões.
+                </p>
+              </>
+            ) : (
+              <span className="text-muted">Depois de enviar o JSON, aparece aqui o botão para conectar.</span>
+            )}
+          </li>
+        </ol>
+      )}
+      <p className="mt-4 text-xs text-muted">
+        O Mano só lê seus e-mails (não envia nem apaga). Na agenda, ele lê e cria compromissos; nas tarefas, lê, cria e
+        conclui. Tudo fica nesta máquina.
+      </p>
+    </Card>
   );
 }

@@ -42,6 +42,10 @@ class Settings(BaseSettings):
     spotify_redirect_uri: str = "http://127.0.0.1:8765/api/spotify/callback"
     spotify_poll_s: int = 5
 
+    # Google (Gmail, Agenda, Tarefas). O retorno do login é a raiz do Mano (loopback de "app para computador").
+    google_redirect_uri: str = "http://127.0.0.1:8765/"
+    event_heads_up_min: int = 10  # avisa antes de compromissos da agenda
+
     # Internet (Wikipedia exige um User-Agent identificável)
     http_user_agent: str = "Mano/0.1 (https://www.mediawiki.org/wiki/API:Etiquette; assistente pessoal local) httpx/0.28"
 
