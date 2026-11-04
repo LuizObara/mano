@@ -2,6 +2,8 @@
 
 Assistente pessoal local: visor + comandos por texto e por voz, rodando nesta máquina, sem nuvem.
 
+**Documentação completa em [`docs/`](docs/README.md)**: [instalação](docs/guia/instalacao.md), [configuração](docs/guia/configuracao.md), [uso](docs/guia/uso.md), [comandos aceitos](docs/guia/comandos.md), [problemas](docs/guia/problemas.md), [o que falta](docs/pendencias.md) e [guias de desenvolvimento](docs/README.md#para-desenvolver).
+
 ## Rodar
 
 ```powershell
@@ -102,11 +104,13 @@ Configuração por `.env` na raiz (variáveis `MANO_*`, ver `backend/mano/config
 
 ## Como adicionar uma skill
 
+Guia completo em [docs/dev/skills.md](docs/dev/skills.md). Resumo:
+
 1. Crie `backend/mano/skills/minha_skill.py` com uma classe `Skill`.
 2. Marque handlers com `@intent("nome", patterns=[...], examples=[...])`. Os padrões rodam sobre o texto
    normalizado: minúsculo, sem acento, sem "Mano," no começo e com números em dígitos ("dez" → "10").
 3. Se precisar de API para a UI, devolva um `APIRouter` em `router()`.
-4. Registre a classe em `ALL_SKILLS` (`backend/mano/skills/__init__.py`) e adicione frases em `tests/test_parser.py`.
+4. Registre a classe em `ALL_SKILLS` (`backend/mano/skills/__init__.py`) e adicione as frases em `docs/guia/comandos.md` (o teste `test_docs.py` confere).
 
 ## Fases
 
