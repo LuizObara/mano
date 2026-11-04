@@ -16,6 +16,10 @@ if (-not (Test-Path $py)) {
     & $py -m pip install -q -r (Join-Path $root "backend\requirements.txt")
 }
 
+if (-not (Test-Path (Join-Path $root "data\models\vosk-model-small-pt-0.3"))) {
+    & (Join-Path $PSScriptRoot "get-models.ps1")
+}
+
 $dist = Join-Path $root "frontend\dist\index.html"
 if ($Build -or -not (Test-Path $dist)) {
     Write-Host "Compilando o frontend..."

@@ -52,6 +52,10 @@ def test_say_duration():
     ("timer do macarrão de oito minutos", "timer.start", {"seconds": 480, "label": "macarrao"}),
     ("cria um temporizador de uma hora e meia", "timer.start", {"seconds": 5400, "label": None}),
     ("me avisa em meia hora", "timer.start", {"seconds": 1800, "label": None}),
+    # como o Vosk transcreve de verdade
+    ("fala mano coloca um time de dez minutos o arroz", "timer.start", {"seconds": 600, "label": "arroz"}),
+    ("time de cinco minutos", "timer.start", {"seconds": 300, "label": None}),
+    ("coloca um timer de 10 minutos", "timer.start", {"seconds": 600, "label": None}),
     ("cancela o timer do arroz", "timer.cancel", {}),
     ("cancela todos os timers", "timer.cancel", {}),
     ("quanto tempo falta?", "timer.list", {}),
@@ -70,3 +74,4 @@ def test_registry_routes(registry, text, intent, slots):
 def test_unknown(registry):
     assert registry.parse("faz um bolo de chocolate") is None
     assert registry.parse("timer") is None  # sem duração não é timer.start
+    assert registry.parse("meu time ganhou") is None

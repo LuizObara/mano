@@ -8,7 +8,7 @@ from mano.voice.tts import NullSpeaker
 
 @pytest.fixture
 def settings(tmp_path):
-    return Settings(data_dir=tmp_path, frontend_dist=tmp_path / "nofrontend", tts_enabled=False,
+    return Settings(data_dir=tmp_path, frontend_dist=tmp_path / "nofrontend", tts_enabled=False, voice_enabled=False,
                     timer_ring_repeat_s=1, timer_ring_max_s=60, _env_file=None)
 
 

@@ -12,7 +12,12 @@ export function History({ entries }: { entries: LogEntry[] }) {
           <li key={e.id} className="py-2 text-sm">
             <div className="flex gap-2">
               <span className="text-muted tabular-nums">{timeFmt.format(e.at)}</span>
-              <span className="truncate">{e.text}</span>
+              <span className="truncate">
+                {e.source === "voice" && (
+                  <span className="mr-1 text-ember" title="por voz" aria-label="por voz">●</span>
+                )}
+                {e.text}
+              </span>
             </div>
             <div className={`truncate pl-12 ${e.intent ? "text-muted" : "text-alert/80"}`}>{e.reply}</div>
           </li>

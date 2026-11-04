@@ -7,11 +7,13 @@ export function CommandBar({
   busy,
   speak,
   setSpeak,
+  voice,
 }: {
   onSend: (text: string) => void;
   busy: boolean;
   speak: boolean;
   setSpeak: (v: boolean) => void;
+  voice: { available: boolean; reason: string; listening: boolean; onListen: () => void };
 }) {
   const [text, setText] = useState("");
 
@@ -32,10 +34,18 @@ export function CommandBar({
       >
         <button
           type="button"
-          disabled
-          title="Voz chega na próxima fase"
-          className="size-10 shrink-0 grid place-items-center rounded-xl text-muted/60 cursor-not-allowed"
-          aria-label="Microfone (em breve)"
+          disabled={!voice.available}
+          onClick={voice.onListen}
+          title={voice.available ? "Falar agora (Ctrl+Espaço)" : `Voz indisponível: ${voice.reason}`}
+          className={`size-10 shrink-0 grid place-items-center rounded-xl transition-colors ${
+            voice.listening
+              ? "bg-ember text-ink"
+              : voice.available
+                ? "text-ember hover:bg-ember-soft"
+                : "text-muted/50 cursor-not-allowed"
+          }`}
+          aria-label="Falar agora"
+          aria-pressed={voice.listening}
         >
           <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
             <rect x="9" y="3" width="6" height="11" rx="3" />

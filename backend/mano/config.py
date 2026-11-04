@@ -20,6 +20,15 @@ class Settings(BaseSettings):
     tts_voice: str = "Maria"
     tts_rate: int = 1  # -10..10
 
+    # Voz de entrada (Vosk offline)
+    voice_enabled: bool = True
+    vosk_model_path: Path | None = None  # padrão: data/models/vosk-model-small-pt-0.3
+    wake_phrases: list[str] = ["fala mano", "ei mano", "oi mano"]
+    wake_conf: float = 0.75  # 0..1; suba se disparar à toa, desça se não ouvir
+    listen_timeout_s: float = 6.0
+    max_utterance_s: float = 15.0
+    mic_device: int | str | None = None  # None = microfone padrão do Windows
+
     # Timers
     timer_ring_repeat_s: int = 30  # repete o aviso falado enquanto o timer toca
     timer_ring_max_s: int = 300  # desiste de tocar depois disso
@@ -27,3 +36,7 @@ class Settings(BaseSettings):
     @property
     def db_path(self) -> Path:
         return self.data_dir / "mano.db"
+
+    @property
+    def vosk_model_dir(self) -> Path:
+        return self.vosk_model_path or self.data_dir / "models" / "vosk-model-small-pt-0.3"

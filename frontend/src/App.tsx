@@ -29,6 +29,20 @@ function useStoredBool(key: string, initial: boolean) {
 export default function App() {
   const mano = useMano();
   const [speak, setSpeak] = useStoredBool("mano.speak", true);
+  const voiceOk = !!mano.voiceStatus?.available;
+  const { listen } = mano;
+
+  // Ctrl+Espaço = falar agora (push-to-talk), funciona com o visor em foco
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.code === "Space" && voiceOk) {
+        e.preventDefault();
+        listen();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [voiceOk, listen]);
 
   return (
     <div className="mx-auto flex min-h-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-8 sm:py-8">
@@ -44,7 +58,9 @@ export default function App() {
         <section className="flex min-w-0 flex-col items-center justify-center gap-6 rounded-3xl border border-line bg-panel p-6 sm:p-10">
           <VoiceOrb state={mano.voice} />
           <div className="min-h-24 w-full max-w-xl text-center">
-            {mano.lastReply ? (
+            {mano.voice === "listening" || (mano.voice === "thinking" && mano.partial) ? (
+              <p className="text-2xl italic text-muted">{mano.partial ? `${mano.partial}…` : "Pode falar…"}</p>
+            ) : mano.lastReply ? (
               <>
                 <p className="text-sm text-muted">“{mano.lastReply.log.text}”</p>
                 {mano.lastReply.display.includes("\n") ? (
@@ -58,10 +74,23 @@ export default function App() {
                 )}
               </>
             ) : (
-              <p className="text-2xl text-muted">Oi! Digite um comando abaixo.</p>
+              <p className="text-2xl text-muted">
+                {voiceOk ? "Diga “fala Mano” ou digite abaixo." : "Oi! Digite um comando abaixo."}
+              </p>
             )}
           </div>
-          <CommandBar onSend={(t) => mano.send(t, speak)} busy={mano.busy} speak={speak} setSpeak={setSpeak} />
+          <CommandBar
+            onSend={(t) => mano.send(t, speak)}
+            busy={mano.busy}
+            speak={speak}
+            setSpeak={setSpeak}
+            voice={{
+              available: voiceOk,
+              reason: mano.voiceStatus?.reason ?? "conectando",
+              listening: mano.voice === "listening",
+              onListen: listen,
+            }}
+          />
         </section>
 
         <aside className="flex min-w-0 flex-col gap-6">

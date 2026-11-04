@@ -26,6 +26,11 @@ class Ctx:
     registry: Registry = field(default=None)  # type: ignore[assignment]
     voice_state: str = "idle"  # idle | listening | thinking | speaking
 
+    def set_voice_state(self, state: str) -> None:
+        """Pode ser chamado de qualquer thread."""
+        self.voice_state = state
+        self.hub.broadcast_threadsafe("voice", {"state": state})
+
     async def notify(self, text: str, *, speak: bool = True, level: str = "info") -> None:
         """Aviso proativo do Mano (timer acabou, remédio, etc.): tela + voz."""
         await self.hub.broadcast("notice", {"text": text, "level": level})

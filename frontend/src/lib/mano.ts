@@ -19,6 +19,7 @@ export type LogEntry = {
 
 export type Reply = { intent: string | null; speech: string; display: string; log: LogEntry };
 export type VoiceState = "idle" | "listening" | "thinking" | "speaking";
+export type VoiceStatus = { available: boolean; reason: string; wake_phrases: string[] };
 
 export async function api<T = unknown>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(path, {
@@ -34,6 +35,8 @@ export async function api<T = unknown>(path: string, body?: unknown): Promise<T>
 export function useMano() {
   const [connected, setConnected] = useState(false);
   const [voice, setVoice] = useState<VoiceState>("idle");
+  const [voiceStatus, setVoiceStatus] = useState<VoiceStatus | null>(null);
+  const [partial, setPartial] = useState("");
   const [timers, setTimers] = useState<Timer[]>([]);
   const [lastReply, setLastReply] = useState<Reply | null>(null);
   const [history, setHistory] = useState<LogEntry[]>([]);
@@ -63,15 +66,21 @@ export function useMano() {
           case "hello":
             setTimers(msg.timers);
             setVoice(msg.voice);
+            setVoiceStatus(msg.voice_status);
             break;
           case "timers":
             setTimers(msg.timers);
             break;
           case "voice":
             setVoice(msg.state);
+            if (msg.state === "listening") setPartial("");
+            break;
+          case "voice.partial":
+            setPartial(msg.text);
             break;
           case "reply":
             setLastReply(msg);
+            setPartial("");
             setHistory((h) => [msg.log, ...h.filter((e) => e.id !== msg.log.id)].slice(0, 15));
             break;
         }
@@ -95,7 +104,9 @@ export function useMano() {
     }
   }, []);
 
-  return { connected, voice, timers, lastReply, history, busy, send };
+  const listen = useCallback(() => api("/api/voice/listen", {}).catch(() => {}), []);
+
+  return { connected, voice, voiceStatus, partial, timers, lastReply, history, busy, send, listen };
 }
 
 export function useNow(intervalMs = 1000) {

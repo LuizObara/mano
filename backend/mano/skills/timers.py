@@ -16,21 +16,26 @@ from ..intents.ptbr import parse_duration, say_duration
 from ..intents.registry import Reply, Skill, intent
 from ..models import Timer
 
-TIMER_WORD = r"(timer|timers|temporizador|temporizadores|cronometro|alarme|alarmes)"
+# "time"/"taimer": o modelo de voz em português não conhece a palavra "timer"
+TIMER_WORD = r"(timer|timers|time|times|taimer|temporizador|temporizadores|cronometro|alarme|alarmes)"
+_STOP = {"o", "a", "os", "as", "de", "do", "da", "por", "em", "com", "e", "1", "pra", "pro", "para", "no", "na"}
 _LABEL_RE = re.compile(r"\b(?:pro|pra|para|do|da|dos|das|no|na)\s+(?:o |a |os |as )?(?P<label>.+)$")
 _TRAILING_STOP = re.compile(r"(\s+(de|por|em|com|e|o|a))+$")
 _LEADING_NOISE = re.compile(
     r"^(?:(?:por favor|coloca|coloque|cria|crie|inicia|inicie|faz|faca|marca|marque|liga|ligue|bota|"
-    r"bote|poe|ponha|define|programa|me|um|uma|novo|nova|de|por|em|daqui a|daqui)\s+)*"
+    r"bote|poe|ponha|define|programa|me|um|uma|1|novo|nova|de|por|em|daqui a|daqui|"
+    r"avisa|avise|chama|chame|lembra|lembre)\s+)*"
 )
 
 
 def _clean_label(text: str) -> str | None:
     m = _LABEL_RE.search(text)
-    if not m:
-        return None
-    label = _TRAILING_STOP.sub("", m.group("label")).strip()
-    return label or None
+    if m:
+        label = _TRAILING_STOP.sub("", m.group("label")).strip()
+        return label or None
+    # a voz às vezes engole a preposição ("10 minutos o arroz")
+    words = [w for w in text.split() if w not in _STOP]
+    return " ".join(words) if 1 <= len(words) <= 3 else None
 
 
 class TimerIn(BaseModel):
@@ -85,7 +90,7 @@ class TimerSkill(Skill):
     @intent(
         "timer.cancel",
         patterns=[rf"\b(cancela|cancelar|cancele|para|parar|pare|desliga|apaga|apague|remove|tira|zera)"
-                  rf"( o| os| a|(?P<all> todos os| todos))? {TIMER_WORD}(?P<rest>.*)$"],
+                  rf"( o| os| a|(?P<all> todos os| todos))? {TIMER_WORD}\b(?P<rest>.*)$"],
         examples=["cancela o timer do arroz", "cancela todos os timers"],
         priority=20,
     )

@@ -17,6 +17,7 @@ from .events import Hub
 from .intents.registry import Registry
 from .models import CommandLog
 from .skills import ALL_SKILLS
+from .voice.service import VoiceService
 from .voice.tts import Speaker, make_speaker
 
 log = logging.getLogger("mano")
@@ -38,13 +39,14 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
         scheduler=AsyncIOScheduler(),
         speaker=speaker or make_speaker(
             settings.tts_enabled, settings.tts_voice, settings.tts_rate,
-            on_state=lambda state: _set_voice_state(ctx, state),
+            on_state=lambda state: ctx.set_voice_state(state),
         ),
     )
     registry = Registry()
     ctx.registry = registry
     for skill_cls in ALL_SKILLS:
         registry.add(skill_cls(ctx))
+    voice = VoiceService(ctx)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -52,8 +54,10 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
         ctx.scheduler.start()
         for skill in registry.skills:
             await skill.start()
+        await voice.start()
         log.info("Mano no ar em http://%s:%s", settings.host, settings.port)
         yield
+        await voice.stop()
         for skill in registry.skills:
             await skill.stop()
         ctx.scheduler.shutdown(wait=False)
@@ -61,6 +65,7 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
 
     app = FastAPI(title="Mano", lifespan=lifespan)
     app.state.ctx = ctx
+    app.state.voice = voice
 
     @app.get("/api/health")
     async def health():
@@ -80,6 +85,14 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
             rows = s.exec(select(CommandLog).order_by(CommandLog.id.desc()).limit(limit))
             return [r.public() for r in rows]
 
+    @app.get("/api/voice")
+    async def voice_status():
+        return {**voice.status(), "state": ctx.voice_state}
+
+    @app.post("/api/voice/listen")
+    async def voice_listen():
+        return {"ok": voice.listen_now(), **voice.status()}
+
     @app.websocket("/ws")
     async def ws(websocket: WebSocket):
         await hub.connect(websocket)
@@ -87,6 +100,7 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
         await websocket.send_json({
             "type": "hello",
             "voice": ctx.voice_state,
+            "voice_status": voice.status(),
             "timers": [t.public() for t in timers.active()],
         })
         try:
@@ -104,11 +118,6 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
 
     _mount_frontend(app, settings)
     return app
-
-
-def _set_voice_state(ctx: Ctx, state: str) -> None:
-    ctx.voice_state = state
-    ctx.hub.broadcast_threadsafe("voice", {"state": state})
 
 
 def _mount_frontend(app: FastAPI, settings: Settings) -> None:

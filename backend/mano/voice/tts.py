@@ -16,6 +16,11 @@ StateCallback = Callable[[str], None]  # "speaking" | "idle"
 
 
 class Speaker:
+    @property
+    def busy(self) -> bool:
+        """True enquanto está falando ou tem fala na fila (o microfone ignora esse período)."""
+        return False
+
     def say(self, text: str) -> None:  # pragma: no cover - interface
         raise NotImplementedError
 
@@ -41,11 +46,19 @@ class SapiSpeaker(Speaker):
         self.rate = rate
         self.on_state = on_state or (lambda _s: None)
         self._q: queue.Queue[str | None] = queue.Queue()
+        self._pending = 0  # frases na fila + a que está sendo falada
+        self._lock = threading.Lock()
         self._thread = threading.Thread(target=self._run, name="tts", daemon=True)
         self._thread.start()
 
+    @property
+    def busy(self) -> bool:
+        return self._pending > 0
+
     def say(self, text: str) -> None:
         if text:
+            with self._lock:
+                self._pending += 1
             self._q.put(text)
 
     def stop(self) -> None:
@@ -72,6 +85,8 @@ class SapiSpeaker(Speaker):
             except Exception:
                 log.exception("falha ao falar")
             finally:
+                with self._lock:
+                    self._pending -= 1
                 if self._q.empty():
                     self.on_state("idle")
 

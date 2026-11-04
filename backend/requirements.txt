@@ -4,5 +4,7 @@ sqlmodel==0.0.22
 apscheduler==3.11.0
 pydantic-settings==2.7.1
 pywin32==308; sys_platform == "win32"
+vosk==0.3.45
+sounddevice==0.5.1
 pytest==8.3.4
 httpx==0.28.1

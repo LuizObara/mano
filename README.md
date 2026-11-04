@@ -1,6 +1,6 @@
 # Mano
 
-Assistente pessoal local: visor + comandos por texto (e por voz na fase 1), rodando nesta máquina.
+Assistente pessoal local: visor + comandos por texto e por voz, rodando nesta máquina, sem nuvem.
 
 ## Rodar
 
@@ -10,6 +10,16 @@ Assistente pessoal local: visor + comandos por texto (e por voz na fase 1), roda
 ```
 
 O visor fica em http://127.0.0.1:8765. No Edge, menu ⋯ → Aplicativos → "Instalar este site como aplicativo" para ter ícone próprio.
+
+## Voz
+
+- Diga **"fala Mano"** (ou "ei Mano" / "oi Mano"), espere o *plim* e fale o comando.
+  Também dá para dizer tudo de uma vez: "fala Mano, timer de dez minutos pro arroz".
+- Sem frase de ativação: botão do microfone no visor ou **Ctrl+Espaço** com o visor em foco.
+- Tudo offline: reconhecimento com Vosk (`data/models`, baixado por `scripts/get-models.ps1`),
+  fala com a voz Maria do Windows. Enquanto o Mano fala, o microfone é ignorado.
+- Ajustes no `.env`: `MANO_WAKE_CONF` (0–1; suba se disparar à toa, desça se não te ouvir),
+  `MANO_MIC_DEVICE` (índice ou nome do microfone), `MANO_VOICE_ENABLED=false` para desligar.
 
 ## Desenvolvimento
 
@@ -35,7 +45,7 @@ Configuração por `.env` na raiz (variáveis `MANO_*`, ver `backend/mano/config
 ## Fases
 
 0. ✅ Fundação: backend, visor, parser PT-BR, voz de saída (Maria/SAPI), hora/data, timers
-1. Voz: palavra de ativação, reconhecimento offline (Vosk), push-to-talk
+1. ✅ Voz: frase de ativação, reconhecimento offline (Vosk), push-to-talk
 2. Rotina: remédios (repete até confirmar), hábitos, lembretes
 3. Spotify, YouTube, pesquisa rápida
 4. Gmail, Google Agenda, Google Tasks
