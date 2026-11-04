@@ -13,7 +13,9 @@ from .events import Hub
 from .voice.tts import Speaker
 
 if TYPE_CHECKING:
+    from .intents.fallback import Fallback
     from .intents.registry import Registry
+    from .llm import LLM
 
 
 @dataclass
@@ -26,6 +28,8 @@ class Ctx:
     scheduler: AsyncIOScheduler
     speaker: Speaker
     registry: Registry = field(default=None)  # type: ignore[assignment]
+    llm: LLM = field(default=None)  # type: ignore[assignment]
+    fallback: Fallback | None = None
     voice_state: str = "idle"  # idle | listening | thinking | speaking
     open_url: Callable[[str], object] = webbrowser.open  # abre no navegador padrão do PC (trocado nos testes)
 

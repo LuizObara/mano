@@ -124,3 +124,36 @@ class CommandLog(SQLModel, table=True):
             "intent": self.intent,
             "reply": self.reply,
         }
+
+
+class Feed(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    url: str = Field(unique=True)  # endereço do RSS/Atom
+    title: str
+    site: str = ""  # página do blog
+    active: bool = True
+    created_at: datetime = Field(default_factory=datetime.now)
+    last_fetch: datetime | None = None
+    last_error: str | None = None
+
+    def public(self, unread: int = 0) -> dict:
+        return {"id": self.id, "url": self.url, "title": self.title, "site": self.site, "active": self.active,
+                "last_fetch": ms(self.last_fetch), "error": self.last_error, "unread": unread}
+
+
+class Article(SQLModel, table=True):
+    __table_args__ = (UniqueConstraint("feed_id", "guid"),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    feed_id: int = Field(foreign_key="feed.id", index=True)
+    guid: str
+    url: str
+    title: str
+    published: datetime = Field(index=True)
+    fetched_at: datetime = Field(default_factory=datetime.now)
+    excerpt: str = ""  # resumo que veio no próprio feed (texto puro)
+    text: str = ""  # texto extraído da página
+    summary: str | None = None  # resumo do LLM local
+    summary_status: str = "pending"  # pending | done | error | skip
+    read: bool = False
+    starred: bool = False

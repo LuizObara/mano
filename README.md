@@ -69,6 +69,24 @@ inteiro ignorando acentos, mostra a nota renderizada com `[[links]]` clicáveis,
 - "Procura nas notas sobre lógica", "o que eu anotei sobre SIA?", "lê a nota sobre RenovarTech", "o que eu anotei hoje?".
 - O índice (SQLite FTS5, dentro de `data/mano.db`) se atualiza a cada minuto.
 
+## Modelo local e briefing
+
+O Mano usa o **Ollama** já instalado neste PC (sobe o `ollama serve` sozinho quando precisa) e escolhe o melhor modelo
+baixado (hoje o `gemma4:e2b-it-qat`). Troque o modelo, teste ou baixe outro na aba **Ajustes**. Neste notebook a primeira
+pergunta leva ~40 s para carregar o modelo; as seguintes, poucos segundos. Ele sai da memória após 5 min sem uso.
+
+- **Plano B dos comandos**: o que as regras não entendem vai para o modelo, que só *reescreve* a frase num comando conhecido
+  ("preciso sair daqui a quarenta minutos, me dá um toque" → "me avisa em 40 minutos"). Quem executa continua sendo o parser.
+  O visor mostra "entendi como …". Desligável em Ajustes.
+- **Briefing** (aba Briefing): cole o endereço de blogs/sites (o feed RSS é achado sozinho) ou use as sugestões.
+  Busca a cada 2 h; às 05:00 o modelo resume em 2–3 frases as até 30 notícias mais recentes (sem modelo, aparece o começo
+  do artigo). "Quais as notícias?", "mais notícias".
+- **Bom dia**: "fala Mano, bom dia" junta data, agenda, remédios, hábitos, tarefas, e-mails e manchetes. Pode tocar sozinho
+  num horário escolhido na aba Briefing.
+- **E-mails**: "resume meus e-mails" (ou o botão no card de e-mail) resume os não lidos da caixa principal.
+- `.env`: `MANO_OLLAMA_URL` (ex.: o mini servidor), `MANO_LLM_MODEL`, `MANO_LLM_KEEP_ALIVE`, `MANO_BRIEFING_SUMMARIZE_AT`,
+  `MANO_BRIEFING_FETCH_MIN`.
+
 ## Desenvolvimento
 
 ```powershell
@@ -98,5 +116,5 @@ Configuração por `.env` na raiz (variáveis `MANO_*`, ver `backend/mano/config
 3. ✅ Spotify, YouTube, pesquisa rápida
 4. ✅ Gmail, Google Agenda, Google Tasks
 5. ✅ Segundo cérebro (vault do Obsidian)
-6. LLM local (Ollama) + briefing de notícias
+6. ✅ LLM local (Ollama) + briefing de notícias
 7. Opcional: mini servidor (alertas no celular via ntfy, LLM remoto)

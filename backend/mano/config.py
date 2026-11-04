@@ -52,6 +52,24 @@ class Settings(BaseSettings):
     # Internet (Wikipedia exige um User-Agent identificável)
     http_user_agent: str = "Mano/0.1 (https://www.mediawiki.org/wiki/API:Etiquette; assistente pessoal local) httpx/0.28"
 
+    # LLM local (Ollama). Modelo e liga/desliga também ficam na aba Ajustes (data/llm.json).
+    ollama_url: str = "http://127.0.0.1:11434"  # para usar o mini servidor: http://192.168.15.85:11434
+    llm_enabled: bool = True
+    llm_fallback: bool = True  # tenta entender pelo LLM o que as regras não entenderam
+    llm_model: str | None = None  # None = melhor modelo instalado
+    llm_autostart: bool = True  # sobe o `ollama serve` local se estiver parado
+    llm_keep_alive: str = "5m"  # depois disso o modelo sai da memória
+    llm_num_ctx: int = 4096
+    llm_timeout_s: float = 600
+    llm_fallback_timeout_s: float = 60
+
+    # Briefing (feeds RSS)
+    briefing_fetch_min: int = 120  # busca novidades a cada N minutos
+    briefing_summarize_at: str = "05:00"  # resumos em lote pelo LLM
+    briefing_max_per_feed: int = 6  # itens novos por feed a cada busca
+    briefing_summarize_max: int = 30  # resumos por rodada (≈ 45 s cada neste notebook)
+    briefing_keep_days: int = 14
+
     # Timers
     timer_ring_repeat_s: int = 30  # repete o aviso falado enquanto o timer toca
     timer_ring_max_s: int = 300  # desiste de tocar depois disso

@@ -9,7 +9,8 @@ from mano.voice.tts import NullSpeaker
 @pytest.fixture
 def settings(tmp_path):
     return Settings(data_dir=tmp_path, frontend_dist=tmp_path / "nofrontend", tts_enabled=False, voice_enabled=False, toast_enabled=False,
-                    timer_ring_repeat_s=1, timer_ring_max_s=60, _env_file=None)
+                    timer_ring_repeat_s=1, timer_ring_max_s=60, llm_enabled=False, llm_autostart=False,
+                    ollama_url="http://ollama.test", _env_file=None)
 
 
 @pytest.fixture

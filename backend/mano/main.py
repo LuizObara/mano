@@ -14,7 +14,9 @@ from .config import Settings
 from .context import Ctx
 from .db import Database
 from .events import Hub
+from .intents.fallback import Fallback
 from .intents.registry import Registry
+from .llm import LLM
 from .models import CommandLog
 from .skills import ALL_SKILLS
 from .voice.service import VoiceService
@@ -44,6 +46,8 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
     )
     registry = Registry()
     ctx.registry = registry
+    ctx.llm = LLM(settings)
+    ctx.fallback = Fallback(ctx.llm, registry)
     for skill_cls in ALL_SKILLS:
         registry.add(skill_cls(ctx))
     voice = VoiceService(ctx)

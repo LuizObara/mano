@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 import asyncio
+import logging
+from datetime import datetime
 from email.utils import parseaddr, parsedate_to_datetime
 
 from ...intents.registry import Reply, intent
+from ...llm import LLMUnavailable, tidy
 from .account import GoogleFeature, ms
+
+log = logging.getLogger(__name__)
 
 API = "https://gmail.googleapis.com/gmail/v1/users/me"
 # "principais": tira promoções e redes sociais da lista mostrada
@@ -81,3 +86,64 @@ class GmailSkill(GoogleFeature):
         top = "; ".join(f"de {m['from']}: {m['subject']}" for m in msgs[:3])
         return Reply(f"{head} Os mais recentes: {top}.")
 
+
+    # ---------- resumo pelo LLM local ----------
+
+    summary_cache: dict | None = None
+
+    def _ids_key(self) -> str:
+        return ",".join(m["id"] for m in self.data.get("messages", []))
+
+    def snapshot(self) -> dict:
+        cached = self.summary_cache
+        summary = cached if cached and cached["key"] == self._ids_key() else None
+        return {self.key: {**self.data, "summary": summary}}
+
+    async def _summarize(self, msgs: list[dict], key: str) -> str | None:
+        lines = "\n".join(f"{i}. De: {m['from']} | Assunto: {m['subject']} | Trecho: {m['snippet'][:220]}"
+                          for i, m in enumerate(msgs, 1))
+        prompt = (
+            "Abaixo estão e-mails não lidos (remetente, assunto e começo do texto). Escreva um resumo em "
+            "português do Brasil, em no máximo 4 frases curtas, para ser lido em voz alta. Diga primeiro o que "
+            "parece pedir uma ação ou resposta. Não invente nada além do que está escrito e não use listas.\n\n"
+            f"{lines}"
+        )
+        try:
+            text = tidy(await self.ctx.llm.generate(prompt, max_tokens=200, label="e-mails", interactive=True))
+        except LLMUnavailable as e:
+            log.warning("resumo de e-mails falhou: %s", e)
+            await self.ctx.notify("Não consegui resumir os e-mails agora.", title="E-mail", toast=False)
+            return None
+        self.summary_cache = {"text": text, "key": key, "at": ms(datetime.now())}
+        await self.ctx.hub.broadcast(self.key, self.snapshot())
+        return text
+
+    @intent(
+        "gmail.summary",
+        patterns=[r"\bresum\w* (d?os |d?os meus |meus |minha |d?a )?(e ?mails|caixa de entrada)\b",
+                  r"\bresumo (d?os |dos meus |da )?(e ?mails|caixa de entrada)\b"],
+        examples=["resume meus e-mails"],
+        priority=7,
+    )
+    async def summary_intent(self, slots: dict) -> Reply:
+        if (r := self.not_ready()) is not None:
+            return r
+        await self.refresh()
+        msgs = self.data.get("messages", [])
+        if not msgs:
+            return Reply("Nenhum e-mail novo importante para resumir.")
+        llm = self.ctx.llm
+        if not (llm and llm.ready):
+            return await self.unread_intent(slots)
+        key = self._ids_key()
+        cached = self.summary_cache or {}
+        if cached.get("key") == key:
+            return Reply(cached["text"])
+
+        async def run():
+            text = await self._summarize(msgs, key)
+            if text:
+                await self.ctx.notify(text, title="Resumo dos e-mails", toast=False)
+
+        asyncio.create_task(run())
+        return Reply(f"Vou ler seus {len(msgs)} e-mails mais recentes e já te conto o resumo.")

@@ -37,6 +37,7 @@ export function SettingsPage({ mano }: { mano: Mano }) {
 
       <VaultSettings mano={mano} />
       <GoogleSettings mano={mano} />
+      <LLMSettings mano={mano} />
 
       <Card title="Spotify">
         {sp?.connected ? (
@@ -269,6 +270,159 @@ function VaultSettings({ mano }: { mano: Mano }) {
         </div>
       )}
       {error && <p className="mt-2 text-sm text-alert">{error}</p>}
+    </Card>
+  );
+}
+
+const gb = (n: number | null | undefined) => (n ? `${(n / 1e9).toFixed(1)} GB` : "");
+
+function LLMSettings({ mano }: { mano: Mano }) {
+  const st = mano.llm;
+  const [test, setTest] = useState<{ text: string; seconds: number } | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [pullName, setPullName] = useState("");
+  const [error, setError] = useState("");
+
+  const set = async (body: Record<string, unknown>) => {
+    setError("");
+    try {
+      await api("/api/llm/config", body);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
+
+  const runTest = async () => {
+    setTesting(true);
+    setError("");
+    setTest(null);
+    try {
+      setTest(await api<{ text: string; seconds: number }>("/api/llm/test", {}));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  const pull = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await api("/api/llm/pull", { model: pullName.trim() });
+      setPullName("");
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
+  const auto = st?.models.length ? `Automático (${st.chosen ? "melhor instalado" : st.model})` : "Automático";
+  const p = st?.pull;
+
+  return (
+    <Card title="Modelo local (Ollama)">
+      {!st ? (
+        <p className="text-sm text-muted">Carregando…</p>
+      ) : (
+        <div className="flex flex-col gap-4 text-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`size-2 rounded-full ${!st.enabled ? "bg-line" : st.reachable ? "bg-emerald-400" : "bg-alert"}`}
+            />
+            {!st.enabled
+              ? "Desligado: o Mano usa só as regras."
+              : st.reachable
+                ? st.model
+                  ? <>Pronto, usando <b className="font-medium">{st.model}</b>{st.busy && <span className="text-muted"> · gerando {st.busy}…</span>}</>
+                  : "O Ollama está rodando, mas não tem nenhum modelo baixado."
+                : st.installed
+                  ? "O Ollama está parado (o Mano tenta abrir sozinho)."
+                  : <>Ollama não encontrado. Instale em <a className="text-ember hover:underline" href="https://ollama.com/download" target="_blank" rel="noreferrer">ollama.com</a>.</>}
+            <span className="ml-auto text-xs text-muted">{st.url}</span>
+          </div>
+
+          <label className="flex items-center gap-2">
+            <input type="checkbox" className="accent-[var(--color-ember)]" checked={st.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
+            Usar o modelo local (resumos de notícias e e-mails)
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              className="accent-[var(--color-ember)]"
+              checked={st.fallback}
+              disabled={!st.enabled}
+              onChange={(e) => set({ fallback: e.target.checked })}
+            />
+            Quando eu falar algo fora dos comandos, tentar entender pelo modelo
+          </label>
+
+          {st.models.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <label htmlFor="llm-model" className="text-muted">
+                Modelo
+              </label>
+              <select
+                id="llm-model"
+                className={input}
+                value={st.chosen ?? ""}
+                onChange={(e) => set({ model: e.target.value })}
+              >
+                <option value="">{auto}</option>
+                {st.models.map((m) => (
+                  <option key={m.name} value={m.name}>
+                    {m.name} {m.params ? `· ${m.params}` : ""} {m.size ? `· ${gb(m.size)}` : ""}
+                  </option>
+                ))}
+              </select>
+              <button className={btn.ghost} onClick={runTest} disabled={testing || !st.reachable || !st.model}>
+                {testing ? "Testando…" : "Testar"}
+              </button>
+            </div>
+          )}
+          {testing && <p className="text-xs text-muted">A primeira resposta demora: o modelo precisa carregar na memória.</p>}
+          {test && (
+            <p className="rounded-lg bg-ink/60 px-3 py-2">
+              “{test.text}” <span className="text-xs text-muted">({test.seconds} s)</span>
+            </p>
+          )}
+
+          {st.reachable && (
+            <form onSubmit={pull} className="flex flex-wrap items-center gap-2">
+              <input
+                className={`${input} min-w-0 flex-1 font-mono`}
+                placeholder="Baixar outro modelo (ex.: qwen3:1.7b)"
+                value={pullName}
+                onChange={(e) => setPullName(e.target.value)}
+                aria-label="Nome do modelo para baixar"
+                disabled={!!p && p.status !== "erro"}
+              />
+              <button className={btn.ghost} disabled={!pullName.trim() || (!!p && p.status !== "erro")}>
+                Baixar
+              </button>
+            </form>
+          )}
+          {p && (
+            <div>
+              <div className="flex justify-between text-xs text-muted">
+                <span>
+                  {p.model}: {p.status === "erro" ? <span className="text-alert">{p.error}</span> : p.status}
+                </span>
+                {p.total > 0 && <span className="tabular-nums">{gb(p.completed)} / {gb(p.total)}</span>}
+              </div>
+              {p.total > 0 && (
+                <div className="mt-1 h-1 overflow-hidden rounded-full bg-line">
+                  <div className="h-full bg-ember" style={{ width: `${(100 * p.completed) / p.total}%` }} />
+                </div>
+              )}
+            </div>
+          )}
+          {error && <p className="text-alert">{error}</p>}
+          <p className="text-xs text-muted">
+            Neste notebook a primeira pergunta leva cerca de 40 s (o modelo carrega na memória); as seguintes saem em poucos
+            segundos. Depois de 5 min sem uso ele libera a memória. Comandos conhecidos nunca passam pelo modelo.
+          </p>
+        </div>
+      )}
     </Card>
   );
 }

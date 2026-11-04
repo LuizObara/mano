@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alerts } from "./components/Alerts";
+import { BriefingCard } from "./components/BriefingCard";
 import { Clock } from "./components/Clock";
 import { CommandBar } from "./components/CommandBar";
 import { AgendaCard, InboxCard, TasksCard } from "./components/GoogleCards";
@@ -10,6 +11,7 @@ import { Today } from "./components/Today";
 import { VideoOverlay } from "./components/VideoOverlay";
 import { VoiceOrb } from "./components/VoiceOrb";
 import { useMano, type Mano } from "./lib/mano";
+import { BriefingPage } from "./pages/Briefing";
 import { HabitsPage } from "./pages/Habits";
 import { MedsPage } from "./pages/Meds";
 import { NotesPage } from "./pages/Notes";
@@ -20,6 +22,7 @@ const PAGES = [
   { id: "remedios", label: "Remédios" },
   { id: "habitos", label: "Hábitos" },
   { id: "notas", label: "Notas" },
+  { id: "briefing", label: "Briefing" },
   { id: "ajustes", label: "Ajustes" },
 ] as const;
 type Page = (typeof PAGES)[number]["id"];
@@ -84,7 +87,7 @@ export default function App() {
             <span className={`size-2 rounded-full ${mano.connected ? "bg-emerald-400" : "bg-alert blink"}`} />
             {mano.connected ? "Conectado" : "Sem conexão com o Mano"}
           </div>
-          <nav className="flex gap-1 rounded-xl border border-line bg-panel p-1" aria-label="Seções">
+          <nav className="flex flex-wrap gap-1 rounded-xl border border-line bg-panel p-1" aria-label="Seções">
             {PAGES.map((p) => (
               <button
                 key={p.id}
@@ -104,6 +107,7 @@ export default function App() {
         {page === "remedios" && <MedsPage mano={mano} />}
         {page === "habitos" && <HabitsPage mano={mano} />}
         {page === "notas" && <NotesPage mano={mano} go={go} />}
+        {page === "briefing" && <BriefingPage mano={mano} go={go} />}
         {page === "ajustes" && <SettingsPage mano={mano} />}
       </main>
 
@@ -123,9 +127,16 @@ function Home({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voic
         <div className="min-h-24 w-full max-w-xl text-center">
           {mano.voice === "listening" || (mano.voice === "thinking" && mano.partial) ? (
             <p className="text-2xl italic text-muted">{mano.partial ? `${mano.partial}…` : "Pode falar…"}</p>
+          ) : mano.busy && mano.llm?.busy === "comando" ? (
+            <p className="text-2xl italic text-muted">Pensando com o modelo local…</p>
           ) : mano.lastReply ? (
             <>
               <p className="text-sm text-muted">“{mano.lastReply.log.text}”</p>
+              {mano.lastReply.data?.understood_as && (
+                <p className="mt-1 text-xs text-ember/80" title="As regras não entenderam; o modelo local reescreveu o pedido">
+                  entendi como “{mano.lastReply.data.understood_as}”
+                </p>
+              )}
               {mano.lastReply.data?.card ? (
                 <WikiCard card={mano.lastReply.data.card} />
               ) : mano.lastReply.display.includes("\n") ? (
@@ -191,6 +202,7 @@ function Home({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voic
       <div className="flex min-w-0 flex-col gap-6">
         <AgendaCard mano={mano} go={go} />
         <TasksCard mano={mano} go={go} />
+        <BriefingCard mano={mano} go={go} />
       </div>
 
       <div className="flex min-w-0 flex-col gap-6 md:col-span-2 xl:col-span-1">

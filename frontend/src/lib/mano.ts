@@ -74,11 +74,53 @@ export type Task = { id: string; title: string; notes?: string | null; due: stri
 export type GoogleStatus = { configured: boolean; connected: boolean; email: string | null; redirect_uri: string };
 type Feed = { error: string | null; updated: number | null };
 export type CalendarData = Feed & { events: CalEvent[] };
-export type GmailData = Feed & { unread: number | null; important?: number; messages: Mail[] };
+export type GmailData = Feed & {
+  unread: number | null;
+  important?: number;
+  messages: Mail[];
+  summary?: { text: string; at: number } | null;
+};
 export type TasksData = Feed & { tasks: Task[] };
 
 export type NotesStatus = { configured: boolean; vault: string | null; vault_name: string | null; total: number; daily: string | null };
 export type NoteHit = { path: string; title: string; folder: string; mtime: number; snippet?: string };
+
+export type LLMStatus = {
+  enabled: boolean;
+  fallback: boolean;
+  reachable: boolean | null;
+  url: string;
+  model: string | null;
+  chosen: string | null;
+  models: { name: string; size: number | null; params: string | null }[];
+  busy: string | null;
+  pull: { model: string; status: string; completed: number; total: number; error?: string } | null;
+  installed: boolean;
+};
+
+export type BriefItem = {
+  id: number;
+  feed_id: number;
+  feed: string;
+  title: string;
+  url: string;
+  published: number;
+  summary: string;
+  summary_kind: "llm" | "trecho";
+  read: boolean;
+  starred: boolean;
+};
+export type FeedInfo = { id: number; url: string; title: string; site: string; active: boolean; last_fetch: number | null; error: string | null; unread: number };
+export type BriefingState = {
+  unread: number;
+  pending_summaries: number;
+  feeds: number;
+  last_fetch: number | null;
+  running: { stage: string; done: number; total: number } | null;
+  morning_at: string | null;
+  summarize_at: string;
+  top: BriefItem[];
+};
 
 export type Reminder = { id: number; text: string; due_at: number; status: "pending" | "fired" };
 
@@ -100,6 +142,8 @@ export type Reply = {
     card?: { title: string; extract: string; url?: string; image?: string | null };
     link?: { label: string; url: string };
     notes?: NoteHit[];
+    understood_as?: string;
+    briefing?: BriefItem[];
     [k: string]: unknown;
   } | null;
 };
@@ -144,6 +188,8 @@ export function useMano() {
   const [gmail, setGmail] = useState<GmailData | null>(null);
   const [tasks, setTasks] = useState<TasksData | null>(null);
   const [notes, setNotes] = useState<NotesStatus | null>(null);
+  const [llm, setLlm] = useState<LLMStatus | null>(null);
+  const [briefing, setBriefing] = useState<BriefingState | null>(null);
   const [video, setVideo] = useState<Video | null>(null);
   const [videoResults, setVideoResults] = useState<{ q: string; results: Video[] } | null>(null);
   const [lastReply, setLastReply] = useState<Reply | null>(null);
@@ -169,6 +215,8 @@ export function useMano() {
       if ("gmail" in msg) setGmail(msg.gmail as GmailData);
       if ("tasks" in msg) setTasks(msg.tasks as TasksData);
       if ("notes" in msg) setNotes(msg.notes as NotesStatus);
+      if ("llm" in msg) setLlm(msg.llm as LLMStatus);
+      if ("briefing" in msg) setBriefing(msg.briefing as BriefingState);
     };
 
     const connect = () => {
@@ -201,6 +249,8 @@ export function useMano() {
           case "gmail":
           case "tasks":
           case "notes":
+          case "llm":
+          case "briefing":
             apply(msg);
             break;
           case "notes.open":
@@ -263,7 +313,7 @@ export function useMano() {
     connected, voice, voiceStatus, partial, timers, meds, doses, habits, reminders, notices,
     lastReply, history, busy, send, listen, dismissNotice,
     spotify, video, setVideo, videoResults, setVideoResults,
-    google, calendar, gmail, tasks, notes,
+    google, calendar, gmail, tasks, notes, llm, briefing,
   };
 }
 
@@ -300,3 +350,17 @@ export function isoDay(d: Date) {
 
 /** 0 = segunda, como no backend. */
 export const weekdayMon0 = (d: Date) => (d.getDay() + 6) % 7;
+
+/** "há 5 min", "às 14:30", "ontem" — para datas de notícias. */
+export function ago(ms: number, now = Date.now()) {
+  const min = Math.round((now - ms) / 60000);
+  if (min < 1) return "agora";
+  if (min < 60) return `há ${min} min`;
+  const h = Math.round(min / 60);
+  if (h < 24 && isoDay(new Date(ms)) === isoDay(new Date(now))) return `há ${h} h`;
+  const d = new Date(ms);
+  const y = new Date(now);
+  y.setDate(y.getDate() - 1);
+  if (isoDay(d) === isoDay(y)) return `ontem, ${hhmm(ms)}`;
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}

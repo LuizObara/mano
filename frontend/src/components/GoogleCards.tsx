@@ -176,6 +176,18 @@ export function InboxCard({ mano, go }: { mano: Mano; go: (p: string) => void })
       ) : msgs.length === 0 ? (
         <p className="text-sm text-muted">{g?.updated ? "Nada novo na caixa principal." : "Carregando…"}</p>
       ) : (
+        <>
+        {g?.summary ? (
+          <p className="mb-3 rounded-xl bg-ember-soft px-3 py-2 text-sm leading-relaxed">{g.summary.text}</p>
+        ) : mano.llm?.enabled && mano.llm.reachable && mano.llm.model ? (
+          <button
+            className="mb-2 text-xs text-ember hover:underline disabled:opacity-50"
+            disabled={mano.llm.busy === "e-mails"}
+            onClick={() => mano.send("resume meus e-mails", false)}
+          >
+            {mano.llm.busy === "e-mails" ? "Resumindo…" : "Resumir com o modelo local"}
+          </button>
+        ) : null}
         <ul className="flex flex-col divide-y divide-line">
           {msgs.map((m) => (
             <li key={m.id}>
@@ -192,6 +204,7 @@ export function InboxCard({ mano, go }: { mano: Mano; go: (p: string) => void })
             </li>
           ))}
         </ul>
+        </>
       )}
     </Card>
   );

@@ -149,6 +149,9 @@ class Registry:
                 return Match(it, slots, text)
         return None
 
+    def get(self, name: str) -> Intent | None:
+        return next((i for i in self._intents if i.name == name), None)
+
     def catalog(self) -> list[dict]:
         return [
             {"skill": s.name, "description": s.description,
