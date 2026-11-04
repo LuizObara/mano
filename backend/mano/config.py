@@ -1,0 +1,29 @@
+from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+class Settings(BaseSettings):
+    """Configuração do Mano. Pode ser sobrescrita por variáveis MANO_* ou pelo arquivo .env na raiz."""
+
+    model_config = SettingsConfigDict(env_file=ROOT / ".env", env_prefix="MANO_", extra="ignore")
+
+    host: str = "127.0.0.1"
+    port: int = 8765
+    data_dir: Path = ROOT / "data"
+    frontend_dist: Path = ROOT / "frontend" / "dist"
+
+    # Voz de saída (SAPI do Windows por enquanto; Piper entra depois)
+    tts_enabled: bool = True
+    tts_voice: str = "Maria"
+    tts_rate: int = 1  # -10..10
+
+    # Timers
+    timer_ring_repeat_s: int = 30  # repete o aviso falado enquanto o timer toca
+    timer_ring_max_s: int = 300  # desiste de tocar depois disso
+
+    @property
+    def db_path(self) -> Path:
+        return self.data_dir / "mano.db"

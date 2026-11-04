@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mano",
+      "runtimeExecutable": "C:/Users/gustavo/Documents/projetos/mano/backend/.venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "--app-dir", "backend", "--factory", "mano.main:create_app", "--port", "8765"],
+      "port": 8765
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Mano",
+  "short_name": "Mano",
+  "description": "Assistente pessoal local",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0e0f12",
+  "theme_color": "#0e0f12",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

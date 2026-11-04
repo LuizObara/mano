@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --color-ink: #0e0f12;
+  --color-panel: #17191e;
+  --color-line: #262931;
+  --color-muted: #8b909c;
+  --color-text: #e9e7e2;
+  --color-ember: #f2a65a;
+  --color-ember-soft: #f2a65a22;
+  --color-alert: #ef6b5b;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.08); opacity: 0.9; }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.9); opacity: 0.8; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+.orb-breathe { animation: breathe 4s ease-in-out infinite; }
+.orb-ring { animation: pulse-ring 1.4s ease-out infinite; }
+.blink { animation: blink 1s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .orb-breathe, .orb-ring, .blink { animation: none; }
+}
