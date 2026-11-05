@@ -16,6 +16,7 @@ Abas no topo: **Início**, **Remédios**, **Hábitos**, **Notas**, **Briefing**,
 
 - **Assistente**: o orbe (pronto, ouvindo, pensando, falando, mudo), a última resposta e a barra de comando.
 - **Relógio**: saudação, hora e o que vem a seguir hoje (compromissos, doses pendentes e timers).
+  No pé do bloco, um mini painel troca a cada 10 s entre a música tocando (com pausar e pular) e as grades das últimas 12 semanas de hábitos e de remédios: quanto mais forte o mel, mais coisa feita no dia; vermelho é dia em que esqueceu remédio. Parado em cima com o mouse, ele não troca; os pontinhos embaixo escolhem a tela. Só aparece o que tem dado.
 - **Painéis**: Agenda, Remédios e hábitos, Música, Timers, Tarefas, E-mail, Briefing e Últimos comandos. O olho riscado no canto de cada um oculta o painel; o botão **Painéis** (ou "Mostrar todos") traz de volta. Fica salvo neste aparelho, e o que está oculto continua funcionando por voz.
 
 Avisos (remédio, timer, lembrete, compromisso) aparecem no canto da tela, são falados e viram notificação do Windows. "Para" ou "ok" dispensa o que estiver tocando.

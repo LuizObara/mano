@@ -1,4 +1,5 @@
 import { fmtLeft, hhmm, useNow, type Mano } from "../lib/mano";
+import { ClockShelf } from "./ClockShelf";
 
 const dateFmt = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" });
 
@@ -61,6 +62,7 @@ export function Clock({ mano }: { mano: Mano }) {
           </div>
         ))}
       </div>
+      <ClockShelf mano={mano} />
     </section>
   );
 }

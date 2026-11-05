@@ -13,7 +13,7 @@ from ..intents.ptbr import best_match
 from ..intents.registry import Reply, Skill, intent
 from ..models import Habit, HabitCheck
 
-HISTORY_DAYS = 35
+HISTORY_DAYS = 84  # 12 semanas, para a grade do Início (a aba Hábitos mostra as últimas 5)
 
 
 class HabitIn(BaseModel):

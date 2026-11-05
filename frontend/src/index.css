@@ -126,9 +126,14 @@ body {
 .orb-spin { animation: spin-slow 3s linear infinite; }
 .orb-wave { animation: wave 0.7s ease-in-out infinite; }
 .blink { animation: blink 1s ease-in-out infinite; }
+@keyframes shelf-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.shelf-in { animation: shelf-in 0.4s ease-out; }
 
 @media (prefers-reduced-motion: reduce) {
-  .orb-breathe, .orb-ring, .orb-spin, .orb-wave, .blink { animation: none; }
+  .orb-breathe, .orb-ring, .orb-spin, .orb-wave, .blink, .shelf-in { animation: none; }
 }
 
 /* Notas renderizadas do Obsidian */
