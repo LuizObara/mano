@@ -1,4 +1,5 @@
-# Sobe o Mano: compila o frontend se preciso, inicia o backend e abre o visor como app (janela do Edge).
+# Sobe o Mano: compila o frontend se preciso, inicia o backend e abre o visor como app
+# (janela do Chrome; do Edge se o Chrome não estiver instalado; MANO_BROWSER escolhe outro).
 #   .\scripts\start.ps1            -> uso normal
 #   .\scripts\start.ps1 -Build     -> força recompilar o frontend
 #   .\scripts\start.ps1 -NoWindow  -> só o backend (ex.: iniciado no logon)
@@ -36,7 +37,23 @@ for ($i = 0; $i -lt 40; $i++) {
     try { Invoke-RestMethod "$url/api/health" -TimeoutSec 1 | Out-Null; break } catch { Start-Sleep -Milliseconds 500 }
 }
 
+function Find-Browser {
+    # MANO_BROWSER: "chrome", "edge" ou o caminho de um .exe baseado no Chromium
+    $pref = $env:MANO_BROWSER
+    if ($pref -and $pref -notin @("chrome", "edge")) { return $pref }
+    if ($pref -ne "edge") {
+        $chrome = @(
+            "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+            "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+        ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+        if ($chrome) { return $chrome }
+    }
+    return "msedge"
+}
+
 if (-not $NoWindow) {
-    Start-Process "msedge" "--app=$url --start-maximized"
+    # janela de app (sem abas nem barra); links externos, como as notícias, abrem no mesmo navegador
+    Start-Process (Find-Browser) "--app=$url --start-maximized"
 }
 Write-Host "Mano no ar em $url"

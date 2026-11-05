@@ -70,6 +70,7 @@ Reinicie o Mano depois de mudar o `.env`. A lista completa está em `backend/man
 |---|---|---|
 | `MANO_HOST` | `127.0.0.1` | Endereço do servidor. Só este PC acessa; ver [O que falta](../pendencias.md) antes de abrir para a rede |
 | `MANO_PORT` | `8765` | Porta. Se mudar, ajuste também os endereços de retorno do Spotify e do Google |
+| `MANO_BROWSER` | `chrome` | Só para o `scripts\start.ps1`, como variável de ambiente do Windows (não vale no `.env`): `chrome`, `edge` ou o caminho de outro navegador baseado no Chromium. Sem o Chrome instalado, usa o Edge |
 | `MANO_DATA_DIR` | `data` | Pasta dos dados pessoais (útil para testar com dados descartáveis) |
 | `MANO_HTTP_USER_AGENT` | `Mano/0.1 (…)` | Identificação nas consultas à Wikipedia |
 

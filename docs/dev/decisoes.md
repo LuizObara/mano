@@ -4,8 +4,8 @@ Registro curto do porquê de cada escolha, para não rediscutir à toa e saber q
 
 ## 1. Visor web servido pelo backend, não Electron
 
-**Decisão:** React compilado, servido pelo FastAPI e aberto como app pelo Edge (`--app`), instalável como PWA.
-**Por quê:** num i3 com 12 GB, o Electron somaria 200–300 MB e um segundo Chromium. O Edge já está no Windows, e o mesmo visor abre no celular quando houver acesso pela rede.
+**Decisão:** React compilado, servido pelo FastAPI e aberto como app pelo navegador (`--app`; Chrome, com o Edge de reserva), instalável como PWA.
+**Por quê:** num i3 com 12 GB, o Electron somaria 200–300 MB e um segundo Chromium. O Chrome (ou o Edge, que já vem no Windows) já está instalado, e o mesmo visor abre no celular quando houver acesso pela rede.
 **Revisitar se:** precisar de atalho global de teclado com o visor fechado, ícone na bandeja ou executável único (aí Tauri, que usa o WebView2 do Windows sem reescrever o visor).
 
 ## 2. Comandos por regras; o modelo de linguagem só como plano B

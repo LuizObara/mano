@@ -8,7 +8,7 @@ O Mano foi feito para **Windows 10/11** (a voz de saída usa o SAPI do Windows e
 |---|---|---|
 | Python | 3.12 | Backend |
 | Node.js | 20 ou mais novo | Só para compilar o visor |
-| Microsoft Edge | o do Windows | Abre o visor como app (janela própria) |
+| Google Chrome (ou o Edge do Windows) | qualquer recente | Abre o visor como app (janela própria) |
 | Voz "Microsoft Maria" | vem com o Windows em português | Fala do Mano |
 | Ollama | opcional | Modelo de linguagem local (fase 6) |
 | Espaço em disco | ~200 MB + modelos de linguagem (1–5 GB cada) | |
@@ -28,7 +28,7 @@ Na primeira vez o script:
 1. cria o ambiente Python (`backend\.venv`) e instala `backend\requirements.txt`;
 2. baixa o modelo de voz Vosk em português (~31 MB) para `data\models` (`scripts\get-models.ps1`);
 3. instala as dependências do visor e compila (`frontend\dist`);
-4. sobe o backend minimizado e abre o visor numa janela do Edge.
+4. sobe o backend minimizado e abre o visor numa janela de app do Chrome (do Edge, se o Chrome não estiver instalado). Links do visor, como as notícias, abrem nesse mesmo navegador.
 
 Opções do script:
 
@@ -63,7 +63,7 @@ cd backend
 .\.venv\Scripts\python.exe -m mano
 ```
 
-O visor fica em <http://127.0.0.1:8765>. Para ter ícone e janela própria: no Edge, menu ⋯ → **Aplicativos** → **Instalar este site como aplicativo**.
+O visor fica em <http://127.0.0.1:8765>. Para ter ícone e janela própria: no Chrome, menu ⋮ → **Transmitir, salvar e compartilhar** → **Instalar página como app** (no Edge: menu ⋯ → **Aplicativos** → **Instalar este site como aplicativo**). Se você já tinha instalado pelo Edge, desinstale esse atalho e instale pelo Chrome, senão ele continua abrindo no Edge.
 
 ## Modelo de linguagem local (opcional)
 
