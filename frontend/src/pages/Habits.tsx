@@ -229,9 +229,40 @@ function HabitCard({ h, now }: { h: Habit; now: Date }) {
   );
 }
 
-function QuickButtons({ h, values }: { h: Habit; values: number[] }) {
+/** Guarda o último registro feito pelo cartão por alguns segundos, para o "Desfazer". */
+function useUndo() {
+  const [last, setLast] = useState<{ id: number; amount: number } | null>(null);
+  useEffect(() => {
+    if (!last) return;
+    const t = window.setTimeout(() => setLast(null), 10_000);
+    return () => window.clearTimeout(t);
+  }, [last]);
+  return [last, (id: number, amount: number) => setLast({ id, amount }), () => setLast(null)] as const;
+}
+
+function UndoBar({ h, last, clear }: { h: Habit; last: { id: number; amount: number } | null; clear: () => void }) {
+  // some se o registro já foi apagado por outro caminho (× do chip, aba de detalhe)
+  if (!last || !h.today_logs.some((l) => l.id === last.id)) return null;
+  return (
+    <div role="status" className="flex items-center gap-2.5 rounded-2xl bg-ink px-3.5 py-2 text-sm">
+      <Icon name="check" className="size-4 text-ok" />
+      <span className="flex-1">Adicionado {fmtAmount(last.amount, h.unit)}.</span>
+      <button
+        onClick={() => api(`/api/habits/logs/${last.id}`, undefined, "DELETE").catch(() => {}).finally(clear)}
+        className="min-h-9 rounded-full px-3 font-semibold text-accent hover:bg-soft"
+      >
+        Desfazer
+      </button>
+    </div>
+  );
+}
+
+function QuickButtons({ h, values, onLogged }: { h: Habit; values: number[]; onLogged?: (id: number, amount: number) => void }) {
   const [other, setOther] = useState<string | null>(null);
-  const log = (amount: number) => api(`/api/habits/${h.id}/log`, { amount });
+  const log = async (amount: number) => {
+    const r = await api<{ id: number | null }>(`/api/habits/${h.id}/log`, { amount });
+    if (r.id) onLogged?.(r.id, amount);
+  };
   return (
     <div className="flex flex-wrap gap-2">
       {values.map((v, i) => (
@@ -284,6 +315,7 @@ function GoalBody({ h, now }: { h: Habit; now: Date }) {
   const C = 2 * Math.PI * 56;
   const expected = pace(h, now);
   const quick = h.quick.length ? h.quick : [h.reminder.fraction ?? h.suggested_fraction ?? goal / 10];
+  const [last, setLast, clear] = useUndo();
   return (
     <>
       <div className="flex items-center gap-5">
@@ -322,7 +354,8 @@ function GoalBody({ h, now }: { h: Habit; now: Date }) {
           )}
         </p>
       </div>
-      <QuickButtons h={h} values={quick.slice(0, 3)} />
+      <QuickButtons h={h} values={quick.slice(0, 3)} onLogged={setLast} />
+      <UndoBar h={h} last={last} clear={clear} />
       <TodayChips h={h} />
     </>
   );
@@ -334,8 +367,18 @@ function TodayChips({ h }: { h: Habit }) {
       <span className="mr-1 text-xs font-bold uppercase tracking-[0.08em] text-muted">Hoje</span>
       {h.today_logs.length === 0 && <span className="text-[13px] text-muted">nada ainda</span>}
       {h.today_logs.slice(-6).map((l) => (
-        <span key={l.id ?? l.at} className="rounded-full bg-ink px-2.5 py-1 text-[13px]">
+        <span key={l.id ?? l.at} className="flex items-center gap-1 rounded-full bg-ink py-0.5 pl-2.5 pr-0.5 text-[13px]">
           <span className="tabular-nums text-muted">{hhmm(l.at)}</span> {fmtAmount(l.amount, h.unit)}
+          {l.id !== null && (
+            <button
+              onClick={() => api(`/api/habits/logs/${l.id}`, undefined, "DELETE")}
+              aria-label={`Apagar ${fmtAmount(l.amount, h.unit)} das ${hhmm(l.at)}`}
+              title="Apagar este registro"
+              className="grid size-6 place-items-center rounded-full text-muted hover:bg-line hover:text-alert"
+            >
+              <Icon name="x" className="size-3" />
+            </button>
+          )}
         </span>
       ))}
       <a href={habitLink(`h=${h.id}`)} className="ml-auto text-sm font-semibold text-accent">
@@ -353,12 +396,14 @@ function FreeBody({ h }: { h: Habit }) {
     .reverse()
     .filter((d) => amountOn(h, d) > 0)
     .slice(0, 2);
-  const submit = (e: React.FormEvent) => {
+  const [last, setLast, clear] = useUndo();
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const v = parseFloat(amount.replace(",", "."));
     if (!(v > 0)) return;
-    api(`/api/habits/${h.id}/log`, { amount: v, note });
     setAmount("");
+    const r = await api<{ id: number | null }>(`/api/habits/${h.id}/log`, { amount: v, note });
+    if (r.id) setLast(r.id, v);
   };
   const weekGoal = h.goal && h.goal_period === "week" ? h.goal : null;
   return (
@@ -404,18 +449,19 @@ function FreeBody({ h }: { h: Habit }) {
           Registrar
         </button>
       </form>
-      {h.quick.length > 0 && <QuickButtons h={h} values={h.quick.slice(0, 3)} />}
-      <div className="flex flex-col gap-1.5 border-t border-soft pt-3.5 text-sm">
-        {recent.map((d) => (
-          <div key={isoDay(d)} className="flex gap-2.5">
-            <span className="w-16 text-muted">{relDay(d)}</span>
-            <span className="flex-1">{fmtAmount(amountOn(h, d), h.unit)}</span>
-          </div>
-        ))}
-        <a href={habitLink(`h=${h.id}`)} className="self-end text-sm font-semibold text-accent">
-          Métricas →
-        </a>
-      </div>
+      {h.quick.length > 0 && <QuickButtons h={h} values={h.quick.slice(0, 3)} onLogged={setLast} />}
+      <UndoBar h={h} last={last} clear={clear} />
+      {recent.length > 0 && (
+        <div className="flex flex-col gap-1.5 text-sm">
+          {recent.map((d) => (
+            <div key={isoDay(d)} className="flex gap-2.5">
+              <span className="w-16 text-muted">{relDay(d)}</span>
+              <span className="flex-1">{fmtAmount(amountOn(h, d), h.unit)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      <TodayChips h={h} />
     </>
   );
 }

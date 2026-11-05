@@ -44,7 +44,7 @@ Convenções:
 | `PUT /api/habits/{id}` | o mesmo | Atualiza |
 | `DELETE /api/habits/{id}` | — | Arquiva (o histórico fica) |
 | `POST /api/habits/{id}/toggle` | `{"day"?, "done"?}` | Sim/não. Sem `done`, inverte |
-| `POST /api/habits/{id}/log` | `{"amount", "day"?, "note"?, "via"?}` | Registro de quantidade (`via`: `visor`, `lembrete`, `voz`) |
+| `POST /api/habits/{id}/log` | `{"amount", "day"?, "note"?, "via"?}` | Registro de quantidade (`via`: `visor`, `lembrete`, `voz`); devolve o `id` (para desfazer) |
 | `GET /api/habits/{id}/logs?day=` | — | Registros de um dia |
 | `PATCH /api/habits/logs/{log_id}` | `{"amount"?, "note"?}` | Corrige um registro |
 | `DELETE /api/habits/logs/{log_id}` | — | Apaga um registro |

@@ -11,14 +11,16 @@ export function HabitNudge({ mano }: { mano: Mano }) {
   const n = mano.nudge;
   const now = useNow(1000);
   const [done, setDone] = useState<string | null>(null);
+  const [undo, setUndo] = useState<(() => Promise<unknown>) | null>(null);
   const [amount, setAmount] = useState("");
   useEffect(() => {
     setDone(null);
+    setUndo(null);
     setAmount("");
   }, [n?.at]);
   useEffect(() => {
     if (!done) return;
-    const id = window.setTimeout(() => mano.setNudge(null), 4000);
+    const id = window.setTimeout(() => mano.setNudge(null), 8000);
     return () => window.clearTimeout(id);
   }, [done, mano]);
 
@@ -28,12 +30,14 @@ export function HabitNudge({ mano }: { mano: Mano }) {
   const left = Math.max(0, n.expires_at - now) / (n.expires_at - n.at);
 
   const log = async (v: number) => {
-    await api(`/api/habits/${n.habit_id}/log`, { amount: v, via: "lembrete" });
+    const r = await api<{ id: number | null }>(`/api/habits/${n.habit_id}/log`, { amount: v, via: "lembrete" });
+    if (r.id) setUndo(() => () => api(`/api/habits/logs/${r.id}`, undefined, "DELETE"));
     const total = n.amount + v;
     setDone(n.goal ? `Anotado. Agora ${fmtAmount(total, n.unit)} de ${fmtAmount(n.goal, n.unit)}.` : `Anotado: ${fmtAmount(v, n.unit)}.`);
   };
   const finish = async () => {
     await api(`/api/habits/${n.habit_id}/toggle`, { done: true });
+    setUndo(() => () => api(`/api/habits/${n.habit_id}/toggle`, { done: false }));
     setDone(`${n.name}: feito!`);
   };
   const later = async () => {
@@ -56,6 +60,14 @@ export function HabitNudge({ mano }: { mano: Mano }) {
             <Icon name="check" className="size-[18px]" />
           </span>
           <span className="flex-1">{done}</span>
+          {undo && (
+            <button
+              onClick={() => undo().catch(() => {}).finally(close)}
+              className="min-h-9 rounded-full px-3 text-sm font-semibold text-accent hover:bg-soft"
+            >
+              Desfazer
+            </button>
+          )}
           <button onClick={close} aria-label="Fechar" className="grid size-9 place-items-center rounded-lg text-muted hover:bg-soft">
             <Icon name="x" className="size-4" />
           </button>

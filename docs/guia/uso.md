@@ -55,7 +55,7 @@ Três tipos, escolhidos em **Novo hábito** (ou na engrenagem de cada um):
 
 Cada hábito tem unidade, meta opcional (por dia ou por semana), botões rápidos e dias da semana. Os registros guardam a hora, a observação e de onde vieram (visor, lembrete ou voz).
 
-- **Visão geral**: um cartão por hábito (anel de progresso nos de meta diária, com o ritmo esperado para a hora) e a tabela **Esta semana**. Na tabela, clicar num dia marca ou desmarca os sim/não e abre o dia no detalhe para os outros.
+- **Visão geral**: um cartão por hábito (anel de progresso nos de meta diária, com o ritmo esperado para a hora) e a tabela **Esta semana**. Registrou sem querer? Logo depois aparece **Desfazer** por 10 s, e cada registro de hoje no rodapé do cartão tem um × para apagar. O pop-up de lembrete também tem **Desfazer**. Na tabela, clicar num dia marca ou desmarca os sim/não e abre o dia no detalhe para os outros.
 - **Detalhe** (clique no nome): média por dia, meta batida, total, sequência e recorde, melhor dia, total da semana; gráfico por dia com a linha da meta (7 dias, 30 dias ou 12 semanas), grade de 12 semanas e os registros de qualquer dia, com editar, apagar e "registrar em outro dia".
 
 ### Cobranças

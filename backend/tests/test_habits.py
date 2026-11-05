@@ -89,6 +89,8 @@ def test_goal_habit_sums_until_goal(client):
     r = client.post("/api/habits", json=WATER)
     assert r.status_code == 200, r.text
     hid = r.json()["id"]
+    oops = client.post(f"/api/habits/{hid}/log", json={"amount": 500}).json()["id"]
+    assert client.delete(f"/api/habits/logs/{oops}").status_code == 200  # "desfazer" do visor
     client.post(f"/api/habits/{hid}/log", json={"amount": 1000})
     h = habits(client)["Água"]
     assert h["today_amount"] == 1000 and not h["done_today"] and h["quick"] == [250, 500]

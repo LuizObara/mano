@@ -828,14 +828,15 @@ class HabitSkill(Skill):
             day = body.day or date.today()
             if day > date.today():
                 raise HTTPException(400, "não dá para registrar no futuro")
+            log_id = None
             if h.kind == "check":
                 self.set_done(h.id, day, body.amount > 0)
             elif body.amount <= 0:
                 raise HTTPException(400, "quantidade precisa ser positiva")
             else:
-                self.add_log(h, body.amount, day, note=body.note, via=body.via)
+                log_id = self.add_log(h, body.amount, day, note=body.note, via=body.via).id
             await self._push()
-            return {"ok": True}
+            return {"ok": True, "id": log_id}  # o id permite o "desfazer" do visor
 
         @r.get("/{habit_id}/logs")
         async def day_logs(habit_id: int, day: date):
