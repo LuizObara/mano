@@ -7,7 +7,7 @@ Tudo que dá para falar dá para digitar na barra do visor, e quase tudo também
 Abas no topo: **Início**, **Remédios**, **Hábitos**, **Notas**, **Briefing**, **Ajustes**. Ao lado, da esquerda para a direita:
 
 - **Conectado**: o ponto verde indica que o visor está ligado ao Mano.
-- **Microfone**: silencia o microfone. Mudo, o Mano não ouve o "fala Mano" nem o Ctrl+Espaço, e uma faixa escura avisa isso no topo. A barra de comando continua funcionando e os avisos de remédio continuam falando. Fica salvo até você ligar de novo, mesmo reiniciando o Mano.
+- **Microfone**: silencia o microfone. Mudo, o Mano não ouve o "fala Mano" nem o Ctrl+Espaço, e uma faixa discreta avisa isso no topo (o × oculta a faixa até você ligar o microfone de novo). A barra de comando continua funcionando e os avisos de remédio continuam falando. Fica salvo até você ligar de novo, mesmo reiniciando o Mano.
 - **Alto-falante**: decide se a resposta de um comando digitado também é falada.
 - **Sol/lua**: tema claro ou escuro. Na primeira vez segue o tema do Windows; depois fica o que você escolher, neste aparelho.
 - **Painéis** (só no Início): escolhe quais painéis aparecem.

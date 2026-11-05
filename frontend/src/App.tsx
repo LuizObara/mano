@@ -66,6 +66,11 @@ export default function App() {
   const [panelsOpen, setPanelsOpen] = useState(false);
   const voiceOk = !!mano.voiceStatus?.available;
   const muted = !!mano.voiceStatus?.muted;
+  // aviso de mudo ocultado fica oculto até o microfone ser ligado de novo
+  const [muteNoticeHidden, setMuteNoticeHidden] = useStored<boolean>("mano.muteNoticeHidden", false);
+  useEffect(() => {
+    if (mano.voiceStatus && !muted && muteNoticeHidden) setMuteNoticeHidden(false);
+  }, [mano.voiceStatus, muted, muteNoticeHidden, setMuteNoticeHidden]);
   const { listen } = mano;
 
   // Ctrl+Espaço = falar agora (push-to-talk), funciona com o visor em foco
@@ -179,14 +184,25 @@ export default function App() {
         </div>
       </header>
 
-      {muted && (
-        <div role="status" className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl bg-text px-5 py-3.5 text-ink">
-          <Icon name="mic-off" />
-          <span className="min-w-0 flex-[1_1_320px] text-[15px] leading-snug">
+      {muted && !muteNoticeHidden && (
+        <div role="status" className="flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-2xl bg-notice py-2.5 pl-4.5 pr-2.5">
+          <Icon name="mic-off" className="size-[18px] shrink-0 text-muted" />
+          <span className="min-w-0 flex-[1_1_320px] text-[15px] leading-snug text-muted">
             O Mano não está ouvindo o “fala Mano”. A barra de comando continua funcionando e os avisos de remédio continuam tocando.
           </span>
-          <button onClick={() => mano.setMicMuted(false)} className="min-h-10 rounded-full bg-glow px-4 text-sm font-semibold text-on-ember">
+          <button
+            onClick={() => mano.setMicMuted(false)}
+            className="min-h-10 rounded-full px-4 text-sm font-semibold text-accent hover:bg-soft"
+          >
             Ligar microfone
+          </button>
+          <button
+            onClick={() => setMuteNoticeHidden(true)}
+            aria-label="Ocultar aviso"
+            title="Ocultar aviso (o botão do microfone continua mostrando que está mudo)"
+            className="grid size-10 place-items-center rounded-full text-muted hover:bg-soft hover:text-text"
+          >
+            <Icon name="x" className="size-4" />
           </button>
         </div>
       )}

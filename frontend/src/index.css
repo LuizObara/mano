@@ -29,6 +29,7 @@
   --color-deep-muted: var(--m-deep-muted);
   --color-deep-line: var(--m-deep-line);
   --color-glow: var(--m-glow);
+  --color-notice: var(--m-notice); /* faixas de aviso discretas (microfone mudo, cobranças pausadas) */
   /* uma cor por área de topo do vault (Journal, Craft, Codex...) */
   --color-area-0: var(--m-ember);
   --color-area-1: var(--m-think);
@@ -59,6 +60,7 @@
   --m-deep-line: #3a2d21;
   --m-glow: #edb54a;
   --m-area-2: #3f6b6a; /* petróleo */
+  --m-notice: #e8dabd; /* um pouco mais escuro que o creme */
   color-scheme: light;
 }
 
@@ -80,6 +82,7 @@
   --m-deep: #2e241b;
   --m-deep-line: #45372a;
   --m-area-2: #6fa3a0;
+  --m-notice: #3b2e22; /* terroso, um pouco mais claro que o fundo */
   color-scheme: dark;
 }
 

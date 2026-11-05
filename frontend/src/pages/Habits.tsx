@@ -84,14 +84,15 @@ function Overview({ mano }: { mano: Mano }) {
       </div>
 
       {mano.habitsPausedUntil && mano.habitsPausedUntil > Date.now() && (
-        <div role="status" className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl bg-text px-5 py-3.5 text-ink">
-          <span className="min-w-0 flex-[1_1_300px] text-[15px]">
-            Nenhum hábito vai te cobrar até <strong>{untilText(mano.habitsPausedUntil)}</strong>. Remédios continuam avisando
-            normalmente.
+        <div role="status" className="flex flex-wrap items-center gap-x-3.5 gap-y-2 rounded-2xl bg-notice py-2.5 pl-4.5 pr-2.5">
+          <Icon name="bell-off" className="size-[18px] shrink-0 text-muted" />
+          <span className="min-w-0 flex-[1_1_300px] text-[15px] text-muted">
+            Nenhum hábito vai te cobrar até <strong className="text-text">{untilText(mano.habitsPausedUntil)}</strong>. Remédios
+            continuam avisando normalmente.
           </span>
           <button
             onClick={() => api("/api/habits/pause", { minutes: 0 })}
-            className="min-h-10 rounded-full bg-glow px-4 text-sm font-semibold text-on-ember"
+            className="min-h-10 rounded-full px-4 text-sm font-semibold text-accent hover:bg-soft"
           >
             Retomar agora
           </button>
