@@ -187,7 +187,7 @@ function MedForm({ med, onDone }: { med?: Med; onDone: () => void }) {
                 key={w}
                 aria-pressed={on}
                 onClick={() => set("days", on ? f.days.filter((d) => d !== i) : [...f.days, i])}
-                className={`rounded-lg px-2.5 py-1 text-sm ${on ? "bg-ember text-ink" : "border border-line text-muted"}`}
+                className={`rounded-lg px-2.5 py-1 text-sm ${on ? "bg-ember text-on-ember" : "border border-line text-muted"}`}
               >
                 {w}
               </button>
@@ -239,7 +239,7 @@ function Adherence({ meds, doses }: { meds: Med[]; doses: Dose[] }) {
   });
   const color = (list: Dose[]) => {
     if (list.length === 0) return "bg-line/40";
-    if (list.every((d) => d.status === "taken")) return "bg-emerald-400/70";
+    if (list.every((d) => d.status === "taken")) return "bg-ok/70";
     if (list.some((d) => d.status === "missed")) return "bg-alert/70";
     if (list.some((d) => d.status === "pending")) return "bg-ember/40";
     return "bg-muted/40";
@@ -272,7 +272,7 @@ function Adherence({ meds, doses }: { meds: Med[]; doses: Dose[] }) {
         })}
       </div>
       <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted">
-        <Legend cls="bg-emerald-400/70" label="tudo tomado" />
+        <Legend cls="bg-ok/70" label="tudo tomado" />
         <Legend cls="bg-alert/70" label="esqueceu alguma" />
         <Legend cls="bg-muted/40" label="pulado" />
         <Legend cls="bg-ember/40" label="em aberto" />

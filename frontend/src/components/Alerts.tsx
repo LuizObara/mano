@@ -130,7 +130,7 @@ export function Alerts({ mano }: { mano: Mano }) {
                       onClick={() => void a.run()}
                       className={
                         a.primary
-                          ? `rounded-xl px-5 py-2.5 font-medium text-ink ${it.tone === "alert" ? "bg-alert" : "bg-ember"}`
+                          ? `rounded-xl px-5 py-2.5 font-medium ${it.tone === "alert" ? "bg-alert text-on-alert" : "bg-ember text-on-ember"}`
                           : "rounded-xl border border-line px-3 py-2.5 text-sm hover:border-ember/50"
                       }
                     >

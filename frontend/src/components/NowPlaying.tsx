@@ -16,7 +16,7 @@ export function NowPlaying({ mano, go }: { mano: Mano; go: (p: string) => void }
       <Card title="Música">
         <p className="text-sm text-muted">
           {sp.configured ? "Spotify configurado, falta conectar sua conta." : "Spotify ainda não configurado."}{" "}
-          <button className="text-ember underline-offset-2 hover:underline" onClick={() => go("ajustes")}>
+          <button className="text-accent underline-offset-2 hover:underline" onClick={() => go("ajustes")}>
             Ir para Ajustes
           </button>
         </p>
@@ -72,7 +72,7 @@ function CtlButton({ label, d, onClick, big }: { label: string; d: string; onCli
       onClick={onClick}
       aria-label={label}
       title={label}
-      className={`grid place-items-center rounded-full ${big ? "size-11 bg-ember text-ink" : "size-9 text-muted hover:text-text"}`}
+      className={`grid place-items-center rounded-full ${big ? "size-11 bg-ember text-on-ember" : "size-9 text-muted hover:text-text"}`}
     >
       <svg viewBox="0 0 24 24" className="size-5" fill={big ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round">
         <path d={d} />

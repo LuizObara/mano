@@ -14,7 +14,7 @@ export function History({ entries }: { entries: LogEntry[] }) {
               <span className="text-muted tabular-nums">{timeFmt.format(e.at)}</span>
               <span className="truncate">
                 {e.source === "voice" && (
-                  <span className="mr-1 text-ember" title="por voz" aria-label="por voz">●</span>
+                  <span className="mr-1 text-accent" title="por voz" aria-label="por voz">●</span>
                 )}
                 {e.text}
               </span>

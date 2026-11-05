@@ -43,7 +43,7 @@ export function SettingsPage({ mano }: { mano: Mano }) {
         {sp?.connected ? (
           <div className="flex flex-wrap items-center gap-3">
             <span className="flex items-center gap-2 text-sm">
-              <span className="size-2 rounded-full bg-emerald-400" /> Conta conectada
+              <span className="size-2 rounded-full bg-ok" /> Conta conectada
             </span>
             <button className={`${btn.danger} ml-auto`} onClick={() => api("/api/spotify/logout", {})}>
               Desconectar
@@ -53,14 +53,14 @@ export function SettingsPage({ mano }: { mano: Mano }) {
           <ol className="flex list-decimal flex-col gap-3 pl-5 text-sm">
             <li>
               Entre em{" "}
-              <a className="text-ember underline-offset-2 hover:underline" href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">
+              <a className="text-accent underline-offset-2 hover:underline" href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">
                 developer.spotify.com/dashboard
               </a>{" "}
               com sua conta e clique em <b>Create app</b>.
             </li>
             <li>
               Preencha nome (ex.: Mano) e descrição. Em <b>Redirect URIs</b> adicione exatamente:
-              <code className="mt-1 block select-all rounded-lg bg-ink px-3 py-2 text-ember">
+              <code className="mt-1 block select-all rounded-lg bg-ink px-3 py-2 text-accent">
                 {sp?.redirect_uri ?? "http://127.0.0.1:8765/api/spotify/callback"}
               </code>
               Marque <b>Web API</b>, aceite os termos e salve.
@@ -133,7 +133,7 @@ function GoogleSettings({ mano }: { mano: Mano }) {
   };
 
   const link = (href: string, text: string) => (
-    <a className="text-ember underline-offset-2 hover:underline" href={href} target="_blank" rel="noreferrer">
+    <a className="text-accent underline-offset-2 hover:underline" href={href} target="_blank" rel="noreferrer">
       {text}
     </a>
   );
@@ -143,7 +143,7 @@ function GoogleSettings({ mano }: { mano: Mano }) {
       {g?.connected ? (
         <div className="flex flex-wrap items-center gap-3">
           <span className="flex items-center gap-2 text-sm">
-            <span className="size-2 rounded-full bg-emerald-400" /> Conectado{g.email ? ` como ${g.email}` : ""}
+            <span className="size-2 rounded-full bg-ok" /> Conectado{g.email ? ` como ${g.email}` : ""}
           </span>
           <button className={btn.ghost} onClick={() => api("/api/google/refresh", {})}>
             Atualizar agora
@@ -178,7 +178,7 @@ function GoogleSettings({ mano }: { mano: Mano }) {
               {sending ? "Enviando…" : g?.configured ? "Trocar arquivo" : "Escolher arquivo"}
               <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => upload(e.target.files?.[0])} />
             </label>
-            {g?.configured && <span className="ml-2 text-emerald-300">✓ recebido</span>}
+            {g?.configured && <span className="ml-2 text-ok">✓ recebido</span>}
             {error && <p className="mt-1 text-alert">{error}</p>}
           </li>
           <li>
@@ -231,7 +231,7 @@ function VaultSettings({ mano }: { mano: Mano }) {
       {st?.configured ? (
         <div className="flex flex-col gap-2 text-sm">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="size-2 rounded-full bg-emerald-400" />
+            <span className="size-2 rounded-full bg-ok" />
             Vault <b>{st.vault_name}</b> · {st.total} notas
           </div>
           <code className="block break-all rounded-lg bg-ink px-3 py-2 text-xs text-muted">{st.vault}</code>
@@ -327,7 +327,7 @@ function LLMSettings({ mano }: { mano: Mano }) {
         <div className="flex flex-col gap-4 text-sm">
           <div className="flex flex-wrap items-center gap-2">
             <span
-              className={`size-2 rounded-full ${!st.enabled ? "bg-line" : st.reachable ? "bg-emerald-400" : "bg-alert"}`}
+              className={`size-2 rounded-full ${!st.enabled ? "bg-line" : st.reachable ? "bg-ok" : "bg-alert"}`}
             />
             {!st.enabled
               ? "Desligado: o Mano usa só as regras."
@@ -337,7 +337,7 @@ function LLMSettings({ mano }: { mano: Mano }) {
                   : "O Ollama está rodando, mas não tem nenhum modelo baixado."
                 : st.installed
                   ? "O Ollama está parado (o Mano tenta abrir sozinho)."
-                  : <>Ollama não encontrado. Instale em <a className="text-ember hover:underline" href="https://ollama.com/download" target="_blank" rel="noreferrer">ollama.com</a>.</>}
+                  : <>Ollama não encontrado. Instale em <a className="text-accent hover:underline" href="https://ollama.com/download" target="_blank" rel="noreferrer">ollama.com</a>.</>}
             <span className="ml-auto text-xs text-muted">{st.url}</span>
           </div>
 

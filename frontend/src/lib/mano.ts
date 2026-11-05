@@ -148,7 +148,7 @@ export type Reply = {
   } | null;
 };
 export type VoiceState = "idle" | "listening" | "thinking" | "speaking";
-export type VoiceStatus = { available: boolean; reason: string; wake_phrases: string[] };
+export type VoiceStatus = { available: boolean; reason: string; wake_phrases: string[]; muted?: boolean };
 export type Notice = { id: number; text: string; level: string; title: string };
 
 export async function api<T = unknown>(path: string, body?: unknown, method?: string): Promise<T> {
@@ -271,6 +271,9 @@ export function useMano() {
             setVoice(msg.state);
             if (msg.state === "listening") setPartial("");
             break;
+          case "voice.status":
+            setVoiceStatus({ available: msg.available, reason: msg.reason, wake_phrases: msg.wake_phrases, muted: msg.muted });
+            break;
           case "voice.partial":
             setPartial(msg.text);
             break;
@@ -307,11 +310,15 @@ export function useMano() {
   }, []);
 
   const listen = useCallback(() => api("/api/voice/listen", {}).catch(() => {}), []);
+  const setMicMuted = useCallback(
+    (muted: boolean) => api<VoiceStatus>("/api/voice/mute", { muted }).then(setVoiceStatus).catch(() => {}),
+    [],
+  );
   const dismissNotice = useCallback((id: number) => setNotices((n) => n.filter((x) => x.id !== id)), []);
 
   return {
     connected, voice, voiceStatus, partial, timers, meds, doses, habits, reminders, notices,
-    lastReply, history, busy, send, listen, dismissNotice,
+    lastReply, history, busy, send, listen, setMicMuted, dismissNotice,
     spotify, video, setVideo, videoResults, setVideoResults,
     google, calendar, gmail, tasks, notes, llm, briefing,
   };

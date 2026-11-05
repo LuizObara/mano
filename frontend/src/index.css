@@ -1,15 +1,86 @@
 @import "tailwindcss";
+@import "@fontsource-variable/fraunces/opsz.css";
+@import "@fontsource-variable/fraunces/opsz-italic.css";
+@import "@fontsource-variable/figtree/index.css";
 
-@theme {
-  --font-sans: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
-  --color-ink: #0e0f12;
-  --color-panel: #17191e;
-  --color-line: #262931;
-  --color-muted: #8b909c;
-  --color-text: #e9e7e2;
-  --color-ember: #f2a65a;
-  --color-ember-soft: #f2a65a22;
-  --color-alert: #ef6b5b;
+/*
+ * Paleta "Mel & Café". As classes do Tailwind (bg-panel, text-muted...) apontam para variáveis,
+ * e as variáveis mudam com o tema: <html data-theme="light|dark">.
+ */
+@theme inline {
+  --font-sans: "Figtree Variable", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, serif;
+  --color-ink: var(--m-ink);
+  --color-panel: var(--m-panel);
+  --color-line: var(--m-line);
+  --color-soft: var(--m-soft);
+  --color-muted: var(--m-muted);
+  --color-text: var(--m-text);
+  --color-ember: var(--m-ember);
+  --color-ember-soft: var(--m-ember-soft);
+  --color-on-ember: var(--m-on-ember);
+  --color-accent: var(--m-accent);
+  --color-alert: var(--m-alert);
+  --color-on-alert: var(--m-on-alert);
+  --color-ok: var(--m-ok);
+  --color-think: var(--m-think);
+  --color-deep: var(--m-deep);
+  --color-deep-text: var(--m-deep-text);
+  --color-deep-muted: var(--m-deep-muted);
+  --color-deep-line: var(--m-deep-line);
+  --color-glow: var(--m-glow);
+  /* uma cor por área de topo do vault (Journal, Craft, Codex...) */
+  --color-area-0: var(--m-ember);
+  --color-area-1: var(--m-think);
+  --color-area-2: var(--m-area-2);
+  --color-area-3: var(--m-ok);
+  --color-area-4: var(--m-alert);
+}
+
+:root {
+  /* dia */
+  --m-ink: #f5eddc; /* creme: fundo */
+  --m-panel: #fffaf0; /* papel: painéis */
+  --m-line: #e5d6b8; /* areia: bordas */
+  --m-soft: #efe4cc; /* palha: hover, itens */
+  --m-muted: #6b5641; /* terra: texto secundário */
+  --m-text: #2b1f15; /* café: texto */
+  --m-ember: #e3a72f; /* mel: destaque */
+  --m-ember-soft: #e3a72f33;
+  --m-on-ember: #2b1f15;
+  --m-accent: #93560f; /* âmbar: links e texto de destaque */
+  --m-alert: #a63d2a; /* telha */
+  --m-on-alert: #fffaf0;
+  --m-ok: #4f6b3c; /* sálvia */
+  --m-think: #c2652a; /* caramelo: orbe pensando */
+  --m-deep: #2b1f15; /* bloco do relógio */
+  --m-deep-text: #f2e8d5;
+  --m-deep-muted: #b9a68c;
+  --m-deep-line: #3a2d21;
+  --m-glow: #edb54a;
+  --m-area-2: #3f6b6a; /* petróleo */
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  /* noite */
+  --m-ink: #1a140f;
+  --m-panel: #241c15;
+  --m-line: #3a2d21;
+  --m-soft: #30261c;
+  --m-muted: #b9a68c;
+  --m-text: #f2e8d5;
+  --m-ember: #edb54a;
+  --m-ember-soft: #edb54a2e;
+  --m-accent: #f0c068;
+  --m-alert: #e5836b;
+  --m-on-alert: #1a140f;
+  --m-ok: #93b37d;
+  --m-think: #dd8a52;
+  --m-deep: #2e241b;
+  --m-deep-line: #45372a;
+  --m-area-2: #6fa3a0;
+  color-scheme: dark;
 }
 
 html,
@@ -25,13 +96,25 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
 @keyframes breathe {
-  0%, 100% { transform: scale(1); opacity: 0.55; }
-  50% { transform: scale(1.08); opacity: 0.9; }
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.08); opacity: 0.95; }
 }
 @keyframes pulse-ring {
   0% { transform: scale(0.9); opacity: 0.8; }
-  100% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.45); opacity: 0; }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes wave {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
 }
 @keyframes blink {
   0%, 100% { opacity: 1; }
@@ -40,29 +123,33 @@ body {
 
 .orb-breathe { animation: breathe 4s ease-in-out infinite; }
 .orb-ring { animation: pulse-ring 1.4s ease-out infinite; }
+.orb-spin { animation: spin-slow 3s linear infinite; }
+.orb-wave { animation: wave 0.7s ease-in-out infinite; }
 .blink { animation: blink 1s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .orb-breathe, .orb-ring, .blink { animation: none; }
+  .orb-breathe, .orb-ring, .orb-spin, .orb-wave, .blink { animation: none; }
 }
 
 /* Notas renderizadas do Obsidian */
-.note-body { line-height: 1.7; font-size: 0.95rem; overflow-wrap: anywhere; }
+.note-body { line-height: 1.7; font-size: 1rem; overflow-wrap: anywhere; }
 .note-body > * + * { margin-top: 0.75em; }
-.note-body h1 { font-size: 1.5rem; font-weight: 600; margin-top: 1.2em; }
-.note-body h2 { font-size: 1.25rem; font-weight: 600; margin-top: 1.2em; }
-.note-body h3, .note-body h4 { font-size: 1.05rem; font-weight: 600; margin-top: 1em; }
+.note-body h1, .note-body h2, .note-body h3 { font-family: var(--font-display); font-weight: 500; line-height: 1.25; }
+.note-body h1 { font-size: 1.6rem; margin-top: 1.2em; }
+.note-body h2 { font-size: 1.35rem; margin-top: 1.2em; }
+.note-body h3, .note-body h4 { font-size: 1.1rem; margin-top: 1em; }
+.note-body h4 { font-family: var(--font-sans); font-weight: 600; }
 .note-body ul { list-style: disc; padding-left: 1.4em; }
 .note-body ol { list-style: decimal; padding-left: 1.4em; }
 .note-body li + li { margin-top: 0.2em; }
-.note-body a { color: var(--color-ember); text-decoration: underline; text-underline-offset: 2px; }
+.note-body a { color: var(--color-accent); text-decoration: underline; text-underline-offset: 3px; }
 .note-body a[data-wikilink] { text-decoration-style: dotted; }
-.note-body blockquote { border-left: 3px solid var(--color-line); padding-left: 1em; color: var(--color-muted); }
-.note-body code { background: var(--color-ink); border-radius: 4px; padding: 0.1em 0.35em; font-size: 0.9em; }
-.note-body pre { background: var(--color-ink); border-radius: 8px; padding: 0.8em 1em; overflow-x: auto; }
+.note-body blockquote { border-radius: 14px; background: var(--color-ink); padding: 0.75em 1.1em; color: var(--color-muted); font-style: italic; }
+.note-body code { background: var(--color-soft); border-radius: 4px; padding: 0.1em 0.35em; font-size: 0.9em; }
+.note-body pre { background: var(--color-ink); border-radius: 12px; padding: 0.8em 1em; overflow-x: auto; }
 .note-body pre code { background: none; padding: 0; }
 .note-body table { border-collapse: collapse; display: block; overflow-x: auto; }
 .note-body th, .note-body td { border: 1px solid var(--color-line); padding: 0.3em 0.6em; }
 .note-body hr { border-color: var(--color-line); }
-.note-body input[type="checkbox"] { accent-color: var(--color-ember); margin-right: 0.4em; }
+.note-body input[type="checkbox"] { accent-color: var(--color-accent); margin-right: 0.4em; }
 .note-body .note-embed { color: var(--color-muted); }

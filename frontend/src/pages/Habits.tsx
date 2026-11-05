@@ -61,7 +61,7 @@ function HabitRow({ h }: { h: Habit }) {
           aria-pressed={h.done_today}
           aria-label={h.done_today ? `Desmarcar ${h.name} hoje` : `Marcar ${h.name} hoje`}
           className={`grid size-9 shrink-0 place-items-center rounded-xl border text-lg ${
-            h.done_today ? "border-ember bg-ember text-ink" : "border-line hover:border-ember/60"
+            h.done_today ? "border-ember bg-ember text-on-ember" : "border-line hover:border-ember/60"
           } disabled:opacity-30`}
         >
           {h.done_today ? "✓" : h.icon || ""}
@@ -76,7 +76,7 @@ function HabitRow({ h }: { h: Habit }) {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl tabular-nums leading-none text-ember">{h.streak}</div>
+          <div className="text-2xl tabular-nums leading-none text-accent">{h.streak}</div>
           <div className="text-xs text-muted">{h.streak === 1 ? "dia" : "dias"}</div>
         </div>
         <button className="px-1 text-muted hover:text-alert" onClick={remove} aria-label={`Remover ${h.name}`}>
@@ -130,7 +130,7 @@ function HabitForm({ onDone }: { onDone: () => void }) {
               key={w}
               aria-pressed={on}
               onClick={() => setDays(on ? days.filter((d) => d !== i) : [...days, i])}
-              className={`rounded-lg px-2.5 py-1 text-sm ${on ? "bg-ember text-ink" : "border border-line text-muted"}`}
+              className={`rounded-lg px-2.5 py-1 text-sm ${on ? "bg-ember text-on-ember" : "border border-line text-muted"}`}
             >
               {w}
             </button>

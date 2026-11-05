@@ -17,7 +17,12 @@
 ## Frontend
 
 - React 19 com componentes de função e hooks; estado global só em `useMano()`.
-- Tailwind 4 com os tokens do tema em `index.css` (`ink`, `panel`, `line`, `muted`, `text`, `ember`, `alert`). Use as classes prontas de `components/ui.tsx` (`Card`, `btn.*`, `input`).
+- Paleta "Mel & Café" com tema claro e escuro. As cores são tokens em `index.css` que apontam para variáveis trocadas por `<html data-theme>`; **nunca escreva cor fixa** (hex, `emerald-400`), use os tokens:
+  - fundos: `ink` (página e campos), `panel` (cartões), `soft` (hover e itens), `deep` (bloco do relógio, com `deep-text`, `deep-muted`, `deep-line`, `glow`);
+  - texto: `text`, `muted`, `accent` (links e destaques em texto);
+  - destaque: `ember` (mel, só preenchimento) com `on-ember` por cima; `alert` com `on-alert`; `ok`; `think` (orbe pensando); `area-0`…`area-4` (cores das áreas do vault).
+- Fontes: `font-display` (Fraunces) no relógio, títulos de painel e de nota; o resto em Figtree (`font-sans`). Ambas vêm do npm (`@fontsource-variable`), então funcionam sem internet.
+- Use as peças de `components/ui.tsx`: `Card` (ganha o botão de ocultar sozinho dentro do Início), `btn.*`, `input`, `Icon`. Preferências do aparelho (tema, painéis ocultos) com `useStored` de `lib/prefs.ts`.
 - Datas com `toLocaleString("pt-BR")` e os helpers `hhmm`, `ago`, `isoDay` de `lib/mano.ts`.
 - HTML vindo de fora (notas) sempre passa pelo DOMPurify.
 - Tudo precisa caber em 375 px de largura sem rolagem lateral.

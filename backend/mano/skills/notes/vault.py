@@ -181,6 +181,12 @@ class Vault:
                              (limit,)).fetchall()
         return [self._row(r) for r in rows]
 
+    def all_notes(self) -> list[dict]:
+        """Todas as notas, ordenadas pelo caminho (para a árvore de pastas do visor)."""
+        with self._conn() as c:
+            rows = c.execute("SELECT path, title, folder, mtime FROM notes_meta ORDER BY path").fetchall()
+        return [self._row(r) for r in rows]
+
     def titles(self) -> dict[str, str]:
         with self._conn() as c:
             return {r["path"]: r["title"] for r in c.execute("SELECT path, title FROM notes_meta")}

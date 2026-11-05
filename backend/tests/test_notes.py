@@ -156,3 +156,13 @@ def test_frontmatter_tags():
     assert frontmatter_tags("---\ntags:\n  - Daily\n  - pessoal\n---\n") == ["Daily", "pessoal"]
     assert frontmatter_tags("---\ntags: [estudo, fatec]\naliases: x\n---\n") == ["estudo", "fatec"]
     assert frontmatter_tags("---\ntitle: x\n---\n") == []
+
+
+def test_tree_lists_every_note_by_path(client, notes):
+    tree = client.get("/api/notes/tree").json()
+    paths = [n["path"] for n in tree]
+    assert paths == sorted(paths)
+    assert "20-29 Craft/21 Projects/SIA/SIA.md" in paths
+    assert all(not p.startswith(".git/") for p in paths)
+    sia = next(n for n in tree if n["title"] == "SIA")
+    assert sia["folder"] == "20-29 Craft/21 Projects/SIA"

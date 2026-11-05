@@ -10,15 +10,15 @@ export function Today({ mano, go }: { mano: Mano; go: (page: string) => void }) 
   const empty = mano.doses.length === 0 && habits.length === 0 && upcoming.length === 0;
 
   return (
-    <Card title="Hoje">
+    <Card title="Remédios e hábitos">
       {empty && (
         <p className="text-sm text-muted">
           Nada marcado. Cadastre{" "}
-          <button className="text-ember underline-offset-2 hover:underline" onClick={() => go("remedios")}>
+          <button className="text-accent underline-offset-2 hover:underline" onClick={() => go("remedios")}>
             remédios
           </button>{" "}
           ou{" "}
-          <button className="text-ember underline-offset-2 hover:underline" onClick={() => go("habitos")}>
+          <button className="text-accent underline-offset-2 hover:underline" onClick={() => go("habitos")}>
             hábitos
           </button>
           , ou diga "me lembra de… às 8".
@@ -70,13 +70,13 @@ export function Today({ mano, go }: { mano: Mano; go: (page: string) => void }) 
                     checked={h.done_today}
                     onChange={(e) => api(`/api/habits/${h.id}/toggle`, { done: e.target.checked })}
                     aria-label={`${h.done_today ? "Desmarcar" : "Marcar"} ${h.name}`}
-                    className="size-4 accent-ember"
+                    className="size-4 accent-accent"
                   />
                   <span className={`flex-1 ${h.done_today ? "text-muted line-through" : ""}`}>
                     {h.icon && <span className="mr-1.5">{h.icon}</span>}
                     {h.name}
                   </span>
-                  {h.streak >= 2 && <span className="text-xs text-ember tabular-nums">{h.streak} dias</span>}
+                  {h.streak >= 2 && <span className="text-xs text-accent tabular-nums">{h.streak} dias</span>}
                 </label>
               </li>
             ))}

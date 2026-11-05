@@ -234,6 +234,10 @@ class NotesSkill(Skill):
                 return await asyncio.to_thread(v.recent, 20)
             return await asyncio.to_thread(v.search, q, 20)
 
+        @r.get("/tree")
+        async def tree():
+            return await asyncio.to_thread(need().all_notes)
+
         @r.get("/file")
         async def read_file(path: str):
             v = need()

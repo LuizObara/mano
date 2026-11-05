@@ -16,8 +16,9 @@ Convenções:
 | `POST /api/command` | `{"text", "speak"=true, "source"="text"}` | `{"intent", "speech", "display", "data", "log"}` (também vai como evento `reply`) |
 | `GET /api/skills` | — | Catálogo: skills, intenções e exemplos |
 | `GET /api/history?limit=20` | — | Últimos comandos |
-| `GET /api/voice` | — | `{"available", "reason", "wake_phrases", "state"}` |
-| `POST /api/voice/listen` | — | Push-to-talk: começa a ouvir sem a frase de ativação |
+| `GET /api/voice` | — | `{"available", "reason", "wake_phrases", "muted", "state"}` |
+| `POST /api/voice/listen` | — | Push-to-talk: começa a ouvir sem a frase de ativação (`ok: false` com o microfone mudo) |
+| `POST /api/voice/mute` | `{"muted": true}` | Microfone mudo; fica salvo em `data/voice.json` e volta em `GET /api/voice` como `muted` |
 | `GET /` | — | O visor. Também recebe o retorno do login Google (`?code=&state=`) |
 
 `data` em `/api/command` varia por intenção. Chaves que o visor entende: `card` (cartão da Wikipedia), `link`, `notes` (lista de notas), `briefing` (notícias lidas), `understood_as` (frase reescrita pelo modelo local), `video`, `youtube_results`, `timer`, `reminder`.
@@ -64,6 +65,7 @@ Convenções:
 | `GET /api/notes/detect` | — | Vaults encontrados no PC |
 | `POST /api/notes/config` | `{"vault": "C:\\..."}` | |
 | `GET /api/notes/search?q=` | — | Vazio = recentes. Trechos marcados com «» |
+| `GET /api/notes/tree` | — | Todas as notas (`path`, `title`, `folder`, `mtime`), ordenadas pelo caminho; o visor monta a árvore |
 | `GET /api/notes/file?path=` | — | Conteúdo, backlinks e `obsidian_url` |
 | `GET /api/notes/resolve?link=` | — | Resolve um `[[wikilink]]` |
 | `POST /api/notes/capture` | `{"text"}` | Acrescenta na nota do dia |
@@ -104,6 +106,7 @@ Ao conectar, o servidor manda um **`hello`** com o estado completo: `voice`, `vo
 | `notice` | `{"text", "level", "title"}` | `ctx.notify()`: avisos proativos |
 | `voice` | `{"state": "idle\|listening\|thinking\|speaking"}` | Voz |
 | `voice.partial` | `{"text"}` | Voz, transcrição parcial |
+| `voice.status` | `{"available", "reason", "wake_phrases", "muted"}` | Microfone ligado ou mudo |
 | `timers` · `timer.ringing` | `{"timers": [...]}` · `{"timer"}` | Timers |
 | `reminders` | `{"reminders": [...]}` | Lembretes |
 | `meds` · `meds.due` | `{"meds", "doses"}` · `{"doses"}` | Remédios |

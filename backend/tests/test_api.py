@@ -66,3 +66,16 @@ def test_timer_survives_restart(settings):
         timers = c.get("/api/timers").json()
         assert [t["label"] for t in timers] == ["bolo"]
         assert app2.state.ctx.scheduler.get_job(f"timer-{timers[0]['id']}") is not None
+
+
+def test_mic_mute_is_saved_and_reported(settings):
+    app = create_app(settings, NullSpeaker())
+    with TestClient(app) as c:
+        assert c.get("/api/voice").json()["muted"] is False
+        r = c.post("/api/voice/mute", json={"muted": True})
+        assert r.status_code == 200 and r.json()["muted"] is True
+        assert c.post("/api/voice/listen").json()["ok"] is False
+    # continua mudo depois de reiniciar
+    with TestClient(create_app(settings, NullSpeaker())) as c:
+        assert c.get("/api/voice").json()["muted"] is True
+        assert c.post("/api/voice/mute", json={"muted": False}).json()["muted"] is False

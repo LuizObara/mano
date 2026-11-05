@@ -60,7 +60,7 @@ export function BriefingPage({ mano, go }: { mano: Mano; go: (p: string) => void
                 role="tab"
                 aria-selected={view === v.id}
                 onClick={() => setView(v.id)}
-                className={`rounded-lg px-3 py-1.5 text-sm ${view === v.id ? "bg-ember text-ink" : "text-muted hover:text-text"}`}
+                className={`rounded-lg px-3 py-1.5 text-sm ${view === v.id ? "bg-ember text-on-ember" : "text-muted hover:text-text"}`}
               >
                 {v.label}
                 {v.id === "new" && b?.unread ? <span className="ml-1.5 tabular-nums opacity-80">{b.unread}</span> : null}
@@ -113,7 +113,7 @@ export function BriefingPage({ mano, go }: { mano: Mano; go: (p: string) => void
                 onClick={() => setFeedId(feedId === f.id ? null : f.id)}
               >
                 {f.title}
-                {f.unread > 0 && <span className="ml-1 tabular-nums text-ember">{f.unread}</span>}
+                {f.unread > 0 && <span className="ml-1 tabular-nums text-accent">{f.unread}</span>}
               </button>
             ))}
           </div>
@@ -133,7 +133,7 @@ export function BriefingPage({ mano, go }: { mano: Mano; go: (p: string) => void
             {items.map((it) => (
               <li key={it.id} className={`rounded-2xl border border-line bg-panel p-4 sm:p-5 ${it.read && view !== "starred" ? "opacity-70" : ""}`}>
                 <div className="flex items-center gap-2 text-xs text-muted">
-                  <span className="truncate font-medium text-ember/90">{it.feed}</span>
+                  <span className="truncate font-medium text-accent/90">{it.feed}</span>
                   <span>·</span>
                   <span className="shrink-0">{ago(it.published)}</span>
                   <div className="ml-auto flex shrink-0 gap-1">
@@ -143,7 +143,7 @@ export function BriefingPage({ mano, go }: { mano: Mano; go: (p: string) => void
                       aria-label={it.starred ? "Tirar dos salvos" : "Salvar"}
                       title={it.starred ? "Tirar dos salvos" : "Salvar"}
                     >
-                      {it.starred ? <span className="text-ember">★</span> : "☆"}
+                      {it.starred ? <span className="text-accent">★</span> : "☆"}
                     </button>
                     {!it.read && (
                       <button
@@ -162,7 +162,7 @@ export function BriefingPage({ mano, go }: { mano: Mano; go: (p: string) => void
                   target="_blank"
                   rel="noreferrer"
                   onClick={() => !it.read && patch(it, { read: true })}
-                  className="mt-1 block text-lg font-medium leading-snug hover:text-ember"
+                  className="mt-1 block text-lg font-medium leading-snug hover:text-accent"
                 >
                   {it.title}
                 </a>
@@ -183,7 +183,7 @@ export function BriefingPage({ mano, go }: { mano: Mano; go: (p: string) => void
           <Card title="Resumos">
             <p className="text-sm text-muted">
               Sem o modelo local, cada notícia mostra o começo do artigo.{" "}
-              <button className="text-ember hover:underline" onClick={() => go("ajustes")}>
+              <button className="text-accent hover:underline" onClick={() => go("ajustes")}>
                 Ver o modelo em Ajustes
               </button>
             </p>
@@ -324,7 +324,7 @@ function MorningCard({ mano }: { mano: Mano }) {
             Desligar
           </button>
         )}
-        {saved && <span className="text-xs text-ember">✓</span>}
+        {saved && <span className="text-xs text-accent">✓</span>}
       </form>
       <p className="mt-3 text-xs text-muted">
         Resumos das notícias: todo dia às {b?.summarize_at ?? "05:00"}, se o notebook estiver ligado.

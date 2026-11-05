@@ -16,7 +16,7 @@ export function BriefingCard({ mano, go }: { mano: Mano; go: (p: string) => void
       {!b?.feeds ? (
         <p className="text-sm text-muted">
           Escolha seus blogs na{" "}
-          <button className="text-ember hover:underline" onClick={() => go("briefing")}>
+          <button className="text-accent hover:underline" onClick={() => go("briefing")}>
             aba Briefing
           </button>
           .

@@ -29,7 +29,7 @@ export function Timers({ timers }: { timers: Timer[] }) {
               <div className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="truncate text-sm text-muted first-letter:uppercase">{t.label ?? "Timer"}</div>
-                  <div className={`text-2xl tabular-nums ${ringing ? "text-alert blink" : ""}`}>
+                  <div className={`font-display text-3xl tabular-nums ${ringing ? "text-alert blink" : ""}`}>
                     {ringing ? "Acabou!" : fmtLeft(left)}
                   </div>
                 </div>
@@ -63,7 +63,7 @@ export function Timers({ timers }: { timers: Timer[] }) {
           aria-label="Nome do timer"
           className="flex-1 min-w-0 rounded-lg border border-line bg-ink px-2 py-1.5 text-sm outline-none focus:border-ember/60"
         />
-        <button className="rounded-lg bg-line px-3 py-1.5 text-sm hover:bg-ember hover:text-ink">Criar</button>
+        <button className="rounded-lg bg-line px-3 py-1.5 text-sm hover:bg-ember hover:text-on-ember">Criar</button>
       </form>
     </Card>
   );

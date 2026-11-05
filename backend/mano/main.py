@@ -31,6 +31,10 @@ class CommandIn(BaseModel):
     source: str = "text"
 
 
+class MuteIn(BaseModel):
+    muted: bool
+
+
 def create_app(settings: Settings | None = None, speaker: Speaker | None = None) -> FastAPI:
     settings = settings or Settings()
     hub = Hub()
@@ -96,6 +100,10 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
     @app.post("/api/voice/listen")
     async def voice_listen():
         return {"ok": voice.listen_now(), **voice.status()}
+
+    @app.post("/api/voice/mute")
+    async def voice_mute(body: MuteIn):
+        return voice.set_mic_muted(body.muted)
 
     @app.websocket("/ws")
     async def ws(websocket: WebSocket):

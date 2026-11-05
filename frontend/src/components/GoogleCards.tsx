@@ -8,7 +8,7 @@ function NotReady({ mano, go }: { mano: Mano; go: (p: string) => void }) {
   return (
     <p className="text-sm text-muted">
       {g?.configured ? "Falta conectar sua conta Google." : "Conta Google não configurada."}{" "}
-      <button className="text-ember underline-offset-2 hover:underline" onClick={() => go("ajustes")}>
+      <button className="text-accent underline-offset-2 hover:underline" onClick={() => go("ajustes")}>
         Ir para Ajustes
       </button>
     </p>
@@ -64,7 +64,7 @@ export function AgendaCard({ mano, go }: { mano: Mano; go: (p: string) => void }
                           <span className="block truncate">{e.title}</span>
                           {e.location && <span className="block truncate text-xs text-muted">{e.location}</span>}
                         </span>
-                        {live && <span className="self-center text-xs text-ember">agora</span>}
+                        {live && <span className="self-center text-xs text-accent">agora</span>}
                       </a>
                     </li>
                   );
@@ -125,7 +125,7 @@ export function TasksCard({ mano, go }: { mano: Mano; go: (p: string) => void })
                       disabled={busy === t.id}
                       onChange={() => complete(t.id)}
                       aria-label={`Concluir ${t.title}`}
-                      className="mt-0.5 size-4 shrink-0 accent-ember"
+                      className="mt-0.5 size-4 shrink-0 accent-accent"
                     />
                     <span className="min-w-0 flex-1">{t.title}</span>
                     {t.due && (
@@ -146,7 +146,7 @@ export function TasksCard({ mano, go }: { mano: Mano; go: (p: string) => void })
               onChange={(e) => setTitle(e.target.value)}
               aria-label="Nova tarefa"
             />
-            <button className="rounded-lg bg-line px-3 py-1.5 text-sm hover:bg-ember hover:text-ink disabled:opacity-40" disabled={busy === "new"}>
+            <button className="rounded-lg bg-line px-3 py-1.5 text-sm hover:bg-ember hover:text-on-ember disabled:opacity-40" disabled={busy === "new"}>
               Adicionar
             </button>
           </form>
@@ -181,7 +181,7 @@ export function InboxCard({ mano, go }: { mano: Mano; go: (p: string) => void })
           <p className="mb-3 rounded-xl bg-ember-soft px-3 py-2 text-sm leading-relaxed">{g.summary.text}</p>
         ) : mano.llm?.enabled && mano.llm.reachable && mano.llm.model ? (
           <button
-            className="mb-2 text-xs text-ember hover:underline disabled:opacity-50"
+            className="mb-2 text-xs text-accent hover:underline disabled:opacity-50"
             disabled={mano.llm.busy === "e-mails"}
             onClick={() => mano.send("resume meus e-mails", false)}
           >

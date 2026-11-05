@@ -4,13 +4,19 @@ Tudo que dá para falar dá para digitar na barra do visor, e quase tudo também
 
 ## O visor
 
-Abas no topo: **Início**, **Remédios**, **Hábitos**, **Notas**, **Briefing**, **Ajustes**. O ponto verde no canto indica que o visor está conectado ao Mano.
+Abas no topo: **Início**, **Remédios**, **Hábitos**, **Notas**, **Briefing**, **Ajustes**. Ao lado, da esquerda para a direita:
 
-**Início**, em três colunas:
+- **Conectado**: o ponto verde indica que o visor está ligado ao Mano.
+- **Microfone**: silencia o microfone. Mudo, o Mano não ouve o "fala Mano" nem o Ctrl+Espaço, e uma faixa escura avisa isso no topo. A barra de comando continua funcionando e os avisos de remédio continuam falando. Fica salvo até você ligar de novo, mesmo reiniciando o Mano.
+- **Alto-falante**: decide se a resposta de um comando digitado também é falada.
+- **Sol/lua**: tema claro ou escuro. Na primeira vez segue o tema do Windows; depois fica o que você escolher, neste aparelho.
+- **Painéis** (só no Início): escolhe quais painéis aparecem.
 
-- **Assistente**: o orbe (parado, ouvindo, pensando, falando), a última resposta e a barra de comando. A caixa "Falar respostas" decide se a resposta de um comando digitado também é falada. Abaixo ficam "Tocando agora" e os timers.
-- **Agenda, Tarefas e Briefing**: compromissos dos próximos dias, a lista do Google Tasks e as manchetes novas.
-- **Hoje, E-mail e Últimos comandos**: doses e hábitos de hoje, não lidos da caixa principal (com botão para resumir) e o histórico.
+**Início**:
+
+- **Assistente**: o orbe (pronto, ouvindo, pensando, falando, mudo), a última resposta e a barra de comando.
+- **Relógio**: saudação, hora e o que vem a seguir hoje (compromissos, doses pendentes e timers).
+- **Painéis**: Agenda, Remédios e hábitos, Música, Timers, Tarefas, E-mail, Briefing e Últimos comandos. O olho riscado no canto de cada um oculta o painel; o botão **Painéis** (ou "Mostrar todos") traz de volta. Fica salvo neste aparelho, e o que está oculto continua funcionando por voz.
 
 Avisos (remédio, timer, lembrete, compromisso) aparecem no canto da tela, são falados e viram notificação do Windows. "Para" ou "ok" dispensa o que estiver tocando.
 
@@ -54,7 +60,8 @@ Na aba **Hábitos**, crie hábitos com ícone e dias da semana. Cada um mostra a
 
 ## Notas (Obsidian)
 
-- **Busca**: ignora acentos e dá mais peso ao título. Os trechos encontrados aparecem destacados. Com a busca vazia, mostra as notas recentes.
+- **Pastas**: à esquerda, a árvore do vault como no Obsidian, com o número de notas de cada pasta. Cada área de topo ganha uma cor, e prefixos como "10-19" ou "21" aparecem separados do nome. Clicar numa pasta mostra, no meio, as notas dela e das pastas de dentro, agrupadas por subpasta (as notas diárias vêm da mais nova para a mais antiga).
+- **Busca**: ignora acentos e dá mais peso ao título. Os resultados aparecem no meio, agrupados pela pasta de origem, com os trechos encontrados destacados.
 - **Leitura**: a nota aparece formatada, com tags, `[[links]]` clicáveis, a lista de onde ela é mencionada e o botão **Abrir no Obsidian**.
 - **Captura**: o campo do topo, ou "anota que…" por voz, acrescenta `- HH:MM texto` na seção `## Capturas` da nota do dia.
 - O índice se atualiza a cada minuto.

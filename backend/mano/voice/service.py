@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import math
 import queue
@@ -56,6 +57,28 @@ class VoiceService:
         self._stream = None
         self._muted_until = 0.0
         self._earcon: Path | None = None
+        self._cfg_path = ctx.settings.data_dir / "voice.json"
+        self.mic_muted = self._load_cfg().get("mic_muted", False)
+
+    # ---------- microfone mudo ----------
+
+    def _load_cfg(self) -> dict:
+        try:
+            return json.loads(self._cfg_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return {}
+
+    def set_mic_muted(self, muted: bool) -> dict:
+        """Mudo = o Mano ignora o microfone (nem a ativação nem o Ctrl+Espaço). Fica salvo."""
+        self.mic_muted = muted
+        self._cfg_path.parent.mkdir(parents=True, exist_ok=True)
+        self._cfg_path.write_text(json.dumps({**self._load_cfg(), "mic_muted": muted}), encoding="utf-8")
+        if muted and self.loop:
+            self.loop.command_done()  # sai da escuta, se estava ouvindo
+            if self.ctx.voice_state == "listening":
+                self.ctx.set_voice_state("idle")
+        self.ctx.hub.broadcast_threadsafe("voice.status", self.status())
+        return self.status()
 
     # ---------- ciclo de vida ----------
 
@@ -109,10 +132,11 @@ class VoiceService:
             "available": self.available,
             "reason": self.reason,
             "wake_phrases": self.ctx.settings.wake_phrases,
+            "muted": self.mic_muted,
         }
 
     def listen_now(self) -> bool:
-        if not self.loop:
+        if not self.loop or self.mic_muted:
             return False
         self._play_earcon()
         self.loop.listen_now()
@@ -155,6 +179,8 @@ class VoiceService:
                 log.exception("erro no processamento de voz")
 
     def _is_muted(self) -> bool:
+        if self.mic_muted:
+            return True
         now = time.monotonic()
         if self.ctx.speaker.busy:
             self._muted_until = now + 0.4  # rabicho de eco depois da fala
