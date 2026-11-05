@@ -36,7 +36,7 @@ Dependências com **versão exata** (`==` no `requirements.txt`, sem `^` no `pac
 Tabelas novas em `models.py` são criadas sozinhas ao iniciar. **Colunas novas em tabelas existentes não**: o SQLite do usuário continua com o esquema antigo. Até existir uma ferramenta de migração (Alembic seria o caminho), faça assim:
 
 1. Prefira guardar o dado novo numa tabela nova ou num JSON em `data/`.
-2. Se precisar mesmo da coluna, acrescente no `start()` da skill um `ALTER TABLE ... ADD COLUMN ...` protegido por uma checagem em `PRAGMA table_info(...)`.
+2. Se precisar mesmo da coluna, acrescente no `start()` da skill um `ALTER TABLE ... ADD COLUMN ...` protegido por uma checagem em `PRAGMA table_info(...)`. Exemplo: `HabitSkill._migrate()`, testado em `test_old_database_gets_new_columns`.
 
 O índice das notas (`notes_meta`, `notes_fts`) é gerenciado pelo `Vault` e pode ser apagado à vontade: ele é refeito do vault.
 

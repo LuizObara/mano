@@ -28,6 +28,7 @@ npm run build
 | `test_when.py` | Datas e horas faladas ("sexta às 10", "daqui a 2 horas") |
 | `test_api.py` | Núcleo: comandos, histórico, timers tocando e sobrevivendo a reinício |
 | `test_routine.py` | Remédios (repetição, adiar, desistência, estoque), hábitos (sequência), lembretes |
+| `test_habits.py` | Hábitos por tipo (sim/não, meta, livre), registros, banco antigo ganhando colunas, cobranças (janela, pular se registrou, meta batida, pausa, adiar, silenciar, horários fixos) e frases por voz |
 | `test_voice.py` | Laço de voz com áudio sintetizado pelo SAPI (ativação, comando junto, push-to-talk, mudo enquanto fala) |
 | `test_media.py` | Spotify (frases → chamadas), YouTube, Wikipedia |
 | `test_google.py` | Agenda, Gmail, Tarefas, login, aviso de compromisso |

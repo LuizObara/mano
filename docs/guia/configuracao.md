@@ -94,6 +94,7 @@ Reinicie o Mano depois de mudar o `.env`. A lista completa está em `backend/man
 | Variável | Padrão | O que faz |
 |---|---|---|
 | `MANO_TOAST_ENABLED` | `true` | Notificações do Windows |
+| `MANO_SOUND_ENABLED` | `true` | Bip dos lembretes de hábito |
 | `MANO_MED_REPEAT_MIN` | `5` | Repete o aviso de remédio a cada N minutos até "tomei" |
 | `MANO_MED_SNOOZE_MIN` | `10` | Quanto o "adia" empurra |
 | `MANO_MED_GIVE_UP_MIN` | `120` | Depois disso a dose vira "não tomada" |

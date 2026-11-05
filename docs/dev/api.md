@@ -39,10 +39,19 @@ Convenções:
 | `DELETE /api/meds/{id}` | — | |
 | `GET /api/meds/history?days=14` | — | Adesão por dia |
 | `POST /api/meds/doses/{id}/{take\|skip\|snooze}` | — | |
-| `GET /api/habits` | — | Hábitos com sequência e histórico |
-| `POST /api/habits` | `{"name", "icon", "days"}` | |
-| `DELETE /api/habits/{id}` | — | |
-| `POST /api/habits/{id}/toggle` | `{"day"?, "done"?}` | Sem `done`, inverte |
+| `GET /api/habits` | — | `{"habits": [...], "habits_paused_until"}`. Cada hábito traz configuração, `today_amount`, `week_amount`, `today_logs`, `amounts` (12 semanas), `history` (dias cumpridos), `streak`, `best_streak`, `next_reminder`, `remind_today` |
+| `POST /api/habits` | `{"name", "icon", "days", "kind", "unit", "goal", "goal_period", "quick", "reminder"}` | `kind`: `check`, `goal` ou `free`; devolve `id` |
+| `PUT /api/habits/{id}` | o mesmo | Atualiza |
+| `DELETE /api/habits/{id}` | — | Arquiva (o histórico fica) |
+| `POST /api/habits/{id}/toggle` | `{"day"?, "done"?}` | Sim/não. Sem `done`, inverte |
+| `POST /api/habits/{id}/log` | `{"amount", "day"?, "note"?, "via"?}` | Registro de quantidade (`via`: `visor`, `lembrete`, `voz`) |
+| `GET /api/habits/{id}/logs?day=` | — | Registros de um dia |
+| `PATCH /api/habits/logs/{log_id}` | `{"amount"?, "note"?}` | Corrige um registro |
+| `DELETE /api/habits/logs/{log_id}` | — | Apaga um registro |
+| `POST /api/habits/{id}/snooze` | — | "Agora não": adia pelo `snooze_min` do hábito |
+| `POST /api/habits/{id}/silence` | — | "Chega por hoje" para esse hábito |
+| `POST /api/habits/{id}/test` | — | Dispara o aviso agora (para testar a configuração) |
+| `POST /api/habits/pause` | `{"minutes"}` | Pausa geral; `0` retoma, `-1` até amanhã |
 
 ## Google
 
@@ -110,7 +119,8 @@ Ao conectar, o servidor manda um **`hello`** com o estado completo: `voice`, `vo
 | `timers` · `timer.ringing` | `{"timers": [...]}` · `{"timer"}` | Timers |
 | `reminders` | `{"reminders": [...]}` | Lembretes |
 | `meds` · `meds.due` | `{"meds", "doses"}` · `{"doses"}` | Remédios |
-| `habits` | `{"habits": [...]}` | Hábitos |
+| `habits` | `{"habits": [...], "habits_paused_until"}` | Hábitos |
+| `habit.remind` | `{"habit_id", "name", "kind", "unit", "message", "quick", "at", "expires_at", "amount", "goal"}` | Aviso de hábito (o visor mostra o pop-up até `expires_at`) |
 | `google` · `calendar` · `gmail` · `tasks` | `{"<chave>": {...}}` | Google |
 | `notes` · `notes.results` · `notes.open` | status · `{"q", "results"}` · `{"path"}` | Notas (`notes.open` faz o visor abrir a nota) |
 | `spotify` | `{"spotify": {...}}` | Spotify |

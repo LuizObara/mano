@@ -31,6 +31,7 @@ class Settings(BaseSettings):
 
     # Avisos
     toast_enabled: bool = True  # notificação do Windows
+    sound_enabled: bool = True  # bips dos lembretes de hábito
 
     # Remédios
     med_repeat_min: int = 5  # repete o alerta até confirmar

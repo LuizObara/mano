@@ -7,7 +7,7 @@ import threading
 log = logging.getLogger(__name__)
 
 
-def toast(title: str, body: str) -> None:
+def toast(title: str, body: str, silent: bool = False) -> None:
     if sys.platform != "win32":
         return
 
@@ -16,7 +16,7 @@ def toast(title: str, body: str) -> None:
             from winotify import Notification, audio
 
             n = Notification(app_id="Mano", title=title, msg=body, duration="long")
-            n.set_audio(audio.Reminder, loop=False)
+            n.set_audio(audio.Silent if silent else audio.Reminder, loop=False)
             n.show()
         except Exception:
             log.exception("falha ao mostrar notificação")

@@ -1,4 +1,4 @@
-import { api, hhmm, useNow, type Mano } from "../lib/mano";
+import { api, fmtAmount, hhmm, useNow, type Mano } from "../lib/mano";
 import { Card, StatusPill } from "./ui";
 
 /** Resumo do dia na tela inicial: remédios, hábitos e próximos lembretes. */
@@ -62,7 +62,29 @@ export function Today({ mano, go }: { mano: Mano; go: (page: string) => void }) 
             </span>
           </h3>
           <ul className="flex flex-col gap-1">
-            {habits.map((h) => (
+            {habits.map((h) =>
+              h.kind !== "check" ? (
+                <li key={h.id} className="flex items-center gap-3 rounded-lg px-1 py-1 text-sm">
+                  <span className={`grid size-4 place-items-center rounded-full ${h.done_today ? "bg-ok" : "border border-line"}`} />
+                  <a href={`#/habitos?h=${h.id}`} className={`flex-1 ${h.done_today ? "text-muted" : ""}`}>
+                    {h.icon && <span className="mr-1.5">{h.icon}</span>}
+                    {h.name}
+                  </a>
+                  <span className="tabular-nums text-muted">
+                    {fmtAmount(h.today_amount, h.unit)}
+                    {h.goal && h.goal_period === "day" ? ` / ${fmtAmount(h.goal, h.unit)}` : ""}
+                  </span>
+                  {h.quick[0] && !h.done_today && (
+                    <button
+                      onClick={() => api(`/api/habits/${h.id}/log`, { amount: h.quick[0] })}
+                      className="rounded-full bg-soft px-2 py-0.5 text-xs font-semibold hover:bg-line"
+                      aria-label={`Registrar ${fmtAmount(h.quick[0], h.unit)} em ${h.name}`}
+                    >
+                      +{fmtAmount(h.quick[0], h.unit)}
+                    </button>
+                  )}
+                </li>
+              ) : (
               <li key={h.id}>
                 <label className="flex cursor-pointer items-center gap-3 rounded-lg px-1 py-1 text-sm hover:bg-ink/50">
                   <input
@@ -79,7 +101,8 @@ export function Today({ mano, go }: { mano: Mano; go: (page: string) => void }) 
                   {h.streak >= 2 && <span className="text-xs text-accent tabular-nums">{h.streak} dias</span>}
                 </label>
               </li>
-            ))}
+              ),
+            )}
           </ul>
         </div>
       )}

@@ -55,10 +55,20 @@ O cadastro (nome, dose, horários, dias, estoque) é feito na aba **Remédios**.
 
 | Diga | O que acontece | Intenção |
 |---|---|---|
-| "fiz exercício" | Marca o hábito de hoje (procura pelo nome mais parecido) | `habit.done` |
+| "fiz exercício" | Marca um hábito sim/não de hoje (procura pelo nome mais parecido) | `habit.done` |
 | "marca leitura como feita" | O mesmo | `habit.done` |
 | "desmarca leitura" | Desfaz a marcação de hoje | `habit.undo` |
-| "quais hábitos faltam?" | Lista o que falta hoje | `habit.pending` |
+| "quais hábitos faltam?" | Lista o que falta hoje (com quanto falta nos de meta) | `habit.pending` |
+| "bebi 500 ml de água" | Registra no hábito de água (ml ou litros) | `habit.log` |
+| "bebi um copo de água" | Copo = 250 ml, garrafa = 500 ml, xícara = 200 ml | `habit.log` |
+| "bebi meio litro" | 500 ml | `habit.log` |
+| "li 20 páginas" | Registra na leitura; "li 20 páginas do Hobbit" guarda o livro como observação | `habit.log` |
+| "registra 10 minutos de meditação" | Registra em qualquer hábito por quantidade | `habit.log` |
+| "quanto de água eu bebi hoje?" | Quanto fez e quanto falta para a meta | `habit.progress` |
+| "quantas páginas eu li essa semana?" | Total da semana | `habit.progress` |
+| "pausa os lembretes de água" | Sem cobrança desse hábito até amanhã | `habit.silence` |
+| "chega de lembrete por hoje" | Nenhum hábito cobra até amanhã (remédios continuam) | `habit.pause` |
+| "pausa as cobranças por 2 horas" | Pausa geral; sem tempo dito, 1 hora | `habit.pause` |
 
 ## Agenda (Google)
 

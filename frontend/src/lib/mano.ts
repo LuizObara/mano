@@ -31,16 +31,74 @@ export type Dose = {
   reminders: number;
 };
 
+export type HabitKind = "check" | "goal" | "free";
+export type HabitReminderCfg = {
+  enabled: boolean;
+  mode: "interval" | "fixed";
+  every: number;
+  start: string;
+  end: string;
+  times: string[];
+  message: string;
+  fraction: number | null;
+  beep: boolean;
+  popup: boolean;
+  toast: boolean;
+  speak: boolean;
+  dismiss_min: number;
+  stop_on_goal: boolean;
+  skip_recent: boolean;
+  snooze_min: number;
+  respect_pause: boolean;
+};
+export type HabitLogEntry = { id: number | null; at: number; amount: number; note: string; via: string };
 export type Habit = {
   id: number;
   name: string;
   icon: string;
   days: number[];
+  kind: HabitKind;
+  unit: string;
+  goal: number | null;
+  goal_period: "day" | "week";
+  quick: number[];
+  reminder: HabitReminderCfg;
+  suggested_fraction: number | null;
   today_scheduled: boolean;
   done_today: boolean;
+  today_amount: number;
+  week_amount: number;
+  today_logs: HabitLogEntry[];
+  last_note: string;
   streak: number;
-  history: string[]; // ISO dates
+  best_streak: number;
+  history: string[]; // dias cumpridos (ISO)
+  amounts: Record<string, number>; // total por dia (ISO), últimas 12 semanas
+  next_reminder: number | null;
+  silenced_today: boolean;
+  remind_today: { sent: number; answered: number; skipped: number; later: number };
 };
+/** Aviso de hábito que chega pelo WebSocket ("habit.remind"). */
+export type HabitNudge = {
+  habit_id: number;
+  name: string;
+  icon: string;
+  kind: HabitKind;
+  unit: string;
+  message: string;
+  quick: number[];
+  at: number;
+  expires_at: number;
+  amount: number;
+  goal: number | null;
+};
+
+/** 1800 ml → "1,8 L"; 12 páginas → "12 páginas". */
+export function fmtAmount(x: number, unit: string) {
+  const n = (v: number) => (Math.round(v * 10) / 10).toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+  if (unit.toLowerCase() === "ml" && x >= 1000) return `${n(x / 1000)} L`;
+  return `${n(x)} ${unit}`.trim();
+}
 
 export type NowPlaying = {
   title: string;
@@ -180,6 +238,8 @@ export function useMano() {
   const [meds, setMeds] = useState<Med[]>([]);
   const [doses, setDoses] = useState<Dose[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [habitsPausedUntil, setHabitsPausedUntil] = useState<number | null>(null);
+  const [nudge, setNudge] = useState<HabitNudge | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [notices, setNotices] = useState<Notice[]>([]);
   const [spotify, setSpotify] = useState<SpotifyStatus | null>(null);
@@ -208,6 +268,7 @@ export function useMano() {
       if ("meds" in msg) setMeds(msg.meds as Med[]);
       if ("doses" in msg) setDoses(msg.doses as Dose[]);
       if ("habits" in msg) setHabits(msg.habits as Habit[]);
+      if ("habits_paused_until" in msg) setHabitsPausedUntil(msg.habits_paused_until as number | null);
       if ("reminders" in msg) setReminders(msg.reminders as Reminder[]);
       if ("spotify" in msg) setSpotify(msg.spotify as SpotifyStatus);
       if ("google" in msg) setGoogle(msg.google as GoogleStatus);
@@ -271,6 +332,9 @@ export function useMano() {
             setVoice(msg.state);
             if (msg.state === "listening") setPartial("");
             break;
+          case "habit.remind":
+            setNudge(msg as HabitNudge);
+            break;
           case "voice.status":
             setVoiceStatus({ available: msg.available, reason: msg.reason, wake_phrases: msg.wake_phrases, muted: msg.muted });
             break;
@@ -317,7 +381,7 @@ export function useMano() {
   const dismissNotice = useCallback((id: number) => setNotices((n) => n.filter((x) => x.id !== id)), []);
 
   return {
-    connected, voice, voiceStatus, partial, timers, meds, doses, habits, reminders, notices,
+    connected, voice, voiceStatus, partial, timers, meds, doses, habits, habitsPausedUntil, nudge, setNudge, reminders, notices,
     lastReply, history, busy, send, listen, setMicMuted, dismissNotice,
     spotify, video, setVideo, videoResults, setVideoResults,
     google, calendar, gmail, tasks, notes, llm, briefing,

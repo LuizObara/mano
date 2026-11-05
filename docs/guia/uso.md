@@ -45,7 +45,39 @@ Importante: com o notebook desligado ou suspenso não há aviso. O aviso no celu
 
 ## Hábitos
 
-Na aba **Hábitos**, crie hábitos com ícone e dias da semana. Cada um mostra a sequência (dias seguidos) e uma grade de 35 dias; clique num dia passado para marcar ou desmarcar. Por voz: "fiz exercício", "desmarca leitura", "quais hábitos faltam?".
+Três tipos, escolhidos em **Novo hábito** (ou na engrenagem de cada um):
+
+| Tipo | Exemplo | Como registra | Quando conta como feito |
+|---|---|---|---|
+| **Sim ou não** | Exercício | Botão "Marcar como feito" ou "fiz exercício" | Marcou no dia |
+| **Com meta** | Água, 3 L por dia | Botões rápidos (+250 ml), "Outro…" ou "bebi 500 ml de água" | Somou a meta no dia |
+| **Livre** | Leitura | Quantidade com observação ("10 páginas", "O Hobbit") ou "li 20 páginas" | Registrou qualquer coisa no dia |
+
+Cada hábito tem unidade, meta opcional (por dia ou por semana), botões rápidos e dias da semana. Os registros guardam a hora, a observação e de onde vieram (visor, lembrete ou voz).
+
+- **Visão geral**: um cartão por hábito (anel de progresso nos de meta diária, com o ritmo esperado para a hora) e a tabela **Esta semana**. Na tabela, clicar num dia marca ou desmarca os sim/não e abre o dia no detalhe para os outros.
+- **Detalhe** (clique no nome): média por dia, meta batida, total, sequência e recorde, melhor dia, total da semana; gráfico por dia com a linha da meta (7 dias, 30 dias ou 12 semanas), grade de 12 semanas e os registros de qualquer dia, com editar, apagar e "registrar em outro dia".
+
+### Cobranças
+
+Ligue a **Cobrança** na configuração do hábito:
+
+- **Quando**: a cada X minutos dentro de uma janela (água: a cada 30 min, das 8 h às 22 h) ou em horários fixos (leitura: 21 h, só se ainda não registrou nada no dia).
+- **Fração por lembrete**: para metas diárias, o Mano divide a meta pelos avisos da janela e sugere quanto fazer em cada um (3 L em 28 avisos ≈ 100 ml). Dá para mudar.
+- **Mensagem**: texto seu, com `{faltam}`, `{fração}`, `{feito}`, `{meta}` e `{nome}`. A prévia ao lado mostra como fica.
+- **Como avisar**: bip pelo PC (toca mesmo com o visor fechado), pop-up no canto do visor com botões de registrar, notificação do Windows e, se quiser, a voz do Mano. O pop-up some sozinho depois de 3 min (configurável).
+
+Para não encher o saco:
+
+- bateu a meta do dia, para de cobrar;
+- registrou há menos tempo que o intervalo, o próximo aviso é pulado;
+- **Agora não** (no pop-up) adia 15 min; **Chega por hoje** silencia aquele hábito até amanhã;
+- **Pausar cobranças** (no topo da aba) pausa todos por 1 h, 2 h ou até amanhã. Remédios continuam avisando;
+- avisos que caíram com o Mano desligado não tocam atrasados.
+
+O detalhe mostra as **cobranças de hoje**: quantos avisos foram enviados, respondidos, pulados e adiados.
+
+Por voz: "fiz exercício", "bebi um copo de água", "li 20 páginas do Hobbit", "quanto de água eu bebi hoje?", "pausa os lembretes de água", "chega de lembrete por hoje". Lista completa em [Comandos](comandos.md#hábitos).
 
 ## Lembretes e timers
 

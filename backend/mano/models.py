@@ -67,6 +67,25 @@ class Habit(SQLModel, table=True):
     position: int = 0
     active: bool = True
     created_at: datetime = Field(default_factory=datetime.now)
+    # colunas da v2 (bancos antigos ganham via ALTER TABLE no start() da skill)
+    kind: str = "check"  # check (sim/não) | goal (com meta) | free (livre)
+    unit: str = ""  # "ml", "páginas", "min"
+    goal: float | None = None
+    goal_period: str = "day"  # day | week
+    quick: str = ""  # botões rápidos: "100,250,500"
+    reminder: str = ""  # JSON da cobrança (ver habits.default_reminder)
+
+
+class HabitLog(SQLModel, table=True):
+    """Um registro de quantidade (água, páginas...). Hábitos sim/não usam HabitCheck."""
+
+    id: int | None = Field(default=None, primary_key=True)
+    habit_id: int = Field(foreign_key="habit.id", index=True)
+    day: date = Field(index=True)
+    amount: float
+    at: datetime = Field(default_factory=datetime.now)
+    note: str = ""
+    via: str = "visor"  # visor | lembrete | voz
 
 
 class HabitCheck(SQLModel, table=True):

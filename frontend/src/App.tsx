@@ -4,6 +4,7 @@ import { BriefingCard } from "./components/BriefingCard";
 import { Clock } from "./components/Clock";
 import { CommandBar } from "./components/CommandBar";
 import { AgendaCard, InboxCard, TasksCard } from "./components/GoogleCards";
+import { HabitNudge } from "./components/HabitNudge";
 import { History } from "./components/History";
 import { NowPlaying } from "./components/NowPlaying";
 import { Timers } from "./components/Timers";
@@ -202,6 +203,7 @@ export default function App() {
       </main>
 
       <Alerts mano={mano} />
+      <HabitNudge mano={mano} />
       <VideoOverlay mano={mano} />
     </div>
   );
