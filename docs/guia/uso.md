@@ -19,7 +19,24 @@ Abas no topo: **Início**, **Remédios**, **Hábitos**, **Notas**, **Briefing**,
   No pé do bloco, um mini painel mostra, uma de cada vez, a música tocando (com pausar e pular) e as grades das últimas 12 semanas de hábitos e de remédios: quanto mais forte o mel, mais coisa feita no dia; vermelho é dia em que esqueceu remédio. Ele não troca sozinho: os pontinhos embaixo escolhem a tela. Só aparece o que tem dado.
 - **Painéis**: Agenda, Remédios e hábitos, Música, Timers, Tarefas, E-mail, Briefing e Últimos comandos. Briefing e Últimos comandos ficam lado a lado no fim, com a mesma altura, e o ícone de expandir abre cada um por cima da página: o Briefing com filtro por blog, resumo, "Marcar como lido" e "Guardar"; os comandos com busca, filtros (por voz, digitados, não entendidos), separação por dia, páginas para os mais antigos e um botão para repetir o comando. No próprio painel de comandos as setas também passam para os mais antigos. O olho riscado no canto de cada um oculta o painel; o botão **Painéis** (ou "Mostrar todos") traz de volta. Fica salvo neste aparelho, e o que está oculto continua funcionando por voz.
 
-Avisos (remédio, timer, lembrete, compromisso) aparecem no canto da tela, são falados e viram notificação do Windows. "Para" ou "ok" dispensa o que estiver tocando.
+Avisos (remédio, timer, lembrete, compromisso) aparecem no canto da tela, tocam um som, são falados e viram notificação do Windows. "Para" ou "ok" dispensa o que estiver tocando; no remédio, "para" só cala o som (a dose continua esperando "tomei").
+
+## Alarmes e avisos
+
+Em **Ajustes → Alarmes e avisos** cada tipo de alarme (Remédio, Timer, Lembrete e Hábitos) tem o seu jeito de tocar. **Testar** toca o alarme como ele vai soar de verdade; **Ajustar** abre o editor, que salva sozinho a cada mudança:
+
+- **Som**: Sino, Despertador, Bipe digital, Plim, Suave, Cristal ou "Sem som". O ▶ ao lado ouve antes de escolher. **Usar um som meu** aceita um `.wav` (PCM 16 bits, até 2 min e 8 MB); a lixeira apaga.
+- **Volume**: de 0 a 100%, relativo ao volume do Windows. Ao soltar o controle, toca uma amostra.
+- **Tipo de alarme**: *toque único* (toca uma vez a cada aviso) ou *contínuo* (toca sem parar até você responder ou dizer "para").
+- **Como avisar**: falar o aviso (depois do toque, para não embolar) e notificação do Windows. O aviso na tela aparece sempre.
+- **Repetir até eu responder**: de quanto em quanto tempo repete e quando desiste. No remédio, "desistir" é marcar a dose como não tomada; tem também quanto o "adiar" empurra.
+- **Restaurar padrão** volta ao que veio de fábrica.
+
+Em Hábitos só se escolhe o som e o volume: quando e como cobrar fica em cada hábito.
+
+**Horário silencioso**: entre os horários escolhidos os alarmes não tocam som nem falam; tela e notificação continuam. Por padrão o remédio toca mesmo assim (dá para desmarcar).
+
+O som sai pelo próprio PC, então toca com o visor fechado. Com o notebook desligado ou suspenso não há aviso.
 
 ## Falando com o Mano
 
@@ -35,9 +52,10 @@ Enquanto o Mano fala, o microfone é ignorado (ele não ouve a si mesmo). O reco
 
 Na aba **Remédios**, cadastre nome, dose, horários, dias da semana e, se quiser, o estoque.
 
-- No horário, o Mano avisa por voz, na tela e no Windows, e **repete a cada 5 minutos** até você dizer "tomei" (ou clicar).
-- "Adia" empurra 10 minutos; "pula o remédio" marca como pulado.
+- No horário, o Mano toca o sino, avisa por voz, na tela e no Windows, e **repete a cada 5 minutos** até você dizer "tomei" (ou clicar).
+- "Adia" empurra 10 minutos; "pula o remédio" marca como pulado; **Silenciar** (ou "para") cala o som sem responder a dose.
 - Depois de 2 horas sem resposta a dose vira "não tomada".
+- Som, volume, intervalo, adiar e limite mudam em [Alarmes e avisos](#alarmes-e-avisos).
 - Com estoque cadastrado, cada "tomei" desconta e o Mano avisa quando estiver acabando.
 - O histórico dos últimos 14 dias mostra a adesão.
 
@@ -65,7 +83,7 @@ Ligue a **Cobrança** na configuração do hábito:
 - **Quando**: a cada X minutos dentro de uma janela (água: a cada 30 min, das 8 h às 22 h) ou em horários fixos (leitura: 21 h, só se ainda não registrou nada no dia).
 - **Fração por lembrete**: para metas diárias, o Mano divide a meta pelos avisos da janela e sugere quanto fazer em cada um (3 L em 28 avisos ≈ 100 ml). Dá para mudar.
 - **Mensagem**: texto seu, com `{faltam}`, `{fração}`, `{feito}`, `{meta}` e `{nome}`. A prévia ao lado mostra como fica.
-- **Como avisar**: bip pelo PC (toca mesmo com o visor fechado), pop-up no canto do visor com botões de registrar, notificação do Windows e, se quiser, a voz do Mano. O pop-up some sozinho depois de 3 min (configurável).
+- **Como avisar**: som pelo PC (toca mesmo com o visor fechado; qual som e o volume ficam em [Alarmes e avisos](#alarmes-e-avisos)), pop-up no canto do visor com botões de registrar, notificação do Windows e, se quiser, a voz do Mano. O pop-up some sozinho depois de 3 min (configurável).
 
 Para não encher o saco:
 
@@ -81,7 +99,7 @@ Por voz: "fiz exercício", "bebi um copo de água", "li 20 páginas do Hobbit", 
 
 ## Lembretes e timers
 
-- **Timer**: duração e, se quiser, um nome ("timer de 10 minutos pro arroz"). Tocando, ele repete o aviso a cada 30 s por até 5 min.
+- **Timer**: duração e, se quiser, um nome ("timer de 10 minutos pro arroz"). Tocando, o despertador soa sem parar e o aviso falado repete a cada 30 s por até 5 min (tudo ajustável em [Alarmes e avisos](#alarmes-e-avisos)).
 - **Lembrete**: um texto e um momento ("me lembra de pagar o boleto amanhã às 10", "me lembra em 20 minutos de tirar o bolo"). Momentos aceitos: "em/daqui a N minutos/horas", "às 15", "às 3 e meia", "hoje/amanhã/depois de amanhã", dias da semana ("sexta às 10").
 
 ## Agenda, e-mail e tarefas (Google)

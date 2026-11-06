@@ -237,6 +237,7 @@ export function useMano() {
   const [timers, setTimers] = useState<Timer[]>([]);
   const [meds, setMeds] = useState<Med[]>([]);
   const [doses, setDoses] = useState<Dose[]>([]);
+  const [medSnoozeMin, setMedSnoozeMin] = useState(10);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [habitsPausedUntil, setHabitsPausedUntil] = useState<number | null>(null);
   const [nudge, setNudge] = useState<HabitNudge | null>(null);
@@ -267,6 +268,7 @@ export function useMano() {
       if ("timers" in msg) setTimers(msg.timers as Timer[]);
       if ("meds" in msg) setMeds(msg.meds as Med[]);
       if ("doses" in msg) setDoses(msg.doses as Dose[]);
+      if ("med_snooze_min" in msg) setMedSnoozeMin(msg.med_snooze_min as number);
       if ("habits" in msg) setHabits(msg.habits as Habit[]);
       if ("habits_paused_until" in msg) setHabitsPausedUntil(msg.habits_paused_until as number | null);
       if ("reminders" in msg) setReminders(msg.reminders as Reminder[]);
@@ -382,7 +384,7 @@ export function useMano() {
   const clearReply = useCallback(() => setLastReply(null), []);
 
   return {
-    connected, voice, voiceStatus, partial, timers, meds, doses, habits, habitsPausedUntil, nudge, setNudge, reminders, notices,
+    connected, voice, voiceStatus, partial, timers, meds, doses, medSnoozeMin, habits, habitsPausedUntil, nudge, setNudge, reminders, notices,
     lastReply, clearReply, history, busy, send, listen, setMicMuted, dismissNotice,
     spotify, video, setVideo, videoResults, setVideoResults,
     google, calendar, gmail, tasks, notes, llm, briefing,
@@ -436,3 +438,31 @@ export function ago(ms: number, now = Date.now()) {
   if (isoDay(d) === isoDay(y)) return `ontem, ${hhmm(ms)}`;
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
+
+// ---------- alarmes (Ajustes → Alarmes e avisos) ----------
+
+export type AlarmKind = "timer" | "med" | "reminder" | "habit";
+export type AlarmCfg = {
+  sound: string;
+  volume: number;
+  style: "once" | "loop";
+  speak: boolean;
+  toast: boolean;
+  repeat: boolean;
+  every_s: number;
+  stop_after_s: number;
+  snooze_min: number;
+};
+export type AlarmSound = { id: string; label: string; custom: boolean };
+export type QuietCfg = { enabled: boolean; start: string; end: string; meds_ring: boolean };
+export type AlarmsState = {
+  kinds: Record<AlarmKind, AlarmCfg>;
+  defaults: Record<AlarmKind, AlarmCfg>;
+  labels: Record<AlarmKind, string>;
+  quiet: QuietCfg;
+  quiet_now: boolean;
+  sounds: AlarmSound[];
+  sound_enabled: boolean;
+  toast_enabled: boolean;
+  voice_enabled: boolean;
+};

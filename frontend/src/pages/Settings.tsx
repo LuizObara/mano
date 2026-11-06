@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AlarmSettings } from "../components/AlarmSettings";
 import { Card, btn, input } from "../components/ui";
 import { api, type Mano } from "../lib/mano";
 
@@ -35,6 +36,7 @@ export function SettingsPage({ mano }: { mano: Mano }) {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       {flash && <div className="rounded-xl border border-ember/50 bg-ember-soft px-4 py-3 text-sm">{flash}</div>}
 
+      <AlarmSettings />
       <VaultSettings mano={mano} />
       <GoogleSettings mano={mano} />
       <LLMSettings mano={mano} />
@@ -60,7 +62,7 @@ export function SettingsPage({ mano }: { mano: Mano }) {
             </li>
             <li>
               Preencha nome (ex.: Mano) e descrição. Em <b>Redirect URIs</b> adicione exatamente:
-              <code className="mt-1 block select-all rounded-lg bg-ink px-3 py-2 text-accent">
+              <code className="mt-1 block select-all break-all rounded-lg bg-ink px-3 py-2 text-accent">
                 {sp?.redirect_uri ?? "http://127.0.0.1:8765/api/spotify/callback"}
               </code>
               Marque <b>Web API</b>, aceite os termos e salve.

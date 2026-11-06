@@ -175,9 +175,11 @@ class TimerSkill(Skill):
             return
         await self._push()
         await self.ctx.hub.broadcast("timer.ringing", {"timer": t.public()})
-        self.ctx.speaker.say(self._ring_text(t))
+        await self.ctx.alarms.ring("timer", self._ring_text(t), title=t.label or "Timer", notice=False)
+        c = self.ctx.alarms.cfg("timer")
+        # sem repetição, o job só confere o limite de tempo para desligar o contínuo
         self.ctx.scheduler.add_job(
-            self._ring_again, "interval", seconds=self.ctx.settings.timer_ring_repeat_s, args=[timer_id],
+            self._ring_again, "interval", seconds=c.every_s if c.repeat else 15, args=[timer_id],
             id=f"ring-{timer_id}", replace_existing=True,
         )
 
@@ -187,10 +189,12 @@ class TimerSkill(Skill):
         if t is None or t.status != "ringing":
             self._unschedule(timer_id)
             return
-        if (datetime.now() - t.ends_at).total_seconds() > self.ctx.settings.timer_ring_max_s:
+        c = self.ctx.alarms.cfg("timer")
+        if (datetime.now() - t.ends_at).total_seconds() > c.stop_after_s:
             await self.dismiss(timer_id)
             return
-        self.ctx.speaker.say(self._ring_text(t))
+        if c.repeat:
+            await self.ctx.alarms.ring("timer", self._ring_text(t), title=t.label or "Timer", notice=False)
 
     @staticmethod
     def _ring_text(t: Timer) -> str:
@@ -199,12 +203,14 @@ class TimerSkill(Skill):
     async def cancel(self, timer_id: int) -> Timer | None:
         self._unschedule(timer_id)
         t = self._set_status(timer_id, "cancelled")
+        self._silence_if_idle()
         await self._push()
         return t
 
     async def dismiss(self, timer_id: int) -> Timer | None:
         self._unschedule(timer_id)
         t = self._set_status(timer_id, "done")
+        self._silence_if_idle()
         await self._push()
         return t
 
@@ -213,6 +219,10 @@ class TimerSkill(Skill):
         for t in ringing:
             await self.dismiss(t.id)
         return len(ringing)
+
+    def _silence_if_idle(self) -> None:
+        if not any(t.status == "ringing" for t in self.active()):
+            self.ctx.alarms.stop("timer")
 
     async def _push(self) -> None:
         await self.ctx.hub.broadcast("timers", {"timers": [t.public() for t in self.active()]})
@@ -223,7 +233,7 @@ class TimerSkill(Skill):
         for t in self.active():
             if t.status == "running" and t.ends_at > now:
                 self._schedule(t)
-            elif (now - t.ends_at).total_seconds() < self.ctx.settings.timer_ring_max_s:
+            elif (now - t.ends_at).total_seconds() < self.ctx.alarms.cfg("timer").stop_after_s:
                 await self._fire(t.id)
             else:
                 self._set_status(t.id, "done")

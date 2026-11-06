@@ -26,6 +26,10 @@ class ReminderSkill(Skill):
     name = "lembretes"
     description = "Lembretes"
 
+    def __init__(self, ctx):
+        super().__init__(ctx)
+        self._fired_at: dict[int, datetime] = {}  # lembretes tocando agora → quando começaram
+
     # ---------- intenções ----------
 
     def match_create(self, text: str) -> dict | None:
@@ -124,6 +128,8 @@ class ReminderSkill(Skill):
             s.add(r)
             s.commit()
             s.refresh(r)
+        if status != "fired":
+            self._stop_ringing(rid)
         await self._push()
         return r
 
@@ -132,7 +138,33 @@ class ReminderSkill(Skill):
         if r is None:
             return
         prefix = "Lembrete atrasado" if late else "Lembrete"
-        await self.ctx.notify(f"{prefix}: {r.text}.", title="Lembrete", level="alert")
+        await self.ctx.alarms.ring("reminder", f"{prefix}: {r.text}.", title="Lembrete")
+        c = self.ctx.alarms.cfg("reminder")
+        self._fired_at[rid] = datetime.now()
+        if c.repeat or c.style == "loop":
+            self.ctx.scheduler.add_job(self._ring_again, "interval", seconds=c.every_s if c.repeat else 15, args=[rid],
+                                       id=f"reminder-ring-{rid}", replace_existing=True)
+
+    async def _ring_again(self, rid: int) -> None:
+        """Repete o lembrete até "Ok" (se o alarme estiver para repetir) e desiste depois do limite."""
+        with self.ctx.db.session() as s:
+            r = s.get(Reminder, rid)
+        c = self.ctx.alarms.cfg("reminder")
+        since = self._fired_at.get(rid, datetime.now())
+        if r is None or r.status != "fired" or (datetime.now() - since).total_seconds() > c.stop_after_s:
+            self._stop_ringing(rid)
+            return
+        if c.repeat:
+            await self.ctx.alarms.ring("reminder", f"Lembrete: {r.text}.", title="Lembrete")
+
+    def _stop_ringing(self, rid: int) -> None:
+        self._fired_at.pop(rid, None)
+        try:
+            self.ctx.scheduler.remove_job(f"reminder-ring-{rid}")
+        except JobLookupError:
+            pass
+        if not self._fired_at:
+            self.ctx.alarms.stop("reminder")
 
     async def dismiss_alerts(self) -> int:
         fired = [r for r in self.active() if r.status == "fired"]

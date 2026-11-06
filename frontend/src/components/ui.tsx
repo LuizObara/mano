@@ -227,6 +227,9 @@ const ICONS: Record<string, ReactNode> = {
   "chevron-left": <path d="M15 18l-6-6 6-6" />,
   star: <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z" />,
   external: <path d="M7 17L17 7M7 7h10v10" />,
+  play: <path d="M8 5.5v13l10.5-6.5z" />,
+  stop: <rect x="6.5" y="6.5" width="11" height="11" rx="2" />,
+  upload: <path d="M12 15V4M7 9l5-5 5 5M5 20h14" />,
 };
 
 export function Icon({ name, className = "size-5" }: { name: keyof typeof ICONS | string; className?: string }) {

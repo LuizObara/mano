@@ -13,11 +13,7 @@ from __future__ import annotations
 
 import json
 import logging
-import math
 import re
-import struct
-import sys
-import wave
 from collections import Counter
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
@@ -188,27 +184,6 @@ def render_message(template: str, values: dict[str, str]) -> str:
     return re.sub(r"\s+", " ", out).strip()
 
 
-def make_chime(path: Path) -> Path:
-    """Bip curto de duas notas, mais suave que o da ativação de voz."""
-    if path.exists():
-        return path
-    path.parent.mkdir(parents=True, exist_ok=True)
-    rate = 16000
-    frames = bytearray()
-    for freq in (880, 1175):
-        n = int(rate * 0.13)
-        for i in range(n):
-            env = min(1.0, i / 300) * min(1.0, (n - i) / 900)
-            frames += struct.pack("<h", int(0.25 * 32767 * env * math.sin(2 * math.pi * freq * i / rate)))
-        frames += b"\x00\x00" * int(rate * 0.04)
-    with wave.open(str(path), "wb") as w:
-        w.setnchannels(1)
-        w.setsampwidth(2)
-        w.setframerate(rate)
-        w.writeframes(bytes(frames))
-    return path
-
-
 class HabitSkill(Skill):
     name = "hábitos"
     description = "Hábitos"
@@ -223,7 +198,6 @@ class HabitSkill(Skill):
         self._silenced: dict[int, date] = {}
         self._fixed_sent: set[tuple[int, date, str]] = set()
         self._stats: dict[tuple[int, date], Counter] = {}
-        self._chime: Path | None = None
 
     # ---------- intenções ----------
 
@@ -668,21 +642,14 @@ class HabitSkill(Skill):
             from ..notify import toast
 
             toast(h.name, text_, silent=True)
-        if rem.get("speak"):
+        if rem.get("speak") and not self.ctx.alarms.quiet_now("habit", now):
             self.ctx.speaker.say(text_)
         log.info("lembrete de hábito: %s", text_)
         return payload
 
     def _beep(self) -> None:
-        if not self.ctx.settings.sound_enabled or sys.platform != "win32":
-            return
-        try:
-            import winsound
-
-            self._chime = self._chime or make_chime(self.ctx.settings.data_dir / "sounds" / "habit.wav")
-            winsound.PlaySound(str(self._chime), winsound.SND_FILENAME | winsound.SND_ASYNC)
-        except Exception:
-            log.exception("não consegui tocar o bip")
+        """Som do lembrete: o escolhido em Ajustes → Alarmes → Hábitos."""
+        self.ctx.alarms.chime("habit")
 
     # ---------- snapshot ----------
 

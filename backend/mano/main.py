@@ -15,6 +15,7 @@ from .context import Ctx
 from .db import Database
 from .events import Hub
 from .intents.fallback import Fallback
+from .alarms import Alarms
 from .intents.registry import Registry
 from .llm import LLM
 from .models import CommandLog
@@ -48,6 +49,7 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
             on_state=lambda state: ctx.set_voice_state(state),
         ),
     )
+    ctx.alarms = Alarms(ctx)
     registry = Registry()
     ctx.registry = registry
     ctx.llm = LLM(settings)
@@ -68,6 +70,7 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
         await voice.stop()
         for skill in registry.skills:
             await skill.stop()
+        ctx.alarms.stop_all()
         ctx.scheduler.shutdown(wait=False)
         ctx.speaker.stop()
 
@@ -139,6 +142,7 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
         except WebSocketDisconnect:
             hub.disconnect(websocket)
 
+    app.include_router(ctx.alarms.router())
     for skill in registry.skills:
         router = skill.router()
         if router:

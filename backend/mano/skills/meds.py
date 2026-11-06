@@ -1,8 +1,8 @@
 """Remédios: cadastro, doses do dia e alerta que repete até você confirmar.
 
 Cada horário vira uma linha `MedDose` por dia. Um "tick" a cada 20 s olha as doses vencidas:
-avisa (voz + tela + notificação do Windows), repete a cada `med_repeat_min` até "tomei",
-e depois de `med_give_up_min` marca como não tomada. Como tudo está no banco, reiniciar o
+avisa conforme o alarme "Remédio" (som, voz, tela, notificação), repete até "tomei" e,
+depois do limite do alarme, marca como não tomada. Como tudo está no banco, reiniciar o
 Mano não perde nada; doses que venceram com o PC desligado viram "não tomada" sem alarde.
 """
 
@@ -123,7 +123,7 @@ class MedSkill(Skill):
             return Reply("Não tem remédio pendente agora.")
         for d, _ in targets:
             await self.snooze(d.id)
-        return Reply(f"Te lembro de novo em {self.ctx.settings.med_snooze_min} minutos.")
+        return Reply(f"Te lembro de novo em {self.ctx.alarms.cfg('med').snooze_min} minutos.")
 
     def _due_for(self, rest: str, *, early: bool) -> list[tuple[MedDose, Medication]]:
         now = datetime.now()
@@ -194,6 +194,7 @@ class MedSkill(Skill):
         res = self._update(dose_id, status="taken", taken_at=datetime.now(), next_reminder_at=None)
         if res is None:
             return None
+        self.ctx.alarms.stop("med")
         dose, med = res
         if med.stock is not None:
             with self.ctx.db.session() as s:
@@ -212,12 +213,14 @@ class MedSkill(Skill):
 
     async def skip(self, dose_id: int) -> MedDose | None:
         res = self._update(dose_id, status="skipped", next_reminder_at=None)
+        self.ctx.alarms.stop("med")
         await self._push()
         return res[0] if res else None
 
     async def snooze(self, dose_id: int) -> MedDose | None:
-        later = datetime.now() + timedelta(minutes=self.ctx.settings.med_snooze_min)
+        later = datetime.now() + timedelta(minutes=self.ctx.alarms.cfg("med").snooze_min)
         res = self._update(dose_id, next_reminder_at=later)
+        self.ctx.alarms.stop("med")
         await self._push()
         return res[0] if res else None
 
@@ -226,30 +229,35 @@ class MedSkill(Skill):
         if self._day != now.date():
             self._day = now.date()
             self.ensure_doses(self._day)
-        s_ = self.ctx.settings
+        c = self.ctx.alarms.cfg("med")
+        give_up = timedelta(seconds=c.stop_after_s)
         alert: list[tuple[MedDose, Medication]] = []
-        changed = False
+        changed = missed = False
         with self.ctx.db.session() as s:
             rows = s.exec(select(MedDose, Medication).join(Medication)
                           .where(MedDose.status == "pending", MedDose.scheduled_at <= now))
             for d, med in rows:
-                if now - d.scheduled_at > timedelta(minutes=s_.med_give_up_min):
+                if now - d.scheduled_at > give_up:
                     d.status = "missed"
                     d.next_reminder_at = None
-                    changed = True
+                    changed = missed = True
                 elif d.next_reminder_at is None or d.next_reminder_at <= now:
                     d.reminders += 1
-                    d.next_reminder_at = now + timedelta(minutes=s_.med_repeat_min)
+                    # sem repetição: o próximo "aviso" cai depois do limite, quando a dose vira não tomada
+                    d.next_reminder_at = (now + timedelta(seconds=c.every_s) if c.repeat
+                                          else d.scheduled_at + give_up + timedelta(seconds=1))
                     alert.append((d, med))
                     changed = True
                 s.add(d)
             s.commit()
+        if missed and not alert:
+            self.ctx.alarms.stop("med")
         if alert:
             first = all(d.reminders == 1 for d, _ in alert)
             names = " e ".join(f"{m.name}{', ' + m.dose if m.dose else ''}" for _, m in alert)
             text = (f"Hora do remédio: {names}. Diga \"tomei\" quando tomar." if first
                     else f"Lembrete: você ainda não tomou {names}.")
-            await self.ctx.notify(text, title="Hora do remédio", level="alert")
+            await self.ctx.alarms.ring("med", text, title="Hora do remédio", now=now)
             await self.ctx.hub.broadcast("meds.due", {"doses": [d.public(m) for d, m in alert]})
         if changed:
             await self._push()
@@ -261,6 +269,7 @@ class MedSkill(Skill):
         return {
             "meds": [m.public() for m in self.meds()],
             "doses": [d.public(m) for d, m in self.today()],
+            "med_snooze_min": self.ctx.alarms.cfg("med").snooze_min,
         }
 
     def history(self, days: int) -> list[dict]:

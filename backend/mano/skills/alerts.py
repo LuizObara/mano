@@ -18,4 +18,5 @@ class AlertSkill(Skill):
         n = 0
         for skill in self.ctx.registry.skills:
             n += await skill.dismiss_alerts()
+        n += self.ctx.alarms.stop_all()  # cala também o som do remédio (que continua pendente até "tomei")
         return Reply("Beleza." if n else "Não tem nada tocando.")

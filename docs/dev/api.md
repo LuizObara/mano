@@ -40,6 +40,13 @@ Convenções:
 | `DELETE /api/meds/{id}` | — | |
 | `GET /api/meds/history?days=14` | — | Adesão por dia |
 | `POST /api/meds/doses/{id}/{take\|skip\|snooze}` | — | |
+| `GET /api/alarms` | — | `{"kinds": {timer, med, reminder, habit}, "defaults", "labels", "quiet", "quiet_now", "sounds", "sound_enabled", "toast_enabled", "voice_enabled"}` |
+| `PUT /api/alarms/{tipo}` | `{"sound"?, "volume"?, "style"?: "once"\|"loop", "speak"?, "toast"?, "repeat"?, "every_s"?, "stop_after_s"?, "snooze_min"?}` | Só o que mudou; devolve o mesmo do GET |
+| `POST /api/alarms/{tipo}/reset` · `POST /api/alarms/{tipo}/test` | — | Volta ao padrão · toca o alarme de exemplo (contínuo para em 8 s) |
+| `PUT /api/alarms/quiet` | `{"enabled", "start", "end", "meds_ring"}` | Horário silencioso |
+| `POST /api/alarms/preview` | `{"sound", "volume"}` | Toca só o som |
+| `POST /api/alarms/stop` | — | Cala o que estiver tocando |
+| `POST /api/alarms/sounds` · `DELETE /api/alarms/sounds/{nome}` | `{"name", "data"}` (base64 do `.wav`) | Som próprio; ao apagar, quem usava volta ao padrão |
 | `GET /api/habits` | — | `{"habits": [...], "habits_paused_until"}`. Cada hábito traz configuração, `today_amount`, `week_amount`, `today_logs`, `amounts` (12 semanas), `history` (dias cumpridos), `streak`, `best_streak`, `next_reminder`, `remind_today` |
 | `POST /api/habits` | `{"name", "icon", "days", "kind", "unit", "goal", "goal_period", "quick", "reminder"}` | `kind`: `check`, `goal` ou `free`; devolve `id` |
 | `PUT /api/habits/{id}` | o mesmo | Atualiza |

@@ -1,29 +1,4 @@
-import { useEffect, useRef } from "react";
 import { api, hhmm, type Mano } from "../lib/mano";
-
-let audio: AudioContext | null = null;
-
-function tone(notes: number[], gap = 0.18) {
-  try {
-    audio ??= new AudioContext();
-    if (audio.state === "suspended") void audio.resume();
-    const t0 = audio.currentTime;
-    notes.forEach((f, i) => {
-      const osc = audio!.createOscillator();
-      const gain = audio!.createGain();
-      osc.frequency.value = f;
-      const t = t0 + i * gap;
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + gap - 0.02);
-      osc.connect(gain).connect(audio!.destination);
-      osc.start(t);
-      osc.stop(t + gap);
-    });
-  } catch {
-    /* navegador bloqueou o áudio antes do primeiro clique; a voz do backend ainda avisa */
-  }
-}
 
 type Item = {
   key: string;
@@ -47,8 +22,9 @@ export function Alerts({ mano }: { mano: Mano }) {
       detail: due.map((d) => `${d.name}${d.dose ? ` (${d.dose})` : ""} · ${hhmm(d.scheduled_at)}`).join("  ·  "),
       actions: [
         { label: "Tomei", primary: true, run: () => Promise.all(due.map((d) => api(`/api/meds/doses/${d.id}/take`, {}))) },
-        { label: "Adiar 10 min", run: () => Promise.all(due.map((d) => api(`/api/meds/doses/${d.id}/snooze`, {}))) },
+        { label: `Adiar ${mano.medSnoozeMin} min`, run: () => Promise.all(due.map((d) => api(`/api/meds/doses/${d.id}/snooze`, {}))) },
         { label: "Pular", run: () => Promise.all(due.map((d) => api(`/api/meds/doses/${d.id}/skip`, {}))) },
+        { label: "Silenciar", run: () => api("/api/alarms/stop", {}) },
       ],
     });
   }
@@ -74,22 +50,7 @@ export function Alerts({ mano }: { mano: Mano }) {
     });
   }
 
-  // bipe contínuo para timer; um "plim" quando surge alerta novo de remédio/lembrete
-  const timerRinging = ringing.length > 0;
-  useEffect(() => {
-    if (!timerRinging) return;
-    tone([880, 1175]);
-    const id = window.setInterval(() => tone([880, 1175]), 1500);
-    return () => window.clearInterval(id);
-  }, [timerRinging]);
-
-  const seen = useRef(new Set<string>());
-  const softKeys = items.filter((i) => i.tone === "ember").map((i) => i.key).join("|");
-  useEffect(() => {
-    const keys = softKeys ? softKeys.split("|") : [];
-    if (keys.some((k) => !seen.current.has(k))) tone([660, 990, 1320], 0.14);
-    seen.current = new Set(keys);
-  }, [softKeys]);
+  // o som dos alarmes toca no backend (Ajustes → Alarmes e avisos), mesmo com o visor fechado
 
   return (
     <>

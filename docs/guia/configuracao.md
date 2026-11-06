@@ -94,13 +94,15 @@ Reinicie o Mano depois de mudar o `.env`. A lista completa está em `backend/man
 | Variável | Padrão | O que faz |
 |---|---|---|
 | `MANO_TOAST_ENABLED` | `true` | Notificações do Windows |
-| `MANO_SOUND_ENABLED` | `true` | Bip dos lembretes de hábito |
-| `MANO_MED_REPEAT_MIN` | `5` | Repete o aviso de remédio a cada N minutos até "tomei" |
-| `MANO_MED_SNOOZE_MIN` | `10` | Quanto o "adia" empurra |
-| `MANO_MED_GIVE_UP_MIN` | `120` | Depois disso a dose vira "não tomada" |
-| `MANO_TIMER_RING_REPEAT_S` | `30` | Repete o aviso do timer a cada N segundos |
-| `MANO_TIMER_RING_MAX_S` | `300` | Para de tocar depois disso |
+| `MANO_SOUND_ENABLED` | `true` | Som dos alarmes. Com `false`, só voz, tela e notificação |
+| `MANO_MED_REPEAT_MIN` | `5` | Padrão: repete o aviso de remédio a cada N minutos até "tomei" |
+| `MANO_MED_SNOOZE_MIN` | `10` | Padrão: quanto o "adia" empurra |
+| `MANO_MED_GIVE_UP_MIN` | `120` | Padrão: depois disso a dose vira "não tomada" |
+| `MANO_TIMER_RING_REPEAT_S` | `30` | Padrão: repete o aviso do timer a cada N segundos |
+| `MANO_TIMER_RING_MAX_S` | `300` | Padrão: para de tocar depois disso |
 | `MANO_EVENT_HEADS_UP_MIN` | `10` | Aviso falado antes de compromissos da agenda |
+
+Os valores marcados com "Padrão" só valem enquanto o alarme não foi mexido em **Ajustes → Alarmes e avisos**. O que é escolhido lá (som, volume, tipo, repetição, horário silencioso) fica em `data\alarms.json` e vale mais que o `.env`. Sons próprios ficam em `data\sounds\custom`.
 
 ### Integrações
 

@@ -66,7 +66,7 @@ docs/
 5. **Execução.** O handler da skill roda e devolve um `Reply(speech, display, data)`.
 6. **Saída.** O comando vai para `CommandLog`, a resposta é anunciada como `reply` no WebSocket e, se `speak`, falada.
 
-Ações proativas (remédio na hora, timer acabando, lembrete, compromisso chegando) não passam por aqui: o agendador chama a skill, que usa `ctx.notify()` (tela + voz + Windows).
+Ações proativas (remédio na hora, timer acabando, lembrete, compromisso chegando) não passam por aqui: o agendador chama a skill, que usa `ctx.alarms.ring(tipo, texto)` (`mano/alarms.py`): tela, notificação do Windows, som (winsound, no backend) e voz conforme os ajustes daquele tipo, respeitando o horário silencioso. O som contínuo para com `ctx.alarms.stop(tipo)` quando o aviso é respondido. Avisos que não são alarme (estoque baixo, briefing) usam `ctx.notify()`.
 
 ## Voz
 
@@ -117,7 +117,7 @@ SQLite em `data/mano.db`, criado no início (`SQLModel.metadata.create_all`).
 | `feed`, `article` | Feeds do briefing e notícias (texto extraído, resumo, lida, salva) |
 | `notes_meta`, `notes_fts` | Índice do vault (SQLite FTS5, sem acento) — criadas pelo `Vault`, não pelo SQLModel |
 
-Configurações pequenas ficam em JSON ao lado (`notes.json`, `spotify.json`, `llm.json`, `briefing.json`, `voice.json`), e os tokens OAuth em `*_token.json`.
+Configurações pequenas ficam em JSON ao lado (`notes.json`, `spotify.json`, `llm.json`, `briefing.json`, `voice.json`, `alarms.json`; sons gerados em `sounds/cache`, sons próprios em `sounds/custom`), e os tokens OAuth em `*_token.json`.
 
 ## Visor
 
