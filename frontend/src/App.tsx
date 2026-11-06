@@ -331,18 +331,21 @@ function Home({
             Todos os painéis estão ocultos. Use o botão “Painéis” lá em cima para escolher o que mostrar.
           </p>
         ) : (
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-3">
             {small.length > 0 && (
-              <div className="-mb-5 gap-5 sm:columns-2 xl:columns-3">
+              // pb (e não mb) em cada painel: a margem do último de cada coluna é cortada na quebra de coluna
+              <div className="gap-5 sm:columns-2 xl:columns-3">
                 {small.map((p) => (
-                  <div key={p.id} className="mb-5 break-inside-avoid">
+                  <div key={p.id} className="break-inside-avoid pb-5">
                     {slot(p)}
                   </div>
                 ))}
               </div>
             )}
             {wide.length > 0 && (
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,480px),1fr))] gap-5">
+              <div
+                className={`grid grid-cols-[repeat(auto-fit,minmax(min(100%,480px),1fr))] gap-5 ${small.length ? "border-t border-line pt-8" : ""}`}
+              >
                 {wide.map((p) => (
                   <div key={p.id} className="h-[500px] min-w-0">
                     {slot(p)}

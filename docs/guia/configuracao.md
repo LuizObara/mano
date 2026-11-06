@@ -32,8 +32,8 @@ O passo a passo também aparece na tela:
 
 1. Em <https://console.cloud.google.com> crie um projeto (ex.: Mano).
 2. Ative **Gmail API**, **Google Calendar API** e **Google Tasks API**.
-3. Em **Google Auth Platform**: público **Externo**, nome Mano e seu e-mail. Em **Público-alvo** clique em **Publicar app** ("Em produção"). No modo "Teste" o Google desconecta a cada 7 dias.
-4. Em **Clientes**, crie um cliente OAuth do tipo **App para computador** e baixe o JSON.
+3. Em **Google Auth Platform**: público **Externo**, nome Mano e seu e-mail. Em **Branding**, preencha **Página inicial** com `https://github.com/LuizObara/mano`, **Política de Privacidade** com `https://github.com/LuizObara/mano/blob/main/PRIVACIDADE.md` e adicione `github.com` em **Domínios autorizados**. Depois, em **Público-alvo**, clique em **Publicar app** ("Em produção"). No modo "Teste" o Google desconecta a cada 7 dias.
+4. Em **Clientes**, crie um cliente OAuth do tipo **App para computador**. Na janela "Cliente OAuth criado", clique em **Baixar JSON**: é a única vez que o Google mostra a chave secreta. Se fechou sem baixar, abra o cliente, clique em **Adicionar chave secreta** e baixe de novo.
 5. Envie o JSON em **Ajustes → Google** e clique em **Conectar**.
 
 Permissões pedidas: Gmail só leitura; Agenda leitura e criação de eventos; Tarefas leitura e escrita. O app fica "não verificado" (é só seu); na tela de login clique em **Avançado → Acessar Mano**.

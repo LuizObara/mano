@@ -170,7 +170,9 @@ function GoogleSettings({ mano }: { mano: Mano }) {
           </li>
           <li>
             Em {link("https://console.cloud.google.com/auth/clients", "Clientes")}, crie um cliente OAuth do tipo{" "}
-            <b>App para computador</b> e baixe o JSON.
+            <b>App para computador</b> e, na janela “Cliente OAuth criado” que aparece logo em seguida, clique em{" "}
+            <b>Baixar JSON</b>. Essa é a única chance de baixar a chave secreta; se fechou sem baixar, abra o cliente,
+            clique em <b>Adicionar chave secreta</b> e baixe de novo.
           </li>
           <li>
             Envie o JSON aqui:
