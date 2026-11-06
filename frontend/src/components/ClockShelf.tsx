@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { api, hhmm, isoDay, useNow, weekdayMon0, type Dose, type Mano } from "../lib/mano";
 
 const WEEKS = 12;
-const ROTATE_MS = 10_000;
 
 type Slide = "musica" | "habitos" | "remedios";
 const LABEL: Record<Slide, string> = { musica: "Música", habitos: "Hábitos", remedios: "Remédios" };
@@ -173,7 +172,7 @@ function Head({ title, stat }: { title: string; stat: string }) {
 
 /**
  * Mini painel no pé do bloco do relógio: música tocando, grade de hábitos e grade de remédios.
- * Só entra o que tem dado; troca sozinho a cada 10 s (para enquanto o mouse ou o foco estão nele).
+ * Só entra o que tem dado; troca só quando você clica nos pontinhos (não gira sozinho).
  */
 export function ClockShelf({ mano }: { mano: Mano }) {
   const slides: Slide[] = [];
@@ -182,32 +181,11 @@ export function ClockShelf({ mano }: { mano: Mano }) {
   if (mano.meds.length) slides.push("remedios");
 
   const [current, setCurrent] = useState<Slide | null>(null);
-  const [hover, setHover] = useState(false);
-  const [focus, setFocus] = useState(false);
-  const paused = hover || focus;
   const active = current && slides.includes(current) ? current : slides[0];
-  const key = slides.join(",");
-
-  useEffect(() => {
-    if (paused || slides.length < 2) return;
-    const id = window.setInterval(() => {
-      setCurrent((cur) => {
-        const i = slides.indexOf(cur && slides.includes(cur) ? cur : slides[0]);
-        return slides[(i + 1) % slides.length];
-      });
-    }, ROTATE_MS);
-    return () => window.clearInterval(id);
-  }, [paused, key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!active) return null;
   return (
-    <div
-      className="mt-auto flex flex-col gap-3 border-t border-deep-line pt-4"
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onFocus={() => setFocus(true)}
-      onBlur={() => setFocus(false)}
-    >
+    <div className="mt-auto flex flex-col gap-3 border-t border-deep-line pt-4">
       <div key={active} className="shelf-in flex min-h-[148px] flex-col gap-3" aria-live="off">
         {active === "musica" && <Music mano={mano} />}
         {active === "habitos" && <Habits mano={mano} />}
