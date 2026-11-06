@@ -16,6 +16,7 @@ Convenções:
 | `POST /api/command` | `{"text", "speak"=true, "source"="text"}` | `{"intent", "speech", "display", "data", "log"}` (também vai como evento `reply`) |
 | `GET /api/skills` | — | Catálogo: skills, intenções e exemplos |
 | `GET /api/history?limit=20` | — | Últimos comandos |
+| `GET /api/history/page?offset=0&limit=8&kind=todos&q=` | — | Histórico paginado `{items, total}`; `kind` = todos, voz, texto ou erro (não entendidos); `q` busca no comando e na resposta |
 | `GET /api/voice` | — | `{"available", "reason", "wake_phrases", "muted", "state"}` |
 | `POST /api/voice/listen` | — | Push-to-talk: começa a ouvir sem a frase de ativação (`ok: false` com o microfone mudo) |
 | `POST /api/voice/mute` | `{"muted": true}` | Microfone mudo; fica salvo em `data/voice.json` e volta em `GET /api/voice` como `muted` |

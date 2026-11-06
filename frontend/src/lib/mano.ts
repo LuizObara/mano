@@ -379,10 +379,11 @@ export function useMano() {
     [],
   );
   const dismissNotice = useCallback((id: number) => setNotices((n) => n.filter((x) => x.id !== id)), []);
+  const clearReply = useCallback(() => setLastReply(null), []);
 
   return {
     connected, voice, voiceStatus, partial, timers, meds, doses, habits, habitsPausedUntil, nudge, setNudge, reminders, notices,
-    lastReply, history, busy, send, listen, setMicMuted, dismissNotice,
+    lastReply, clearReply, history, busy, send, listen, setMicMuted, dismissNotice,
     spotify, video, setVideo, videoResults, setVideoResults,
     google, calendar, gmail, tasks, notes, llm, briefing,
   };

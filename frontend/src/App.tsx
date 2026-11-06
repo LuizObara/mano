@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Alerts } from "./components/Alerts";
 import { BriefingCard } from "./components/BriefingCard";
 import { Clock } from "./components/Clock";
-import { CommandBar } from "./components/CommandBar";
+import { Conversation } from "./components/Conversation";
 import { AgendaCard, InboxCard, TasksCard } from "./components/GoogleCards";
 import { HabitNudge } from "./components/HabitNudge";
 import { History } from "./components/History";
@@ -11,7 +11,6 @@ import { Timers } from "./components/Timers";
 import { Today } from "./components/Today";
 import { Icon, PanelHide } from "./components/ui";
 import { VideoOverlay } from "./components/VideoOverlay";
-import { VoiceOrb } from "./components/VoiceOrb";
 import { useMano, type Mano } from "./lib/mano";
 import { useStored, useTheme } from "./lib/prefs";
 import { BriefingPage } from "./pages/Briefing";
@@ -42,6 +41,7 @@ const PANELS = [
   { id: "historico", label: "Últimos comandos" },
 ] as const;
 type PanelId = (typeof PANELS)[number]["id"];
+const WIDE: PanelId[] = ["briefing", "historico"];
 
 function usePage(): [Page, (p: string) => void] {
   const read = (): Page => {
@@ -297,28 +297,20 @@ function Home({
     tarefas: <TasksCard mano={mano} go={go} />,
     email: <InboxCard mano={mano} go={go} />,
     briefing: <BriefingCard mano={mano} go={go} />,
-    historico: <History entries={mano.history} />,
+    historico: <History mano={mano} speak={speak} />,
   };
   const visible = PANELS.filter((p) => !hidden.includes(p.id) && panels[p.id]);
+  // Briefing e Últimos comandos ficam lado a lado no fim, com a mesma altura; o resto em colunas
+  const small = visible.filter((p) => !WIDE.includes(p.id));
+  const wide = visible.filter((p) => WIDE.includes(p.id));
+  const slot = (p: (typeof PANELS)[number]) => (
+    <PanelHide.Provider value={{ label: p.label, hide: () => setHidden([...hidden, p.id]) }}>{panels[p.id]}</PanelHide.Provider>
+  );
 
   return (
     <div className="flex flex-col gap-7">
       <div className="flex flex-wrap items-stretch gap-5">
-        <section className="flex min-w-0 flex-[999_1_560px] flex-col items-center gap-5 rounded-[30px] border border-line bg-panel p-5 sm:p-9">
-          <VoiceOrb state={mano.voice} muted={muted} />
-          <Reply mano={mano} go={go} voiceOk={voiceOk && !muted} />
-          <CommandBar
-            onSend={(t) => mano.send(t, Boolean(speak))}
-            busy={mano.busy}
-            voice={{
-              available: voiceOk,
-              muted,
-              reason: mano.voiceStatus?.reason ?? "conectando",
-              listening: mano.voice === "listening",
-              onListen: mano.listen,
-            }}
-          />
-        </section>
+        <Conversation mano={mano} go={go} voiceOk={voiceOk} muted={muted} speak={speak} />
         <Clock mano={mano} />
       </div>
 
@@ -339,14 +331,25 @@ function Home({
             Todos os painéis estão ocultos. Use o botão “Painéis” lá em cima para escolher o que mostrar.
           </p>
         ) : (
-          <div className="gap-5 sm:columns-2 xl:columns-3">
-            {visible.map((p) => (
-              <div key={p.id} className="mb-5 break-inside-avoid">
-                <PanelHide.Provider value={{ label: p.label, hide: () => setHidden([...hidden, p.id]) }}>
-                  {panels[p.id]}
-                </PanelHide.Provider>
+          <div className="flex flex-col gap-5">
+            {small.length > 0 && (
+              <div className="-mb-5 gap-5 sm:columns-2 xl:columns-3">
+                {small.map((p) => (
+                  <div key={p.id} className="mb-5 break-inside-avoid">
+                    {slot(p)}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            {wide.length > 0 && (
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,480px),1fr))] gap-5">
+                {wide.map((p) => (
+                  <div key={p.id} className="h-[500px] min-w-0">
+                    {slot(p)}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -354,82 +357,3 @@ function Home({
   );
 }
 
-function Reply({ mano, go, voiceOk }: { mano: Mano; go: (p: string) => void; voiceOk: boolean }) {
-  return (
-    <div className="flex min-h-28 w-full max-w-2xl flex-col items-center gap-2 text-center">
-      {mano.voice === "listening" || (mano.voice === "thinking" && mano.partial) ? (
-        <p className="font-display text-3xl italic text-muted">{mano.partial ? `${mano.partial}…` : "Pode falar…"}</p>
-      ) : mano.busy && mano.llm?.busy === "comando" ? (
-        <p className="font-display text-3xl italic text-muted">Pensando com o modelo local…</p>
-      ) : mano.lastReply ? (
-        <>
-          <p className="text-[15px] text-muted">“{mano.lastReply.log.text}”</p>
-          {mano.lastReply.data?.understood_as && (
-            <p className="text-xs text-accent" title="As regras não entenderam; o modelo local reescreveu o pedido">
-              entendi como “{mano.lastReply.data.understood_as}”
-            </p>
-          )}
-          {mano.lastReply.data?.card ? (
-            <WikiCard card={mano.lastReply.data.card} />
-          ) : mano.lastReply.display.includes("\n") ? (
-            <ul className="mt-1 flex w-full flex-col gap-1.5 text-left text-base">
-              {mano.lastReply.display.split("\n").map((line) => (
-                <li key={line} className="rounded-xl bg-ink px-3 py-2">
-                  {line}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="font-display text-[clamp(24px,3vw,34px)] leading-tight">{mano.lastReply.display}</p>
-          )}
-          {mano.lastReply.data?.notes && (
-            <ul className="mt-1 flex w-full flex-col gap-1.5 text-left">
-              {mano.lastReply.data.notes.slice(0, 5).map((n) => (
-                <li key={n.path}>
-                  <button
-                    onClick={() => go(`notas?n=${encodeURIComponent(n.path)}`)}
-                    className="w-full rounded-xl bg-ink px-3 py-2 text-left text-sm hover:bg-soft"
-                  >
-                    <span className="font-medium">{n.title}</span>
-                    <span className="ml-2 text-xs text-muted">{n.folder}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {mano.lastReply.data?.link && (
-            <a
-              href={mano.lastReply.data.link.url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-block rounded-full border border-line px-4 py-1.5 text-sm text-muted hover:bg-soft hover:text-text"
-            >
-              {mano.lastReply.data.link.label} ↗
-            </a>
-          )}
-        </>
-      ) : (
-        <p className="font-display text-3xl text-muted">
-          {voiceOk ? "Diga “fala Mano” ou digite abaixo." : "Oi! Digite um comando abaixo."}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function WikiCard({ card }: { card: { title: string; extract: string; url?: string; image?: string | null } }) {
-  return (
-    <div className="mt-1 flex gap-4 rounded-2xl border border-line bg-ink p-4 text-left">
-      {card.image && <img src={card.image} alt="" className="h-28 w-24 shrink-0 rounded-lg object-cover" />}
-      <div className="min-w-0">
-        <div className="font-display text-xl font-medium">{card.title}</div>
-        <p className="mt-1 line-clamp-6 whitespace-pre-line text-sm leading-relaxed text-text/85">{card.extract}</p>
-        {card.url && (
-          <a href={card.url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-accent hover:underline">
-            Wikipedia ↗
-          </a>
-        )}
-      </div>
-    </div>
-  );
-}

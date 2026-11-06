@@ -19,6 +19,22 @@ def test_command_logs_and_speaks(client, speaker):
     assert hist[0]["text"] == "que horas são"
 
 
+def test_history_page_filters_and_pages(client):
+    for text in ["que horas são", "faz um bolo", "que dia é hoje", "voa até a lua"]:
+        cmd(client, text)
+    page = client.get("/api/history/page", params={"limit": 3}).json()
+    assert page["total"] == 4
+    assert [e["text"] for e in page["items"]] == ["voa até a lua", "que dia é hoje", "faz um bolo"]
+    rest = client.get("/api/history/page", params={"limit": 3, "offset": 3}).json()
+    assert [e["text"] for e in rest["items"]] == ["que horas são"]
+    errs = client.get("/api/history/page", params={"kind": "erro"}).json()
+    assert errs["total"] == 2 and all(e["intent"] is None for e in errs["items"])
+    assert client.get("/api/history/page", params={"kind": "voz"}).json()["total"] == 0
+    assert client.get("/api/history/page", params={"kind": "texto"}).json()["total"] == 4
+    found = client.get("/api/history/page", params={"q": "BOLO"}).json()
+    assert [e["text"] for e in found["items"]] == ["faz um bolo"]
+
+
 def test_unknown_command(client):
     out = cmd(client, "faz um bolo")
     assert out["intent"] is None

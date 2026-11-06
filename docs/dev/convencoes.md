@@ -22,8 +22,9 @@
   - texto: `text`, `muted`, `accent` (links e destaques em texto);
   - destaque: `ember` (mel, só preenchimento) com `on-ember` por cima; `alert` com `on-alert`; `ok`; `think` (orbe pensando); `area-0`…`area-4` (cores das áreas do vault);
   - `notice`: fundo das faixas de aviso (microfone mudo, cobranças pausadas), discreto nos dois temas.
+  - `veil`: fundo escurecido atrás de um `Modal`.
 - Fontes: `font-display` (Fraunces) no relógio, títulos de painel e de nota; o resto em Figtree (`font-sans`). Ambas vêm do npm (`@fontsource-variable`), então funcionam sem internet.
-- Use as peças de `components/ui.tsx`: `Card` (ganha o botão de ocultar sozinho dentro do Início), `btn.*`, `input`, `Icon`. Preferências do aparelho (tema, painéis ocultos) com `useStored` de `lib/prefs.ts`.
+- Use as peças de `components/ui.tsx`: `Card` (ganha o botão de ocultar sozinho dentro do Início), `Modal` + `ModalHeader` (overlay com Esc, clique fora e foco devolvido), `Chip` (filtro aceso/apagado), `btn.*`, `input`, `Icon`. Preferências do aparelho (tema, painéis ocultos) com `useStored` de `lib/prefs.ts`.
 - Datas com `toLocaleString("pt-BR")` e os helpers `hhmm`, `ago`, `isoDay` de `lib/mano.ts`.
 - HTML vindo de fora (notas) sempre passa pelo DOMPurify.
 - Tudo precisa caber em 375 px de largura sem rolagem lateral.

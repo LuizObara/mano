@@ -27,7 +27,7 @@ export function CommandBar({
   };
 
   return (
-    <div className="w-full max-w-2xl">
+    <div className="w-full max-w-3xl">
       <form
         className="flex items-center gap-2 rounded-full border border-line bg-ink p-1.5 focus-within:border-accent"
         onSubmit={(e) => {

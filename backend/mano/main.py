@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from sqlmodel import select
+from sqlmodel import func, or_, select
 
 from .commands import handle_command
 from .config import Settings
@@ -92,6 +92,25 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
         with ctx.db.session() as s:
             rows = s.exec(select(CommandLog).order_by(CommandLog.id.desc()).limit(limit))
             return [r.public() for r in rows]
+
+    @app.get("/api/history/page")
+    async def history_page(offset: int = 0, limit: int = 8, kind: str = "todos", q: str = ""):
+        """Histórico paginado do painel "Últimos comandos": filtra por origem, não entendidos e texto."""
+        stmt = select(CommandLog)
+        if kind == "voz":
+            stmt = stmt.where(CommandLog.source == "voice")
+        elif kind == "texto":
+            stmt = stmt.where(CommandLog.source != "voice")
+        elif kind == "erro":
+            stmt = stmt.where(CommandLog.intent == None)  # noqa: E711
+        if q.strip():
+            like = f"%{q.strip()}%"
+            stmt = stmt.where(or_(CommandLog.text.ilike(like), CommandLog.reply.ilike(like)))
+        limit = max(1, min(limit, 100))
+        with ctx.db.session() as s:
+            total = s.exec(select(func.count()).select_from(stmt.subquery())).one()
+            rows = s.exec(stmt.order_by(CommandLog.id.desc()).offset(max(0, offset)).limit(limit))
+            return {"items": [r.public() for r in rows], "total": total}
 
     @app.get("/api/voice")
     async def voice_status():

@@ -1,4 +1,5 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 /** Quando um painel do Início pode ser ocultado, o Card ganha o botão de olho (ver PanelSlot no App). */
 export const PanelHide = createContext<{ label: string; hide: () => void } | null>(null);
@@ -34,6 +35,93 @@ export function Card({
       </div>
       {children}
     </section>
+  );
+}
+
+/**
+ * Janela por cima da página (Briefing, histórico de comandos). Fecha no Esc, no × e clicando fora;
+ * trava a rolagem da página e devolve o foco para quem abriu.
+ */
+export function Modal({
+  label,
+  onClose,
+  children,
+  className = "max-w-[940px]",
+}: {
+  label: string;
+  onClose: () => void;
+  children: ReactNode;
+  className?: string;
+}) {
+  const box = useRef<HTMLDivElement>(null);
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    box.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close.current();
+    window.addEventListener("keydown", onKey);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = overflow;
+      opener?.focus?.();
+    };
+  }, []);
+  return createPortal(
+    <div className="fixed inset-0 z-[15] overflow-y-auto px-4 pb-10 pt-[min(10vh,88px)]">
+      <button type="button" aria-label="Fechar" tabIndex={-1} onClick={() => close.current()} className="fixed inset-0 cursor-default bg-veil" />
+      <div
+        ref={box}
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        tabIndex={-1}
+        className={`relative mx-auto flex w-full flex-col overflow-hidden rounded-[30px] border border-line bg-panel shadow-2xl outline-none ${className}`}
+      >
+        {children}
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+/** Cabeçalho padrão de um Modal: título, linha de apoio, ações e o × de fechar. */
+export function ModalHeader({ title, sub, onClose, children }: { title: string; sub?: ReactNode; onClose: () => void; children?: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 px-5 pb-4 pt-6 sm:pl-7 sm:pr-6">
+      <div className="flex min-w-0 flex-[1_1_0%] flex-col gap-0.5">
+        <h2 className="font-display text-[30px] font-medium leading-tight">{title}</h2>
+        {sub && <span className="text-sm text-muted">{sub}</span>}
+      </div>
+      {/* no celular as ações descem para a linha de baixo e o × fica ao lado do título */}
+      {children && <div className="order-last basis-full sm:order-none sm:basis-auto">{children}</div>}
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label={`Fechar ${title.toLowerCase()}`}
+        className="grid size-11 shrink-0 place-items-center rounded-full text-muted hover:bg-soft hover:text-text"
+      >
+        <Icon name="x" className="size-5" />
+      </button>
+    </div>
+  );
+}
+
+/** Botão de filtro que fica "aceso" quando escolhido (overlays do Briefing e do histórico). */
+export function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={on}
+      onClick={onClick}
+      className={`min-h-9 rounded-full border px-3.5 text-sm font-medium ${
+        on ? "border-text bg-text text-ink" : "border-line text-muted hover:text-text"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 
@@ -128,6 +216,16 @@ const ICONS: Record<string, ReactNode> = {
     </>
   ),
   x: <path d="M18 6L6 18M6 6l12 12" />,
+  expand: <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />,
+  keyboard: (
+    <>
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8" />
+    </>
+  ),
+  repeat: <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" />,
+  "chevron-left": <path d="M15 18l-6-6 6-6" />,
+  star: <path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z" />,
   external: <path d="M7 17L17 7M7 7h10v10" />,
 };
 
