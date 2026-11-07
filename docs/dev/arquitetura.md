@@ -50,7 +50,7 @@ frontend/
     lib/mano.ts        useMano(): WebSocket, estado ao vivo, api()
     App.tsx            Abas (hash routing) e a Home
     pages/             Remédios, Hábitos, Notas, Briefing, Ajustes
-    components/        Cards e peças do visor
+    components/        Cards e peças do visor (PanelGrid: grade arrastável dos painéis do Início, react-grid-layout)
   public/              manifest, service worker mínimo (só para instalar como app), ícone
 scripts/               start.ps1, get-models.ps1
 data/                  Dados pessoais (fora do git)

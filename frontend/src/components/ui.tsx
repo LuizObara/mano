@@ -1,8 +1,21 @@
 import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
-/** Quando um painel do Início pode ser ocultado, o Card ganha o botão de olho (ver PanelSlot no App). */
-export const PanelHide = createContext<{ label: string; hide: () => void } | null>(null);
+/**
+ * Painel do Início: o Card ganha o botão de olho (ocultar) e, dentro da grade (PanelGrid),
+ * ocupa a célula inteira, o título vira a alça de arrastar e o corpo rola se faltar espaço.
+ */
+export const PanelHide = createContext<{
+  label: string;
+  hide: () => void;
+  grid?: {
+    /** o próprio card se estica até o fim da célula (Briefing, Últimos comandos) */
+    fill: boolean;
+    draggable: boolean;
+    /** altura natural do card, em px, para a grade ajustar a célula enquanto ninguém fixou a altura */
+    measure: (px: number) => void;
+  };
+} | null>(null);
 
 export function Card({
   title,
@@ -16,24 +29,83 @@ export function Card({
   className?: string;
 }) {
   const panel = useContext(PanelHide);
+  const grid = panel?.grid;
+  const box = useRef<HTMLElement>(null);
+  const body = useRef<HTMLDivElement>(null);
+  const inner = useRef<HTMLDivElement>(null);
+  const measure = grid && !grid.fill ? grid.measure : null;
+
+  // altura natural = tudo que não é o corpo + o conteúdo do corpo com o respiro dele
+  useEffect(() => {
+    if (!measure || !box.current || !body.current || !inner.current) return;
+    const s = box.current;
+    const b = body.current;
+    const c = inner.current;
+    const run = () => {
+      const pad = parseFloat(getComputedStyle(b).paddingTop) + parseFloat(getComputedStyle(b).paddingBottom);
+      measure(s.offsetHeight - b.offsetHeight + c.offsetHeight + pad);
+    };
+    run(); // já na montagem, sem esperar o primeiro aviso do observer
+    const ro = new ResizeObserver(run);
+    ro.observe(c);
+    ro.observe(s);
+    return () => ro.disconnect();
+  }, [measure]);
+
+  const head = (
+    <div
+      className={`mb-3 flex min-h-9 items-center gap-2 ${grid ? "shrink-0" : ""} ${grid?.draggable ? "panel-drag cursor-grab active:cursor-grabbing" : ""}`}
+      title={grid?.draggable ? "Arraste para mudar o painel de lugar" : undefined}
+    >
+      <h2 className="min-w-0 flex-1 truncate font-display text-xl font-medium">{title}</h2>
+      {action}
+      {panel && (
+        <button
+          type="button"
+          onClick={panel.hide}
+          aria-label={`Ocultar ${panel.label}`}
+          title="Ocultar painel"
+          className="-mr-1 grid size-9 shrink-0 place-items-center rounded-xl text-muted hover:bg-soft hover:text-text"
+        >
+          <Icon name="eye-off" className="size-[18px]" />
+        </button>
+      )}
+    </div>
+  );
+
+  if (!grid) {
+    return (
+      <section className={`rounded-3xl border border-line bg-panel p-5 ${className}`}>
+        {head}
+        {children}
+      </section>
+    );
+  }
   return (
-    <section className={`rounded-3xl border border-line bg-panel p-5 ${className}`}>
-      <div className="mb-3 flex min-h-9 items-center gap-2">
-        <h2 className="min-w-0 flex-1 truncate font-display text-xl font-medium">{title}</h2>
-        {action}
-        {panel && (
-          <button
-            type="button"
-            onClick={panel.hide}
-            aria-label={`Ocultar ${panel.label}`}
-            title="Ocultar painel"
-            className="-mr-1 grid size-9 shrink-0 place-items-center rounded-xl text-muted hover:bg-soft hover:text-text"
-          >
-            <Icon name="eye-off" className="size-[18px]" />
-          </button>
+    <section ref={box} className={`group/panel relative flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-panel p-5 ${className}`}>
+      {grid.draggable && (
+        // pontinhos discretos no topo: aparecem no hover e indicam que o painel pode ser arrastado
+        <span
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1.5 flex -translate-x-1/2 gap-[3px] opacity-0 transition-opacity duration-150 group-hover/panel:opacity-50"
+        >
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <span key={i} className="size-[3px] rounded-full bg-muted" />
+          ))}
+        </span>
+      )}
+      {head}
+      {/* o corpo rola dentro do card; o respiro em cima deixa o contorno de foco aparecer inteiro */}
+      <div ref={body} className="-mx-5 -mb-5 -mt-1 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pb-5 pt-1 [scrollbar-width:thin]">
+        {grid.fill ? (
+          children
+        ) : (
+          // flow-root: mantém as margens dos filhos dentro da medida
+          <div ref={inner} className="flow-root">
+            {children}
+          </div>
         )}
       </div>
-      {children}
     </section>
   );
 }

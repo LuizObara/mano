@@ -7,9 +7,10 @@ import { AgendaCard, InboxCard, TasksCard } from "./components/GoogleCards";
 import { HabitNudge } from "./components/HabitNudge";
 import { History } from "./components/History";
 import { NowPlaying } from "./components/NowPlaying";
+import { EMPTY_LAYOUT, PanelGrid, isCustomLayout, type SavedLayout } from "./components/PanelGrid";
 import { Timers } from "./components/Timers";
 import { Today } from "./components/Today";
-import { Icon, PanelHide } from "./components/ui";
+import { Icon } from "./components/ui";
 import { VideoOverlay } from "./components/VideoOverlay";
 import { useMano, type Mano } from "./lib/mano";
 import { useStored, useTheme } from "./lib/prefs";
@@ -29,19 +30,22 @@ const PAGES = [
 ] as const;
 type Page = (typeof PAGES)[number]["id"];
 
-/** Painéis do Início, na ordem em que aparecem. Cada um pode ser ocultado (fica salvo neste aparelho). */
+/**
+ * Painéis do Início, na ordem do layout padrão. Cada um pode ser ocultado, arrastado e redimensionado
+ * (fica salvo neste aparelho). `h` é a altura inicial em linhas da grade (30 px cada) antes de medir o conteúdo;
+ * `fill` são os que têm altura própria e se esticam até o fim (Briefing e Últimos comandos).
+ */
 const PANELS = [
-  { id: "agenda", label: "Agenda" },
-  { id: "hoje", label: "Remédios e hábitos" },
-  { id: "tocando", label: "Música" },
-  { id: "timers", label: "Timers" },
-  { id: "tarefas", label: "Tarefas" },
-  { id: "email", label: "E-mail" },
-  { id: "briefing", label: "Briefing" },
-  { id: "historico", label: "Últimos comandos" },
+  { id: "agenda", label: "Agenda", h: 11, fill: false },
+  { id: "hoje", label: "Remédios e hábitos", h: 11, fill: false },
+  { id: "tocando", label: "Música", h: 8, fill: false },
+  { id: "timers", label: "Timers", h: 6, fill: false },
+  { id: "tarefas", label: "Tarefas", h: 11, fill: false },
+  { id: "email", label: "E-mail", h: 11, fill: false },
+  { id: "briefing", label: "Briefing", h: 17, fill: true },
+  { id: "historico", label: "Últimos comandos", h: 17, fill: true },
 ] as const;
 type PanelId = (typeof PANELS)[number]["id"];
-const WIDE: PanelId[] = ["briefing", "historico"];
 
 function usePage(): [Page, (p: string) => void] {
   const read = (): Page => {
@@ -63,6 +67,9 @@ export default function App() {
   const [theme, toggleTheme] = useTheme();
   const [speak, setSpeak] = useStored<boolean>("mano.speak", true);
   const [hidden, setHidden] = useStored<PanelId[]>("mano.hiddenPanels", []);
+  const [layout, setLayout] = useStored<SavedLayout>("mano.panelLayout", EMPTY_LAYOUT);
+  const customLayout = isCustomLayout(layout);
+  const resetLayout = () => setLayout(EMPTY_LAYOUT);
   const [panelsOpen, setPanelsOpen] = useState(false);
   const voiceOk = !!mano.voiceStatus?.available;
   const muted = !!mano.voiceStatus?.muted;
@@ -179,7 +186,14 @@ export default function App() {
           )}
 
           {page === "inicio" && panelsOpen && (
-            <PanelsMenu hidden={hidden} toggle={toggleHidden} showAll={() => setHidden([])} close={() => setPanelsOpen(false)} />
+            <PanelsMenu
+              hidden={hidden}
+              toggle={toggleHidden}
+              showAll={() => setHidden([])}
+              customLayout={customLayout}
+              resetLayout={resetLayout}
+              close={() => setPanelsOpen(false)}
+            />
           )}
         </div>
       </header>
@@ -209,7 +223,19 @@ export default function App() {
 
       <main className="flex-1">
         {page === "inicio" && (
-          <Home mano={mano} go={go} voiceOk={voiceOk} muted={muted} speak={speak} hidden={hidden} setHidden={setHidden} />
+          <Home
+            mano={mano}
+            go={go}
+            voiceOk={voiceOk}
+            muted={muted}
+            speak={speak}
+            hidden={hidden}
+            setHidden={setHidden}
+            layout={layout}
+            setLayout={setLayout}
+            customLayout={customLayout}
+            resetLayout={resetLayout}
+          />
         )}
         {page === "remedios" && <MedsPage mano={mano} />}
         {page === "habitos" && <HabitsPage mano={mano} />}
@@ -229,11 +255,15 @@ function PanelsMenu({
   hidden,
   toggle,
   showAll,
+  customLayout,
+  resetLayout,
   close,
 }: {
   hidden: PanelId[];
   toggle: (id: PanelId) => void;
   showAll: () => void;
+  customLayout: boolean;
+  resetLayout: () => void;
   close: () => void;
 }) {
   useEffect(() => {
@@ -262,8 +292,17 @@ function PanelsMenu({
           </label>
         ))}
         <p className="mx-1 mt-2 text-[13px] leading-snug text-muted">
-          Fica salvo neste aparelho. Painéis ocultos continuam funcionando por voz.
+          Arraste um painel pelo título e mude o tamanho pelas bordas. Fica salvo neste aparelho. Painéis ocultos continuam
+          funcionando por voz.
         </p>
+        <button
+          type="button"
+          onClick={resetLayout}
+          disabled={!customLayout}
+          className="mt-1 flex min-h-11 items-center justify-center gap-2 rounded-full border border-line text-sm font-semibold hover:bg-soft disabled:opacity-40 disabled:hover:bg-transparent"
+        >
+          Restaurar layout original
+        </button>
         <button type="button" onClick={close} className="mt-2 min-h-11 rounded-full bg-ember font-semibold text-on-ember">
           Pronto
         </button>
@@ -280,6 +319,10 @@ function Home({
   speak,
   hidden,
   setHidden,
+  layout,
+  setLayout,
+  customLayout,
+  resetLayout,
 }: {
   mano: Mano;
   go: (p: string) => void;
@@ -288,6 +331,10 @@ function Home({
   speak: boolean;
   hidden: PanelId[];
   setHidden: (h: PanelId[]) => void;
+  layout: SavedLayout;
+  setLayout: (fn: (l: SavedLayout) => SavedLayout) => void;
+  customLayout: boolean;
+  resetLayout: () => void;
 }) {
   const panels: Record<PanelId, ReactNode> = {
     agenda: <AgendaCard mano={mano} go={go} />,
@@ -299,13 +346,11 @@ function Home({
     briefing: <BriefingCard mano={mano} go={go} />,
     historico: <History mano={mano} speak={speak} />,
   };
-  const visible = PANELS.filter((p) => !hidden.includes(p.id) && panels[p.id]);
-  // Briefing e Últimos comandos ficam lado a lado no fim, com a mesma altura; o resto em colunas
-  const small = visible.filter((p) => !WIDE.includes(p.id));
-  const wide = visible.filter((p) => WIDE.includes(p.id));
-  const slot = (p: (typeof PANELS)[number]) => (
-    <PanelHide.Provider value={{ label: p.label, hide: () => setHidden([...hidden, p.id]) }}>{panels[p.id]}</PanelHide.Provider>
-  );
+  const visible = PANELS.filter((p) => !hidden.includes(p.id) && panels[p.id]).map((p) => ({
+    ...p,
+    node: panels[p.id],
+    hide: () => setHidden([...hidden, p.id]),
+  }));
 
   return (
     <div className="flex flex-col gap-7">
@@ -317,12 +362,26 @@ function Home({
       <section className="flex flex-col gap-4">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
           <h2 className="font-display text-[28px] font-medium">Painéis</h2>
-          {hidden.length > 0 && (
-            <span className="flex items-center gap-3 text-sm text-muted">
-              {hidden.length === 1 ? "1 painel oculto" : `${hidden.length} painéis ocultos`}
-              <button type="button" onClick={() => setHidden([])} className="py-2 font-semibold text-accent">
-                Mostrar todos
-              </button>
+          {(hidden.length > 0 || customLayout) && (
+            <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
+              {hidden.length > 0 && (
+                <span className="flex items-center gap-3">
+                  {hidden.length === 1 ? "1 painel oculto" : `${hidden.length} painéis ocultos`}
+                  <button type="button" onClick={() => setHidden([])} className="py-2 font-semibold text-accent">
+                    Mostrar todos
+                  </button>
+                </span>
+              )}
+              {customLayout && (
+                <button
+                  type="button"
+                  onClick={resetLayout}
+                  title="Voltar as posições e os tamanhos dos painéis ao padrão"
+                  className="py-2 font-semibold text-accent"
+                >
+                  Restaurar layout
+                </button>
+              )}
             </span>
           )}
         </div>
@@ -331,29 +390,7 @@ function Home({
             Todos os painéis estão ocultos. Use o botão “Painéis” lá em cima para escolher o que mostrar.
           </p>
         ) : (
-          <div className="flex flex-col gap-3">
-            {small.length > 0 && (
-              // pb (e não mb) em cada painel: a margem do último de cada coluna é cortada na quebra de coluna
-              <div className="gap-5 sm:columns-2 xl:columns-3">
-                {small.map((p) => (
-                  <div key={p.id} className="break-inside-avoid pb-5">
-                    {slot(p)}
-                  </div>
-                ))}
-              </div>
-            )}
-            {wide.length > 0 && (
-              <div
-                className={`grid grid-cols-[repeat(auto-fit,minmax(min(100%,480px),1fr))] gap-5 ${small.length ? "border-t border-line pt-8" : ""}`}
-              >
-                {wide.map((p) => (
-                  <div key={p.id} className="h-[500px] min-w-0">
-                    {slot(p)}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <PanelGrid panels={visible} layout={layout} setLayout={setLayout} />
         )}
       </section>
     </div>

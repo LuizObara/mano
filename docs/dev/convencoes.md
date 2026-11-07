@@ -24,7 +24,7 @@
   - `notice`: fundo das faixas de aviso (microfone mudo, cobranças pausadas), discreto nos dois temas.
   - `veil`: fundo escurecido atrás de um `Modal`.
 - Fontes: `font-display` (Fraunces) no relógio, títulos de painel e de nota; o resto em Figtree (`font-sans`). Ambas vêm do npm (`@fontsource-variable`), então funcionam sem internet.
-- Use as peças de `components/ui.tsx`: `Card` (ganha o botão de ocultar sozinho dentro do Início), `Modal` + `ModalHeader` (overlay com Esc, clique fora e foco devolvido), `Chip` (filtro aceso/apagado), `btn.*`, `input`, `Icon`. Preferências do aparelho (tema, painéis ocultos) com `useStored` de `lib/prefs.ts`.
+- Use as peças de `components/ui.tsx`: `Card` (dentro do Início ganha sozinho o botão de ocultar e, na grade de `components/PanelGrid.tsx`, a alça de arrastar no título, a altura medida pelo conteúdo e o corpo com rolagem), `Modal` + `ModalHeader` (overlay com Esc, clique fora e foco devolvido), `Chip` (filtro aceso/apagado), `btn.*`, `input`, `Icon`. Preferências do aparelho (tema, painéis ocultos, layout dos painéis) com `useStored` de `lib/prefs.ts`.
 - Datas com `toLocaleString("pt-BR")` e os helpers `hhmm`, `ago`, `isoDay` de `lib/mano.ts`.
 - HTML vindo de fora (notas) sempre passa pelo DOMPurify.
 - Tudo precisa caber em 375 px de largura sem rolagem lateral.

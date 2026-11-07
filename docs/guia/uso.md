@@ -10,7 +10,7 @@ Abas no topo: **Início**, **Remédios**, **Hábitos**, **Notas**, **Briefing**,
 - **Microfone**: silencia o microfone. Mudo, o Mano não ouve o "fala Mano" nem o Ctrl+Espaço, e uma faixa discreta avisa isso no topo (o × oculta a faixa até você ligar o microfone de novo). A barra de comando continua funcionando e os avisos de remédio continuam falando. Fica salvo até você ligar de novo, mesmo reiniciando o Mano.
 - **Alto-falante**: decide se a resposta de um comando digitado também é falada.
 - **Sol/lua**: tema claro ou escuro. Na primeira vez segue o tema do Windows; depois fica o que você escolher, neste aparelho.
-- **Painéis** (só no Início): escolhe quais painéis aparecem.
+- **Painéis** (só no Início): escolhe quais painéis aparecem e tem o **Restaurar layout original**.
 
 **Início**:
 
@@ -18,6 +18,7 @@ Abas no topo: **Início**, **Remédios**, **Hábitos**, **Notas**, **Briefing**,
 - **Relógio**: saudação, hora e o que vem a seguir hoje (compromissos, doses pendentes e timers).
   No pé do bloco, um mini painel mostra, uma de cada vez, a música tocando (com pausar e pular) e as grades das últimas 12 semanas de hábitos e de remédios: quanto mais forte o mel, mais coisa feita no dia; vermelho é dia em que esqueceu remédio. Ele não troca sozinho: os pontinhos embaixo escolhem a tela. Só aparece o que tem dado.
 - **Painéis**: Agenda, Remédios e hábitos, Música, Timers, Tarefas, E-mail, Briefing e Últimos comandos. Briefing e Últimos comandos ficam lado a lado no fim, com a mesma altura, e o ícone de expandir abre cada um por cima da página: o Briefing com filtro por blog, resumo, "Marcar como lido" e "Guardar"; os comandos com busca, filtros (por voz, digitados, não entendidos), separação por dia, páginas para os mais antigos e um botão para repetir o comando. No próprio painel de comandos as setas também passam para os mais antigos. O olho riscado no canto de cada um oculta o painel; o botão **Painéis** (ou "Mostrar todos") traz de volta. Fica salvo neste aparelho, e o que está oculto continua funcionando por voz.
+  Os painéis formam uma grade que você monta do seu jeito: **arraste pelo título** para mudar de lugar (os outros abrem espaço) e **puxe as bordas ou os cantos de baixo** para mudar largura e altura (as alças aparecem com o mouse em cima). Enquanto você não mexe na altura de um painel, ele acompanha o tamanho do conteúdo; depois de puxar a borda de baixo, a altura fica a escolhida e o que sobrar rola dentro do card. Briefing e Últimos comandos, quando ficam lado a lado, se alinham pelo topo. Tudo é salvo sozinho neste aparelho, separado para tela grande, média e celular. No celular os painéis ficam um embaixo do outro, sem arrastar. **Restaurar layout** (ao lado do título "Painéis" ou no botão Painéis) volta ao arranjo original.
 
 Avisos (remédio, timer, lembrete, compromisso) aparecem no canto da tela, tocam um som, são falados e viram notificação do Windows. "Para" ou "ok" dispensa o que estiver tocando; no remédio, "para" só cala o som (a dose continua esperando "tomei").
 

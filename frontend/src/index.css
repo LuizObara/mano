@@ -171,3 +171,170 @@ body {
 .note-body hr { border-color: var(--color-line); }
 .note-body input[type="checkbox"] { accent-color: var(--color-accent); margin-right: 0.4em; }
 .note-body .note-embed { color: var(--color-muted); }
+
+/*
+ * Grade dos painéis do Início (react-grid-layout). Em vez do CSS da biblioteca, só o necessário no visual do Mano:
+ * sombra-guia tracejada ao arrastar, alças de tamanho que só aparecem no hover do painel e transições curtas.
+ * As transições só ligam meio segundo depois de abrir (.is-live), para os painéis não "crescerem" na tela ao carregar.
+ */
+.react-grid-layout {
+  position: relative;
+}
+.react-grid-item {
+  box-sizing: border-box;
+}
+.react-grid-item img {
+  pointer-events: none;
+  user-select: none;
+}
+.mano-grid.is-live .react-grid-layout {
+  transition: height 180ms ease-out;
+}
+.mano-grid.is-live .react-grid-item.cssTransforms {
+  transition: transform 180ms ease-out, width 180ms ease-out, height 180ms ease-out;
+}
+.react-grid-item.resizing,
+.react-grid-item.react-draggable-dragging,
+.mano-grid.is-live .react-grid-item.resizing,
+.mano-grid.is-live .react-grid-item.react-draggable-dragging {
+  transition: none;
+}
+.react-grid-item.resizing {
+  z-index: 1;
+}
+.react-grid-item.react-draggable-dragging {
+  z-index: 3;
+  will-change: transform;
+}
+.react-grid-item.react-draggable-dragging > section {
+  box-shadow: 0 18px 40px -18px var(--color-veil);
+}
+.react-grid-item.dropping {
+  visibility: hidden;
+}
+
+/* onde o painel vai parar */
+.react-grid-item.react-grid-placeholder {
+  z-index: 2;
+  border: 1.5px dashed color-mix(in srgb, var(--color-ember) 55%, transparent);
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, var(--color-ember) 9%, transparent);
+  user-select: none;
+}
+.mano-grid.is-live .react-grid-item.react-grid-placeholder {
+  transition: transform 120ms ease-out, width 120ms ease-out, height 120ms ease-out;
+}
+.react-grid-item.react-grid-placeholder.placeholder-resizing {
+  transition: none;
+}
+
+/* alças: bordas laterais e de baixo (faixa fina meio para fora do card) e os dois cantos de baixo */
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  z-index: 2;
+  opacity: 0;
+  touch-action: none;
+  transition: opacity 150ms ease-out;
+}
+.react-grid-item:hover > .react-resizable-handle,
+.react-grid-item.resizing > .react-resizable-handle {
+  opacity: 1;
+}
+.react-resizable-hide > .react-resizable-handle {
+  display: none;
+}
+.react-grid-item > .react-resizable-handle::after {
+  content: "";
+  position: absolute;
+  border-radius: 2px;
+  background: var(--color-line);
+  transition: background-color 150ms ease-out;
+}
+.react-grid-item > .react-resizable-handle:hover::after,
+.react-grid-item.resizing > .react-resizable-handle::after {
+  background: var(--color-muted);
+}
+.react-grid-item > .react-resizable-handle-e,
+.react-grid-item > .react-resizable-handle-w {
+  top: 28px;
+  bottom: 28px;
+  width: 12px;
+  cursor: ew-resize;
+}
+.react-grid-item > .react-resizable-handle-e {
+  right: -6px;
+}
+.react-grid-item > .react-resizable-handle-w {
+  left: -6px;
+}
+.react-grid-item > .react-resizable-handle-e::after,
+.react-grid-item > .react-resizable-handle-w::after {
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+}
+.react-grid-item > .react-resizable-handle-s {
+  left: 28px;
+  right: 28px;
+  bottom: -6px;
+  height: 12px;
+  cursor: ns-resize;
+}
+.react-grid-item > .react-resizable-handle-s::after {
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 3px;
+  transform: translate(-50%, -50%);
+}
+/* cantos: um arco acompanhando a curva do card */
+.react-grid-item > .react-resizable-handle-se,
+.react-grid-item > .react-resizable-handle-sw {
+  bottom: 0;
+  width: 26px;
+  height: 26px;
+}
+.react-grid-item > .react-resizable-handle-se {
+  right: 0;
+  cursor: nwse-resize;
+}
+.react-grid-item > .react-resizable-handle-sw {
+  left: 0;
+  cursor: nesw-resize;
+}
+.react-grid-item > .react-resizable-handle-se::after,
+.react-grid-item > .react-resizable-handle-sw::after {
+  bottom: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 0;
+  background: none;
+  border-bottom: 2px solid var(--color-line);
+}
+.react-grid-item > .react-resizable-handle-se::after {
+  right: 6px;
+  border-right: 2px solid var(--color-line);
+  border-bottom-right-radius: 16px;
+}
+.react-grid-item > .react-resizable-handle-sw::after {
+  left: 6px;
+  border-left: 2px solid var(--color-line);
+  border-bottom-left-radius: 16px;
+}
+.react-grid-item > .react-resizable-handle-se:hover::after,
+.react-grid-item > .react-resizable-handle-sw:hover::after,
+.react-grid-item.resizing > .react-resizable-handle-se::after,
+.react-grid-item.resizing > .react-resizable-handle-sw::after {
+  background: none;
+  border-color: var(--color-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mano-grid.is-live .react-grid-layout,
+  .mano-grid.is-live .react-grid-item.cssTransforms,
+  .mano-grid.is-live .react-grid-item.react-grid-placeholder {
+    transition: none;
+  }
+}
