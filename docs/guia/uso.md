@@ -58,7 +58,11 @@ Na aba **Remédios**, cadastre nome, dose, horários, dias da semana e, se quise
 - Depois de 2 horas sem resposta a dose vira "não tomada".
 - Som, volume, intervalo, adiar e limite mudam em [Alarmes e avisos](#alarmes-e-avisos).
 - Com estoque cadastrado, cada "tomei" desconta e o Mano avisa quando estiver acabando.
-- O histórico dos últimos 14 dias mostra a adesão.
+- **Histórico** (no topo da aba): uma grade com um quadrado por dia, de 3 meses, 6 meses ou 1 ano, com filtro por remédio. Quanto mais forte o mel, mais doses tomadas; telha com ponto é dia com dose esquecida; mel fraco é dia em que você pulou; tracejado é dia que ainda vai chegar; hoje tem contorno.
+  - Passar o mouse (ou andar com as setas do teclado) mostra o dia: cada dose com o horário em que foi tomada e o atraso, o atraso médio e a sequência de dias sem esquecer.
+  - Clicar fixa a dica e libera as correções: **Tomei, marcar** (tomou e não avisou: fica tomada no horário marcado), **Foi pulado**, **Desfazer**, e **Tomei**/**Pular** nas doses de hoje. O estoque acompanha a correção. Esc ou clicar fora fecha.
+  - Ao lado: adesão do período (tomadas ÷ tomadas + esquecidas; pular não conta como falha nem quebra a sequência), sequência atual, melhor sequência, esquecidas e o horário em que você costuma tomar cada remédio.
+  - No celular, tocar num dia abre uma folha de baixo com as mesmas informações e setas para o dia anterior e o próximo.
 
 Importante: com o notebook desligado ou suspenso não há aviso. O aviso no celular está previsto na fase 7.
 

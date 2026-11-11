@@ -38,8 +38,9 @@ Convenções:
 | `GET /api/meds` | — | Remédios e doses de hoje |
 | `POST /api/meds` · `PUT /api/meds/{id}` | `{"name", "dose", "times": ["08:00"], "days": [0..6], "stock"?, "low_stock"}` | Dias: 0 = segunda |
 | `DELETE /api/meds/{id}` | — | |
-| `GET /api/meds/history?days=14` | — | Adesão por dia |
-| `POST /api/meds/doses/{id}/{take\|skip\|snooze}` | — | |
+| `GET /api/meds/history?days=14` | — | Doses dos últimos N dias (até 400), para o gráfico do histórico |
+| `POST /api/meds/doses/{id}/{take\|skip\|snooze}` | — | Dose em aberto: tomei agora, pular, adiar |
+| `POST /api/meds/doses/{id}/{mark-taken\|mark-skipped\|undo}` | — | Correção pelo histórico (dias passados ou hoje; dose futura dá 400). `mark-taken` grava `taken_at` = horário marcado; `undo` volta a "em aberto" se ainda está no prazo do alarme, senão "não tomada". O estoque sai ou volta junto |
 | `GET /api/alarms` | — | `{"kinds": {timer, med, reminder, habit}, "defaults", "labels", "quiet", "quiet_now", "sounds", "sound_enabled", "toast_enabled", "voice_enabled"}` |
 | `PUT /api/alarms/{tipo}` | `{"sound"?, "volume"?, "style"?: "once"\|"loop", "speak"?, "toast"?, "repeat"?, "every_s"?, "stop_after_s"?, "snooze_min"?}` | Só o que mudou; devolve o mesmo do GET |
 | `POST /api/alarms/{tipo}/reset` · `POST /api/alarms/{tipo}/test` | — | Volta ao padrão · toca o alarme de exemplo (contínuo para em 8 s) |

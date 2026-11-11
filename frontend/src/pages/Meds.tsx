@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { MedHistory } from "../components/MedHistory";
 import { Card, StatusPill, btn, input } from "../components/ui";
-import { api, hhmm, isoDay, WEEKDAYS, type Dose, type Mano, type Med } from "../lib/mano";
+import { api, hhmm, WEEKDAYS, type Dose, type Mano, type Med } from "../lib/mano";
 
 type Form = { name: string; dose: string; times: string[]; days: number[]; stock: string; low_stock: string; notes: string };
 const EMPTY: Form = { name: "", dose: "", times: ["08:00"], days: [0, 1, 2, 3, 4, 5, 6], stock: "", low_stock: "7", notes: "" };
@@ -9,74 +10,77 @@ export function MedsPage({ mano }: { mano: Mano }) {
   const [editing, setEditing] = useState<number | "new" | null>(null);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <div className="flex min-w-0 flex-col gap-6">
-        <Card
-          title="Meus remédios"
-          action={
-            editing === null && (
-              <button className={btn.ghost} onClick={() => setEditing("new")}>
-                + Adicionar
-              </button>
-            )
-          }
-        >
-          {editing === "new" && <MedForm onDone={() => setEditing(null)} />}
-          {mano.meds.length === 0 && editing !== "new" && (
-            <p className="text-sm text-muted">Nenhum remédio cadastrado ainda.</p>
-          )}
-          <ul className="flex flex-col gap-3">
-            {mano.meds.map((m) =>
-              editing === m.id ? (
-                <li key={m.id}>
-                  <MedForm med={m} onDone={() => setEditing(null)} />
-                </li>
-              ) : (
-                <li key={m.id} className="rounded-xl border border-line p-3">
-                  <div className="flex items-start gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium">
-                        {m.name} <span className="font-normal text-muted">{m.dose}</span>
-                      </div>
-                      <div className="mt-1 text-sm text-muted">
-                        {m.times.join(" · ")} — {m.days.length === 7 ? "todo dia" : m.days.map((d) => WEEKDAYS[d]).join(", ")}
-                      </div>
-                      {m.stock !== null && (
-                        <div className={`mt-1 text-sm ${m.stock <= m.low_stock ? "text-alert" : "text-muted"}`}>
-                          Estoque: {m.stock} {m.stock <= m.low_stock && "— providenciar receita"}
-                        </div>
-                      )}
-                      {m.notes && <div className="mt-1 text-sm text-muted">{m.notes}</div>}
-                    </div>
-                    <button className={btn.ghost} onClick={() => setEditing(m.id)}>
-                      Editar
-                    </button>
-                  </div>
-                </li>
-              ),
+    <div className="flex flex-col gap-6">
+      <MedHistory mano={mano} />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col gap-6">
+          <Card
+            title="Meus remédios"
+            action={
+              editing === null && (
+                <button className={btn.ghost} onClick={() => setEditing("new")}>
+                  + Adicionar
+                </button>
+              )
+            }
+          >
+            {editing === "new" && <MedForm onDone={() => setEditing(null)} />}
+            {mano.meds.length === 0 && editing !== "new" && (
+              <p className="text-sm text-muted">Nenhum remédio cadastrado ainda.</p>
             )}
-          </ul>
-        </Card>
-        <p className="px-1 text-sm text-muted">
-          No horário, o Mano avisa por voz, na tela e com notificação do Windows, e repete a cada 5 minutos até você dizer
-          "tomei" (ou clicar). Depois de 2 horas sem resposta a dose fica como não tomada. Com o notebook desligado ou
-          suspenso não há aviso.
-        </p>
-      </div>
-
-      <div className="flex min-w-0 flex-col gap-6">
-        <Card title="Doses de hoje">
-          {mano.doses.length === 0 ? (
-            <p className="text-sm text-muted">Nenhuma dose hoje.</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {mano.doses.map((d) => (
-                <DoseRow key={d.id} d={d} />
-              ))}
+            <ul className="flex flex-col gap-3">
+              {mano.meds.map((m) =>
+                editing === m.id ? (
+                  <li key={m.id}>
+                    <MedForm med={m} onDone={() => setEditing(null)} />
+                  </li>
+                ) : (
+                  <li key={m.id} className="rounded-xl border border-line p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium">
+                          {m.name} <span className="font-normal text-muted">{m.dose}</span>
+                        </div>
+                        <div className="mt-1 text-sm text-muted">
+                          {m.times.join(" · ")} — {m.days.length === 7 ? "todo dia" : m.days.map((d) => WEEKDAYS[d]).join(", ")}
+                        </div>
+                        {m.stock !== null && (
+                          <div className={`mt-1 text-sm ${m.stock <= m.low_stock ? "text-alert" : "text-muted"}`}>
+                            Estoque: {m.stock} {m.stock <= m.low_stock && "— providenciar receita"}
+                          </div>
+                        )}
+                        {m.notes && <div className="mt-1 text-sm text-muted">{m.notes}</div>}
+                      </div>
+                      <button className={btn.ghost} onClick={() => setEditing(m.id)}>
+                        Editar
+                      </button>
+                    </div>
+                  </li>
+                ),
+              )}
             </ul>
-          )}
-        </Card>
-        <Adherence meds={mano.meds} doses={mano.doses} />
+          </Card>
+          <p className="px-1 text-sm text-muted">
+            No horário, o Mano avisa por voz, na tela e com notificação do Windows, e repete até você dizer "tomei" (ou
+            clicar). Passado o limite sem resposta, a dose fica como não tomada; o som, a repetição e o limite se ajustam em
+            Ajustes → Alarmes e avisos. Com o notebook desligado ou suspenso não há aviso. Esqueceu de marcar? Corrija pelo
+            Histórico.
+          </p>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-6">
+          <Card title="Doses de hoje">
+            {mano.doses.length === 0 ? (
+              <p className="text-sm text-muted">Nenhuma dose hoje.</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {mano.doses.map((d) => (
+                  <DoseRow key={d.id} d={d} />
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
       </div>
     </div>
   );
@@ -223,67 +227,3 @@ function MedForm({ med, onDone }: { med?: Med; onDone: () => void }) {
     </form>
   );
 }
-
-/** Grade dos últimos 14 dias: uma linha por remédio, uma célula por dia. */
-function Adherence({ meds, doses }: { meds: Med[]; doses: Dose[] }) {
-  const [hist, setHist] = useState<Dose[]>([]);
-  useEffect(() => {
-    api<Dose[]>("/api/meds/history?days=14").then(setHist).catch(() => {});
-  }, [doses]);
-
-  if (meds.length === 0) return null;
-  const days = Array.from({ length: 14 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - 13 + i);
-    return isoDay(d);
-  });
-  const color = (list: Dose[]) => {
-    if (list.length === 0) return "bg-line/40";
-    if (list.every((d) => d.status === "taken")) return "bg-ok/70";
-    if (list.some((d) => d.status === "missed")) return "bg-alert/70";
-    if (list.some((d) => d.status === "pending")) return "bg-ember/40";
-    return "bg-muted/40";
-  };
-
-  return (
-    <Card title="Últimos 14 dias">
-      <div className="flex flex-col gap-2">
-        {meds.map((m) => {
-          const mine = hist.filter((d) => d.medication_id === m.id);
-          const taken = mine.filter((d) => d.status === "taken").length;
-          const closed = mine.filter((d) => d.status !== "pending").length;
-          return (
-            <div key={m.id} className="flex items-center gap-3">
-              <span className="w-24 truncate text-sm">{m.name}</span>
-              <div className="flex flex-1 gap-1">
-                {days.map((day) => {
-                  const list = mine.filter((d) => isoDay(new Date(d.scheduled_at)) === day);
-                  const title = `${day.split("-").reverse().slice(0, 2).join("/")}: ${
-                    list.map((d) => `${hhmm(d.scheduled_at)} ${d.status}`).join(", ") || "sem dose"
-                  }`;
-                  return <span key={day} title={title} className={`h-5 flex-1 rounded ${color(list)}`} />;
-                })}
-              </div>
-              <span className="w-10 text-right text-xs tabular-nums text-muted">
-                {closed ? Math.round((taken / closed) * 100) + "%" : "—"}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted">
-        <Legend cls="bg-ok/70" label="tudo tomado" />
-        <Legend cls="bg-alert/70" label="esqueceu alguma" />
-        <Legend cls="bg-muted/40" label="pulado" />
-        <Legend cls="bg-ember/40" label="em aberto" />
-      </div>
-    </Card>
-  );
-}
-
-const Legend = ({ cls, label }: { cls: string; label: string }) => (
-  <span className="flex items-center gap-1.5">
-    <span className={`size-3 rounded ${cls}`} />
-    {label}
-  </span>
-);

@@ -152,6 +152,73 @@ def test_med_validation(client):
     assert r.status_code == 422
 
 
+def _past_dose(app, med_id, days_ago, status="missed", hour=8):
+    when = datetime.combine(TODAY - timedelta(days=days_ago), datetime.min.time()).replace(hour=hour)
+    with app.state.ctx.db.session() as s:
+        d = MedDose(medication_id=med_id, scheduled_at=when, status=status)
+        s.add(d)
+        s.commit()
+        s.refresh(d)
+        return d.id, when
+
+
+def _stock(app, med_id):
+    with app.state.ctx.db.session() as s:
+        return s.get(Medication, med_id).stock
+
+
+def test_med_correct_past_dose_from_history(client, app, clock):
+    med = add_med(client, app, times=["08:00"], stock=20)
+    dose_id, when = _past_dose(app, med["id"], 3)
+    clock.at(10)
+
+    r = client.post(f"/api/meds/doses/{dose_id}/mark-taken")
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "taken"
+    assert r.json()["taken_at"] == int(when.timestamp() * 1000)  # tomou "no horário": não sabemos a hora real
+    assert _stock(app, med["id"]) == 19
+
+    r = client.post(f"/api/meds/doses/{dose_id}/undo")
+    assert r.json()["status"] == "missed"  # passou do prazo do alarme: volta a não tomada
+    assert r.json()["taken_at"] is None
+    assert _stock(app, med["id"]) == 20
+
+    assert client.post(f"/api/meds/doses/{dose_id}/mark-skipped").json()["status"] == "skipped"
+    assert _stock(app, med["id"]) == 20  # pular não mexe no estoque
+
+    hist = client.get("/api/meds/history?days=10").json()
+    assert any(h["id"] == dose_id and h["status"] == "skipped" for h in hist)
+    assert client.get("/api/meds/history?days=371").status_code == 200  # o gráfico pede até 1 ano
+
+
+def test_med_undo_today_goes_back_to_pending(client, app, clock):
+    med = add_med(client, app, times=["08:00"], stock=20)
+    clock.at(8, 1)
+    run(app, meds_skill(app).tick())
+    dose_id = doses(app)[0].id
+    client.post(f"/api/meds/doses/{dose_id}/take")
+    client.post(f"/api/meds/doses/{dose_id}/take")  # clique duplo não tira dois do estoque
+    assert _stock(app, med["id"]) == 19
+
+    clock.at(8, 30)
+    r = client.post(f"/api/meds/doses/{dose_id}/undo")
+    assert r.json()["status"] == "pending"
+    d = doses(app)[0]
+    # volta a cobrar só depois do intervalo do alarme, não no mesmo instante
+    every = app.state.ctx.alarms.cfg("med").every_s
+    assert d.next_reminder_at == clock.now + timedelta(seconds=every)
+    assert _stock(app, med["id"]) == 20
+
+
+def test_med_correct_refuses_future_and_bad_action(client, app, clock):
+    med = add_med(client, app, times=["08:00"])
+    future_id, _ = _past_dose(app, med["id"], -1, status="pending")
+    assert client.post(f"/api/meds/doses/{future_id}/mark-taken").status_code == 400
+    today_id = doses(app)[0].id
+    assert client.post(f"/api/meds/doses/{today_id}/explode").status_code == 400
+    assert client.post("/api/meds/doses/99999/undo").status_code == 404
+
+
 # ---------- hábitos ----------
 
 def test_streak():

@@ -190,24 +190,76 @@ class MedSkill(Skill):
             s.refresh(d)
             return d, s.get(Medication, d.medication_id)
 
+    async def _stock(self, med: Medication, delta: int) -> None:
+        """Mexe no estoque (−1 ao tomar, +1 ao desfazer); avisa ao cruzar o limite e ao zerar."""
+        if med.stock is None:
+            return
+        with self.ctx.db.session() as s:
+            m = s.get(Medication, med.id)
+            m.stock = max(0, (m.stock or 0) + delta)
+            s.add(m)
+            s.commit()
+            left = m.stock
+        if delta < 0 and left in (med.low_stock, 0):
+            await self.ctx.notify(
+                f"Atenção: restam {left} de {med.name}. Hora de providenciar a receita.",
+                speak=True, title="Estoque de remédio", level="warn",
+            )
+
     async def take(self, dose_id: int) -> MedDose | None:
+        with self.ctx.db.session() as s:
+            before = s.get(MedDose, dose_id)
+            was_taken = before is not None and before.status == "taken"
         res = self._update(dose_id, status="taken", taken_at=datetime.now(), next_reminder_at=None)
         if res is None:
             return None
         self.ctx.alarms.stop("med")
         dose, med = res
-        if med.stock is not None:
-            with self.ctx.db.session() as s:
-                m = s.get(Medication, med.id)
-                m.stock = max(0, (m.stock or 0) - 1)
-                s.add(m)
-                s.commit()
-                left = m.stock
-            if left in (med.low_stock, 0):  # avisa ao cruzar o limite e ao zerar
-                await self.ctx.notify(
-                    f"Atenção: restam {left} de {med.name}. Hora de providenciar a receita.",
-                    speak=True, title="Estoque de remédio", level="warn",
-                )
+        if not was_taken:
+            await self._stock(med, -1)
+        await self._push()
+        return dose
+
+    async def correct(self, dose_id: int, action: str, now: datetime | None = None) -> MedDose | None:
+        """Corrige uma dose pelo histórico, de qualquer dia já passado (ou de hoje).
+
+        - "mark-taken": tomou e não avisou; fica tomada no horário marcado.
+        - "mark-skipped": não ia tomar mesmo (pular não conta como esquecimento).
+        - "undo": desfaz tomada ou pulada; volta a "em aberto" se ainda está no prazo
+          do alarme, senão fica "não tomada".
+        O estoque acompanha: sai um ao virar tomada e volta um quando deixa de ser.
+        """
+        now = now or datetime.now()
+        with self.ctx.db.session() as s:
+            d = s.get(MedDose, dose_id)
+            if d is None:
+                return None
+            if d.scheduled_at.date() > now.date():
+                raise HTTPException(400, "essa dose ainda não chegou")
+            was_taken = d.status == "taken"
+            scheduled = d.scheduled_at
+        if action == "mark-taken":
+            fields = {"status": "taken", "taken_at": scheduled, "next_reminder_at": None}
+        elif action == "mark-skipped":
+            fields = {"status": "skipped", "taken_at": None, "next_reminder_at": None}
+        elif action == "undo":
+            give_up = timedelta(seconds=self.ctx.alarms.cfg("med").stop_after_s)
+            if now - scheduled > give_up:
+                fields = {"status": "missed", "taken_at": None, "next_reminder_at": None}
+            else:
+                # volta a cobrar, mas não no mesmo segundo do clique
+                every = timedelta(seconds=self.ctx.alarms.cfg("med").every_s)
+                fields = {"status": "pending", "taken_at": None,
+                          "next_reminder_at": now + every if scheduled <= now else None}
+        else:
+            raise HTTPException(400, "ação inválida")
+        dose, med = self._update(dose_id, **fields)
+        if fields["status"] != "pending":
+            self.ctx.alarms.stop("med")
+        if was_taken and dose.status != "taken":
+            await self._stock(med, +1)
+        elif not was_taken and dose.status == "taken":
+            await self._stock(med, -1)
         await self._push()
         return dose
 
@@ -342,10 +394,15 @@ class MedSkill(Skill):
 
         @r.get("/history")
         async def history(days: int = 14):
-            return self.history(max(1, min(days, 90)))
+            return self.history(max(1, min(days, 400)))  # o gráfico do histórico vai até 1 ano
 
         @r.post("/doses/{dose_id}/{action}")
         async def dose_action(dose_id: int, action: str):
+            if action in ("mark-taken", "mark-skipped", "undo"):
+                d = await self.correct(dose_id, action)
+                if d is None:
+                    raise HTTPException(404)
+                return d.public()
             fn = {"take": self.take, "skip": self.skip, "snooze": self.snooze}.get(action)
             if fn is None:
                 raise HTTPException(400, "ação inválida")
