@@ -1,9 +1,9 @@
 # Solução de problemas
 
-Primeiro passo para quase tudo: olhe o log do backend. Rodando pelo `start.ps1`, ele fica na janela minimizada do Python. Para ver ao vivo, pare o Mano e rode:
+Primeiro passo para quase tudo: olhe o log do backend. Rodando pelo `start.ps1`, ele fica em `data\logs\mano.log` (reescrito a cada início). Para ver ao vivo, rode o Mano no terminal:
 
 ```powershell
-cd backend; .\.venv\Scripts\python.exe -m mano
+.\scripts\start.ps1 -Here
 ```
 
 Há uma interface interativa da API em <http://127.0.0.1:8765/docs>, útil para testar uma rota direto.
@@ -14,7 +14,8 @@ Há uma interface interativa da API em <http://127.0.0.1:8765/docs>, útil para 
 |---|---|
 | "Sem conexão com o Mano" piscando | O backend caiu ou não subiu. Veja o log; confira se a porta 8765 não está ocupada (`netstat -ano \| findstr 8765`) |
 | Página mostra `{"frontend": "não compilado"}` | Rode `.\scripts\start.ps1 -Build` |
-| Mudança no visor não aparece | Recompile (`-Build`) e recarregue com Ctrl+F5 (o navegador pode estar com a página antiga em cache) |
+| Mudança no visor não aparece | Rode `.\scripts\start.ps1` de novo: ele recompila o que mudou e reinicia o Mano. A página não fica mais guardada em cache, mas uma janela aberta antes desta correção pode precisar de um Ctrl+F5 uma última vez |
+| "A porta 8765 está ocupada por outro programa" | Outro programa usa a porta. Feche-o ou escolha outra com `MANO_PORT` |
 
 ## Voz
 

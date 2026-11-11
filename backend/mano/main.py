@@ -158,22 +158,36 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
                 return resp
         index = settings.frontend_dist / "index.html"
         if index.exists():
-            return FileResponse(index)
+            return FileResponse(index, headers=NO_CACHE)
         return JSONResponse({"mano": "ok", "frontend": "não compilado (rode npm run build em frontend/)"})
 
     _mount_frontend(app, settings)
     return app
 
 
+# O index.html (e sw.js, manifest) é revalidado a cada abertura: sem isso o navegador guarda a página por horas
+# e continua carregando o JavaScript antigo depois de recompilar o visor. Os arquivos de /assets têm o hash do
+# conteúdo no nome, então podem ficar guardados para sempre.
+NO_CACHE = {"Cache-Control": "no-cache"}
+
+
+class _HashedAssets(StaticFiles):
+    async def get_response(self, path, scope):
+        resp = await super().get_response(path, scope)
+        if resp.status_code == 200:
+            resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+        return resp
+
+
 def _mount_frontend(app: FastAPI, settings: Settings) -> None:
     dist = settings.frontend_dist
     if not (dist / "index.html").exists():
         return
-    app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
+    app.mount("/assets", _HashedAssets(directory=dist / "assets"), name="assets")
 
     @app.get("/{path:path}", include_in_schema=False)
     async def spa(path: str):
         file = (dist / path).resolve()
         if path and file.is_file() and dist.resolve() in file.parents:
-            return FileResponse(file)
-        return FileResponse(dist / "index.html")
+            return FileResponse(file, headers=NO_CACHE)
+        return FileResponse(dist / "index.html", headers=NO_CACHE)

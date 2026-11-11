@@ -14,7 +14,8 @@ data/
 .env
 
 # Editor / SO
-.vscode/
+.vscode/*
+!.vscode/tasks.json
 .idea/
 Thumbs.db
 .DS_Store

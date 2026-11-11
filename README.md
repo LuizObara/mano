@@ -7,9 +7,12 @@ Assistente pessoal local: visor + comandos por texto e por voz, rodando nesta m�
 ## Rodar
 
 ```powershell
-.\scripts\start.ps1          # compila o frontend se faltar, sobe o backend e abre o visor (janela do Edge)
-.\scripts\start.ps1 -Build   # força recompilar o frontend
+.\scripts\start.ps1          # recompila o visor se o código mudou, sobe o backend escondido e abre o visor
+.\scripts\start.ps1 -Here    # backend neste terminal (ex.: terminal do VS Code), com os logs; Ctrl+C fecha
+.\scripts\start.ps1 -Stop    # fecha o Mano
 ```
+
+Sem terminal nenhum: dois cliques em `scripts\mano.vbs` (ou num atalho dele). No VS Code: Ctrl+Shift+P → "Tasks: Run Task" → "Mano: …".
 
 O visor fica em http://127.0.0.1:8765. No Edge, menu ⋯ → Aplicativos → "Instalar este site como aplicativo" para ter ícone próprio.
 

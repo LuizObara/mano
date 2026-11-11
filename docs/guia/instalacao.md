@@ -28,15 +28,22 @@ Na primeira vez o script:
 1. cria o ambiente Python (`backend\.venv`) e instala `backend\requirements.txt`;
 2. baixa o modelo de voz Vosk em português (~31 MB) para `data\models` (`scripts\get-models.ps1`);
 3. instala as dependências do visor e compila (`frontend\dist`);
-4. sobe o backend minimizado e abre o visor numa janela de app do Chrome (do Edge, se o Chrome não estiver instalado). Links do visor, como as notícias, abrem nesse mesmo navegador.
+4. sobe o backend em segundo plano, sem janela de terminal (o log fica em `data\logs\mano.log`), e abre o visor numa janela de app do Chrome (do Edge, se o Chrome não estiver instalado). Links do visor, como as notícias, abrem nesse mesmo navegador.
+
+Nas outras vezes ele recompila o visor sozinho quando o código do frontend mudou (por exemplo, depois de um `git pull`) e, se já houver um Mano no ar, fecha o antigo antes de abrir o novo. Então "reiniciar" é só rodar o script de novo.
 
 Opções do script:
 
 | Comando | Efeito |
 |---|---|
-| `.\scripts\start.ps1` | Uso normal |
-| `.\scripts\start.ps1 -Build` | Recompila o visor (depois de mudar o frontend) |
-| `.\scripts\start.ps1 -NoWindow` | Só o backend, sem abrir janela |
+| `.\scripts\start.ps1` | Uso normal: backend escondido, visor aberto |
+| `.\scripts\start.ps1 -Here` | Backend neste terminal, com os logs (bom para o terminal do VS Code); Ctrl+C fecha |
+| `.\scripts\start.ps1 -Stop` | Fecha o Mano que estiver no ar |
+| `.\scripts\start.ps1 -Build` | Força recompilar o visor (normalmente não precisa) |
+| `.\scripts\start.ps1 -NoWindow` | Só o backend, sem abrir o visor |
+| `scripts\mano.vbs` | Dois cliques: abre o Mano sem nenhuma janela de terminal |
+
+No VS Code há tarefas prontas (`.vscode\tasks.json`): Ctrl+Shift+P → "Tasks: Run Task" → **Mano: iniciar (logs neste terminal)**, **Mano: iniciar em segundo plano**, **Mano: fechar** ou **Mano: ver o log**.
 
 Se o PowerShell bloquear scripts, rode uma vez: `powershell -ExecutionPolicy Bypass -File .\scripts\start.ps1`.
 
@@ -84,12 +91,12 @@ Sem Ollama tudo continua funcionando; só ficam de fora o plano B dos comandos e
 
 ```powershell
 $lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\Mano.lnk")
-$lnk.TargetPath = "powershell.exe"
-$lnk.Arguments = '-WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\Users\gustavo\Documents\projetos\mano\scripts\start.ps1"'
+$lnk.TargetPath = "wscript.exe"
+$lnk.Arguments = '"C:\Users\gustavo\Documents\projetos\mano\scripts\mano.vbs"'
 $lnk.Save()
 ```
 
-Troque o caminho se o projeto estiver em outra pasta. Para só o backend (sem abrir o visor), acrescente ` -NoWindow` ao final dos argumentos. Para desfazer, apague `Mano.lnk` da pasta `shell:startup`.
+Troque o caminho se o projeto estiver em outra pasta. O `mano.vbs` abre o Mano sem piscar nenhuma janela de terminal; o mesmo atalho na Área de Trabalho serve para abrir com dois cliques. Para desfazer, apague `Mano.lnk` da pasta `shell:startup`.
 
 Para os avisos de remédio funcionarem, o notebook precisa estar ligado e **sem suspender**: em Configurações → Sistema → Energia, ajuste "Suspender" para "Nunca" quando estiver na tomada.
 
@@ -99,9 +106,10 @@ Depois de puxar mudanças do projeto:
 
 ```powershell
 cd backend; .\.venv\Scripts\python.exe -m pip install -r requirements.txt; cd ..
-cd frontend; npm install; cd ..
-.\scripts\start.ps1 -Build
+.\scripts\start.ps1
 ```
+
+O script recompila o visor (e roda `npm install` se o `package.json` mudou) e reinicia o Mano.
 
 O banco (`data\mano.db`) cria tabelas novas sozinho ao iniciar. Ainda não há migrações para colunas novas em tabelas existentes (ver [Convenções](../dev/convencoes.md#banco-de-dados)).
 

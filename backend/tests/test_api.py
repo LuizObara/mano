@@ -95,3 +95,18 @@ def test_mic_mute_is_saved_and_reported(settings):
     with TestClient(create_app(settings, NullSpeaker())) as c:
         assert c.get("/api/voice").json()["muted"] is True
         assert c.post("/api/voice/mute", json={"muted": False}).json()["muted"] is False
+
+
+def test_frontend_cache_headers(settings):
+    """Depois de recompilar o visor, a página tem que ser revalidada (senão o navegador mostra a versão antiga)."""
+    dist = settings.frontend_dist
+    (dist / "assets").mkdir(parents=True)
+    (dist / "index.html").write_text('<script src="/assets/index-abc.js"></script>', encoding="utf-8")
+    (dist / "assets" / "index-abc.js").write_text("1", encoding="utf-8")
+    (dist / "sw.js").write_text("//", encoding="utf-8")
+    with TestClient(create_app(settings, speaker=NullSpeaker())) as c:
+        for path in ("/", "/remedios", "/sw.js"):
+            r = c.get(path)
+            assert r.status_code == 200 and r.headers["cache-control"] == "no-cache", path
+        r = c.get("/assets/index-abc.js")
+        assert r.status_code == 200 and "immutable" in r.headers["cache-control"]

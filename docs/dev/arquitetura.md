@@ -52,7 +52,7 @@ frontend/
     pages/             Remédios, Hábitos, Notas, Briefing, Ajustes
     components/        Cards e peças do visor (PanelGrid: grade arrastável dos painéis do Início, react-grid-layout)
   public/              manifest, service worker mínimo (só para instalar como app), ícone
-scripts/               start.ps1, get-models.ps1
+scripts/               start.ps1 (sobe/reinicia/fecha), mano.vbs (abre sem terminal), get-models.ps1
 data/                  Dados pessoais (fora do git)
 docs/
 ```

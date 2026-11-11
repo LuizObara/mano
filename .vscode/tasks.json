@@ -1,0 +1,36 @@
+{
+  // Tarefas do Mano: Ctrl+Shift+P > "Tasks: Run Task" (ou Terminal > Executar Tarefa)
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Mano: iniciar (logs neste terminal)",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start.ps1 -Here",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "panel": "dedicated", "reveal": "always", "clear": true }
+    },
+    {
+      "label": "Mano: iniciar em segundo plano",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start.ps1",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "Mano: fechar",
+      "type": "shell",
+      "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start.ps1 -Stop",
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "Mano: ver o log",
+      "type": "shell",
+      "command": "powershell -NoProfile -Command \"Get-Content data/logs/mano.log -Tail 40 -Wait\"",
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "panel": "dedicated", "reveal": "always" }
+    }
+  ]
+}
