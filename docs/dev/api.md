@@ -90,7 +90,8 @@ Convenções:
 | `GET /api/notes/captures` | — | Capturas de hoje |
 | `GET /api/spotify` · `POST /api/spotify/config` | `{"client_id"}` | |
 | `GET /api/spotify/login` · `GET /api/spotify/callback` · `POST /api/spotify/logout` | — | Login PKCE |
-| `POST /api/spotify/control/{play\|pause\|next\|previous}` | — | |
+| `POST /api/spotify/control/{play\|pause\|next\|previous}` | — | `play` sem nada tocando retoma a última música |
+| `POST /api/spotify/volume` | `{"value": 0–100}` | Volume do aparelho tocando (botões do painel grande) |
 | `GET /api/youtube/search?q=` · `POST /api/youtube/play` | `{"id", "title"}` | |
 
 ## Modelo local e briefing
@@ -132,7 +133,7 @@ Ao conectar, o servidor manda um **`hello`** com o estado completo: `voice`, `vo
 | `habit.remind` | `{"habit_id", "name", "kind", "unit", "message", "quick", "at", "expires_at", "amount", "goal"}` | Aviso de hábito (o visor mostra o pop-up até `expires_at`) |
 | `google` · `calendar` · `gmail` · `tasks` | `{"<chave>": {...}}` | Google |
 | `notes` · `notes.results` · `notes.open` | status · `{"q", "results"}` · `{"path"}` | Notas (`notes.open` faz o visor abrir a nota) |
-| `spotify` | `{"spotify": {...}}` | Spotify |
+| `spotify` | `{"spotify": {...}}` | Spotify. `now` traz `title`, `artist`, `album`, `image` (300 px), `image_large` (640 px), `is_playing`, `progress_ms`, `duration_ms`, `device`, `volume` |
 | `youtube` · `youtube.results` · `youtube.close` | `{"video"}` · `{"q", "results"}` · `{}` | YouTube |
 | `llm` | `{"llm": {...}}` | Modelo local (inclui `busy` e `pull`) |
 | `briefing` | `{"briefing": {...}}` | Briefing (contagens, progresso, manchetes) |

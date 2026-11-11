@@ -174,6 +174,16 @@ def test_spotify_controls(client, spotify):
     assert cmd(client, "que música é essa")["speech"] == "É Oceano, de Djavan."
     status = client.get("/api/spotify").json()
     assert status["now"]["title"] == "Oceano" and status["now"]["image"] == "mid"
+    assert status["now"]["image_large"] == "big" and status["now"]["album"] == "Djavan"
+
+
+def test_spotify_volume_route(client, spotify):
+    r = client.post("/api/spotify/volume", json={"value": 70})
+    assert r.status_code == 200, r.text
+    assert r.json()["speech"] == "Volume em 70."
+    assert ("volume", 70) in spotify.calls
+    assert r.json()["now"]["volume"] == 70
+    assert client.post("/api/spotify/volume", json={"value": 140}).status_code == 422
 
 
 def test_spotify_config_validation(client):

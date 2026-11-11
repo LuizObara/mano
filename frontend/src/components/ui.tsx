@@ -22,11 +22,14 @@ export function Card({
   action,
   children,
   className = "",
+  dense = false,
 }: {
   title: string;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** título e respiro menores, para painéis bem baixos (ex.: música no tamanho mínimo) */
+  dense?: boolean;
 }) {
   const panel = useContext(PanelHide);
   const grid = panel?.grid;
@@ -54,10 +57,10 @@ export function Card({
 
   const head = (
     <div
-      className={`mb-3 flex min-h-9 items-center gap-2 ${grid ? "shrink-0" : ""} ${grid?.draggable ? "panel-drag cursor-grab active:cursor-grabbing" : ""}`}
+      className={`flex items-center gap-2 ${dense ? "mb-1.5 min-h-7" : "mb-3 min-h-9"} ${grid ? "shrink-0" : ""} ${grid?.draggable ? "panel-drag cursor-grab active:cursor-grabbing" : ""}`}
       title={grid?.draggable ? "Arraste para mudar o painel de lugar" : undefined}
     >
-      <h2 className="min-w-0 flex-1 truncate font-display text-xl font-medium">{title}</h2>
+      <h2 className={`min-w-0 flex-1 truncate font-display font-medium ${dense ? "text-[15px]" : "text-xl"}`}>{title}</h2>
       {action}
       {panel && (
         <button
@@ -65,9 +68,9 @@ export function Card({
           onClick={panel.hide}
           aria-label={`Ocultar ${panel.label}`}
           title="Ocultar painel"
-          className="-mr-1 grid size-9 shrink-0 place-items-center rounded-xl text-muted hover:bg-soft hover:text-text"
+          className={`-mr-1 grid shrink-0 place-items-center rounded-xl text-muted hover:bg-soft hover:text-text ${dense ? "size-7" : "size-9"}`}
         >
-          <Icon name="eye-off" className="size-[18px]" />
+          <Icon name="eye-off" className={dense ? "size-[15px]" : "size-[18px]"} />
         </button>
       )}
     </div>
@@ -75,14 +78,18 @@ export function Card({
 
   if (!grid) {
     return (
-      <section className={`rounded-3xl border border-line bg-panel p-5 ${className}`}>
+      <section className={`rounded-3xl border border-line bg-panel ${dense ? "px-4 pb-3.5 pt-2.5" : "p-5"} ${className}`}>
         {head}
         {children}
       </section>
     );
   }
   return (
-    <section ref={box} className={`group/panel relative flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-panel p-5 ${className}`}>
+    // isolate: um fundo decorativo do painel (ex.: capa desfocada) fica atrás do conteúdo e na frente do papel
+    <section
+      ref={box}
+      className={`group/panel relative isolate flex h-full flex-col overflow-hidden rounded-3xl border border-line bg-panel ${dense ? "px-4 pb-3.5 pt-2.5" : "p-5"} ${className}`}
+    >
       {grid.draggable && (
         // pontinhos discretos no topo: aparecem no hover e indicam que o painel pode ser arrastado
         <span
@@ -96,7 +103,10 @@ export function Card({
       )}
       {head}
       {/* o corpo rola dentro do card; o respiro em cima deixa o contorno de foco aparecer inteiro */}
-      <div ref={body} className="-mx-5 -mb-5 -mt-1 flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pb-5 pt-1 [scrollbar-width:thin]">
+      <div
+        ref={body}
+        className={`-mt-1 flex min-h-0 flex-1 flex-col overflow-y-auto pt-1 [scrollbar-width:thin] ${dense ? "-mx-4 -mb-3.5 px-4 pb-3.5" : "-mx-5 -mb-5 px-5 pb-5"}`}
+      >
         {grid.fill ? (
           children
         ) : (

@@ -105,6 +105,8 @@ export type NowPlaying = {
   artist: string;
   album: string | null;
   image: string | null;
+  /** capa maior (640 px), para o painel grande */
+  image_large?: string | null;
   is_playing: boolean;
   progress_ms: number;
   duration_ms: number;

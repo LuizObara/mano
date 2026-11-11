@@ -136,5 +136,6 @@ Por voz: "fiz exercício", "bebi um copo de água", "li 20 páginas do Hobbit", 
 ## Música, vídeo e pesquisa
 
 - **Spotify**: tocar artista, música, álbum, playlist ou curtidas; pausar, continuar, pular, voltar, volume, "que música é essa?".
+- **Painel Música** (no Início): muda de jeito conforme o tamanho que você dá a ele na grade. Bem baixo vira uma faixa com capa, música e pausar; no tamanho normal mostra capa, artista e álbum, progresso e controles; largo, a capa ocupa a altura toda e aparecem o aparelho e o volume; alto, vira um tocador vertical com a capa grande; grande (8 colunas ou mais), capa grande ao lado, título grande e botões de volume. Sem nada tocando, mostra **Continuar** (retoma a última música) e exemplos de comando que tocam com um clique.
 - **YouTube**: "abre um vídeo de…" toca o primeiro resultado no próprio visor; "pesquisa no YouTube…" mostra resultados para escolher. Abrir vídeo pausa o Spotify. "Fecha o vídeo" ou Esc fecha.
 - **Pesquisa**: "o que é…" e "quem foi…" respondem falando com o resumo da Wikipedia e um cartão na tela; "pesquisa…" abre o Google no navegador do PC.

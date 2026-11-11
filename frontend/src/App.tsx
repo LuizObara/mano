@@ -33,17 +33,17 @@ type Page = (typeof PAGES)[number]["id"];
 /**
  * Painéis do Início, na ordem do layout padrão. Cada um pode ser ocultado, arrastado e redimensionado
  * (fica salvo neste aparelho). `h` é a altura inicial em linhas da grade (30 px cada) antes de medir o conteúdo;
- * `fill` são os que têm altura própria e se esticam até o fim (Briefing e Últimos comandos).
+ * `fill` são os que têm altura própria e se esticam até o fim (Briefing, Últimos comandos e Música).
  */
 const PANELS = [
   { id: "agenda", label: "Agenda", h: 11, fill: false },
   { id: "hoje", label: "Remédios e hábitos", h: 11, fill: false },
-  { id: "tocando", label: "Música", h: 8, fill: false },
+  { id: "tocando", label: "Música", h: 9, fill: true, minH: 5 }, // muda de modelo pelo tamanho (NowPlaying)
   { id: "timers", label: "Timers", h: 6, fill: false },
   { id: "tarefas", label: "Tarefas", h: 11, fill: false },
   { id: "email", label: "E-mail", h: 11, fill: false },
-  { id: "briefing", label: "Briefing", h: 17, fill: true },
-  { id: "historico", label: "Últimos comandos", h: 17, fill: true },
+  { id: "briefing", label: "Briefing", h: 17, fill: true, wide: true },
+  { id: "historico", label: "Últimos comandos", h: 17, fill: true, wide: true },
 ] as const;
 type PanelId = (typeof PANELS)[number]["id"];
 

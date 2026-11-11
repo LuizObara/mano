@@ -19,7 +19,7 @@ import time
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ..intents.ptbr import normalize, restore_accents
 from ..intents.registry import Reply, Skill, intent
@@ -42,6 +42,10 @@ _LIKED = re.compile(r"\b(curtidas|que eu curti|favoritas|minhas musicas)\b")
 
 class NoDevice(Exception):
     pass
+
+
+class VolumeIn(BaseModel):
+    value: int = Field(ge=0, le=100)
 
 
 class ConfigIn(BaseModel):
@@ -266,6 +270,8 @@ class SpotifySkill(Skill):
                 "artist": ", ".join(a["name"] for a in it.get("artists", [])),
                 "album": (it.get("album") or {}).get("name"),
                 "image": images[-2]["url"] if len(images) >= 2 else (images[0]["url"] if images else None),
+                # a maior (640 px): o painel usa nos tamanhos grandes, onde a de 300 px ficaria borrada
+                "image_large": images[0]["url"] if images else None,
                 "is_playing": cur.get("is_playing", False),
                 "progress_ms": cur.get("progress_ms") or 0,
                 "duration_ms": it.get("duration_ms") or 0,
@@ -453,7 +459,17 @@ class SpotifySkill(Skill):
             reply = await self._guard(lambda: self._ctl_reply(action))
             return {"speech": reply.speech, **self.status()}
 
+        @r.post("/volume")
+        async def volume(body: VolumeIn):
+            reply = await self._guard(lambda: self._volume_reply(body.value))
+            return {"speech": reply.speech, **self.status()}
+
         return r
+
+    async def _volume_reply(self, value: int) -> Reply:
+        await self._call(self.client.volume, value)
+        await self.refresh()
+        return Reply(f"Volume em {value}.")
 
     async def _ctl_reply(self, action: str) -> Reply:
         await self.control(action)
