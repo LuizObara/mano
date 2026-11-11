@@ -24,6 +24,12 @@ function dayLabel(ms: number, now = new Date()) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/** Dia curto para a coluna estreita do painel: "ontem" ou "06/11" (o dia por extenso fica no title). */
+function shortDay(ms: number) {
+  const label = dayLabel(ms);
+  return label === "Ontem" ? "ontem" : new Date(ms).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
 function SourceIcon({ e, className }: { e: LogEntry; className: string }) {
   const voice = e.source === "voice";
   return (
@@ -83,7 +89,7 @@ export function History({ mano, speak }: { mano: Mano; speak: boolean }) {
               >
                 <span className="flex flex-col pt-px text-[13px] tabular-nums leading-tight text-muted" title={new Date(e.at).toLocaleString("pt-BR")}>
                   {hhmm(e.at)}
-                  {isoDay(new Date(e.at)) !== today && <span className="text-[11px]">{dayLabel(e.at).toLowerCase()}</span>}
+                  {isoDay(new Date(e.at)) !== today && <span className="text-[11px]">{shortDay(e.at)}</span>}
                 </span>
                 <SourceIcon e={e} className="size-[15px]" />
                 <span className="flex min-w-0 flex-col">

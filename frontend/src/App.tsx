@@ -42,8 +42,8 @@ const PANELS = [
   { id: "timers", label: "Timers", h: 6, fill: false },
   { id: "tarefas", label: "Tarefas", h: 11, fill: false },
   { id: "email", label: "E-mail", h: 11, fill: false },
-  { id: "briefing", label: "Briefing", h: 17, fill: true, wide: true },
-  { id: "historico", label: "Últimos comandos", h: 17, fill: true, wide: true },
+  { id: "briefing", label: "Briefing", h: 15, fill: true, minH: 8 },
+  { id: "historico", label: "Últimos comandos", h: 15, fill: true, minH: 8 },
 ] as const;
 type PanelId = (typeof PANELS)[number]["id"];
 
