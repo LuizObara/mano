@@ -104,6 +104,8 @@ Por voz: "fiz exercício", "bebi um copo de água", "li 20 páginas do Hobbit", 
 
 ## Lembretes e timers
 
+- **Painel Timers** (no Início): cada timer num cartão com anel de progresso, **+1 min** e **Cancelar**; quando acaba, **Parar** e **+5 min**. Embaixo, **Começar rápido** (1, 3 · chá, 5, 10 e 25 min · foco, mais o último timer com nome que você criou) e um seletor de minutos com nome opcional. Em painel largo os timers ficam em duas colunas.
+- **Painel Remédios e hábitos** (no Início): "Feito hoje" com uma barrinha por item; as doses de hoje com **Tomei** e **Adiar** (a da hora fica destacada), **Desfazer** e **Tomei, marcar** para uma esquecida; os hábitos com **Feito**/**Desfazer** ou os registros rápidos (ex.: +250 ml) e a barra da meta; o próximo lembrete (× cancela) e **+ Lembrete**, que escreve "me lembra de" na barra de comando para você completar. **Pausar 1 h** no topo pausa as cobranças de hábitos (remédios continuam).
 - **Timer**: duração e, se quiser, um nome ("timer de 10 minutos pro arroz"). Tocando, o despertador soa sem parar e o aviso falado repete a cada 30 s por até 5 min (tudo ajustável em [Alarmes e avisos](#alarmes-e-avisos)).
 - **Lembrete**: um texto e um momento ("me lembra de pagar o boleto amanhã às 10", "me lembra em 20 minutos de tirar o bolo"). Momentos aceitos: "em/daqui a N minutos/horas", "às 15", "às 3 e meia", "hoje/amanhã/depois de amanhã", dias da semana ("sexta às 10").
 

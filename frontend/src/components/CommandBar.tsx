@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "./ui";
 
 const SUGGESTIONS = [
@@ -7,6 +7,11 @@ const SUGGESTIONS = [
   "quais hábitos faltam?",
   "o que você sabe fazer?",
 ];
+
+/** Escreve um começo de comando na barra (ex.: "me lembra de ") e põe o cursor no fim, pronto para completar. */
+export function composeCommand(text: string) {
+  window.dispatchEvent(new CustomEvent("mano:compose", { detail: text }));
+}
 
 export function CommandBar({
   onSend,
@@ -18,7 +23,22 @@ export function CommandBar({
   voice: { available: boolean; muted: boolean; reason: string; listening: boolean; onListen: () => void };
 }) {
   const [text, setText] = useState("");
+  const input = useRef<HTMLInputElement>(null);
   const canTalk = voice.available && !voice.muted;
+
+  useEffect(() => {
+    const on = (e: Event) => {
+      const t = String((e as CustomEvent).detail ?? "");
+      setText(t);
+      const el = input.current;
+      if (!el) return;
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      el.focus({ preventScroll: true });
+      requestAnimationFrame(() => el.setSelectionRange(t.length, t.length));
+    };
+    window.addEventListener("mano:compose", on);
+    return () => window.removeEventListener("mano:compose", on);
+  }, []);
 
   const submit = (t: string) => {
     if (!t.trim()) return;
@@ -36,6 +56,7 @@ export function CommandBar({
         }}
       >
         <input
+          ref={input}
           autoFocus
           value={text}
           onChange={(e) => setText(e.target.value)}

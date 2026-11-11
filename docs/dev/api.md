@@ -32,6 +32,7 @@ Convenções:
 | `POST /api/timers` | `{"seconds", "label"?}` | |
 | `POST /api/timers/{id}/cancel` | — | |
 | `POST /api/timers/{id}/dismiss` | — | Para de tocar |
+| `POST /api/timers/{id}/extend` | `{"seconds"}` | Mais tempo: correndo, soma ao que falta; tocando, para de tocar e conta de novo esse tanto (o "+5 min" do painel). Timer já acabado dá 400 |
 | `GET /api/reminders` | — | |
 | `POST /api/reminders` | `{"text", "due_at"}` (ISO) | |
 | `POST /api/reminders/{id}/{cancel\|done}` | — | |

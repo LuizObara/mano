@@ -73,6 +73,27 @@ def test_cancel_disambiguates(client):
     assert client.get("/api/timers").json() == []
 
 
+def test_timer_extend_running_and_ringing(client, speaker):
+    t = client.post("/api/timers", json={"seconds": 600, "label": "bolo"}).json()
+    r = client.post(f"/api/timers/{t['id']}/extend", json={"seconds": 60})
+    assert r.status_code == 200, r.text
+    assert r.json()["duration_s"] == 660 and r.json()["ends_at"] - t["ends_at"] == 60_000
+
+    # tocando: "+5 min" volta a contar do zero e para de tocar
+    ring = cmd(client, "timer de 1 segundo pro teste")["data"]["timer"]
+    deadline = time.time() + 5
+    while time.time() < deadline and client.get("/api/timers").json()[0]["status"] != "ringing":
+        time.sleep(0.1)
+    r = client.post(f"/api/timers/{ring['id']}/extend", json={"seconds": 300})
+    assert r.json()["status"] == "running" and r.json()["duration_s"] == 300
+    assert all(x["status"] == "running" for x in client.get("/api/timers").json())
+
+    client.post(f"/api/timers/{t['id']}/cancel")
+    assert client.post(f"/api/timers/{t['id']}/extend", json={"seconds": 60}).status_code == 400
+    assert client.post(f"/api/timers/{t['id']}/extend", json={"seconds": 0}).status_code == 422
+    assert client.post("/api/timers/9999/extend", json={"seconds": 60}).status_code == 404
+
+
 def test_timer_survives_restart(settings):
     app1 = create_app(settings, speaker=NullSpeaker())
     with TestClient(app1) as c:

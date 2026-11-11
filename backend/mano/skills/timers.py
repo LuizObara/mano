@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 
 from apscheduler.jobstores.base import JobLookupError
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlmodel import select
 
 from ..intents.ptbr import parse_duration, say_duration
@@ -41,6 +41,10 @@ def _clean_label(text: str) -> str | None:
 class TimerIn(BaseModel):
     seconds: int
     label: str | None = None
+
+
+class ExtendIn(BaseModel):
+    seconds: int = Field(gt=0, le=24 * 3600)
 
 
 class TimerSkill(Skill):
@@ -214,6 +218,31 @@ class TimerSkill(Skill):
         await self._push()
         return t
 
+    async def extend(self, timer_id: int, seconds: int) -> Timer | None:
+        """Mais tempo: correndo, soma ao que falta; tocando, para de tocar e conta de novo esse tanto."""
+        now = datetime.now()
+        with self.ctx.db.session() as s:
+            t = s.get(Timer, timer_id)
+            if t is None:
+                return None
+            if t.status not in ("running", "ringing"):
+                raise HTTPException(400, "esse timer já acabou")
+            if t.status == "ringing":
+                t.status = "running"
+                t.ends_at = now + timedelta(seconds=seconds)
+                t.duration_s = seconds
+            else:
+                t.ends_at = t.ends_at + timedelta(seconds=seconds)
+                t.duration_s += seconds
+            s.add(t)
+            s.commit()
+            s.refresh(t)
+        self._unschedule(timer_id)
+        self._schedule(t)
+        self._silence_if_idle()
+        await self._push()
+        return t
+
     async def dismiss_all(self) -> int:
         ringing = [t for t in self.active() if t.status == "ringing"]
         for t in ringing:
@@ -256,6 +285,13 @@ class TimerSkill(Skill):
         @r.post("/{timer_id}/cancel")
         async def cancel_timer(timer_id: int):
             t = await self.cancel(timer_id)
+            if t is None:
+                raise HTTPException(404)
+            return t.public()
+
+        @r.post("/{timer_id}/extend")
+        async def extend_timer(timer_id: int, body: ExtendIn):
+            t = await self.extend(timer_id, body.seconds)
             if t is None:
                 raise HTTPException(404)
             return t.public()
