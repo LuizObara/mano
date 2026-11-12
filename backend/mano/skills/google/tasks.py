@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import re
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -11,9 +12,10 @@ from pydantic import BaseModel
 from ...intents.ptbr import best_match, restore_accents
 from ...intents.registry import Reply, intent
 from ...intents.when import parse_when
-from .account import GoogleFeature
+from .account import GoogleFeature, to_local, to_rfc3339
 
 API = "https://tasks.googleapis.com/tasks/v1/lists/@default/tasks"
+DONE_DAYS = 84  # concluídas que vêm junto (mapa de 12 semanas da aba Calendário)
 
 _LEAD = re.compile(r"^(?:(?:de|para|pra|que|a|o)\s+)+")
 
@@ -21,6 +23,19 @@ _LEAD = re.compile(r"^(?:(?:de|para|pra|que|a|o)\s+)+")
 class TaskIn(BaseModel):
     title: str
     due: date | None = None
+    notes: str | None = None
+
+
+class TaskPatch(BaseModel):
+    """Só os campos enviados mudam; `due: null` tira a data."""
+
+    title: str | None = None
+    due: date | None = None
+    notes: str | None = None
+
+
+def due_iso(d: date | None) -> str | None:
+    return f"{d.isoformat()}T00:00:00.000Z" if d else None  # a API só guarda a data
 
 
 class TasksSkill(GoogleFeature):
@@ -30,33 +45,67 @@ class TasksSkill(GoogleFeature):
     poll_s = 300
 
     def empty(self) -> dict:
-        return {"tasks": [], "error": None, "updated": None}
+        return {"tasks": [], "done": [], "error": None, "updated": None}
 
     async def fetch(self) -> dict:
-        data = await self.account.request("GET", API, params={"showCompleted": "false", "maxResults": 100})
+        since = datetime.combine(date.today() - timedelta(days=DONE_DAYS), datetime.min.time())
+        open_, closed = await asyncio.gather(
+            self.account.request("GET", API, params={"showCompleted": "false", "maxResults": 100}),
+            self.account.request("GET", API, params={"showCompleted": "true", "showHidden": "true",
+                                                     "completedMin": to_rfc3339(since), "maxResults": 100}),
+        )
         tasks = []
-        for t in data.get("items", []):
+        for t in open_.get("items", []):
             if not t.get("title"):
                 continue
             tasks.append({"id": t["id"], "title": t["title"], "notes": t.get("notes"),
                           "due": t["due"][:10] if t.get("due") else None, "position": t.get("position", "")})
         # com prazo primeiro (mais cedo antes), depois a ordem da lista
         tasks.sort(key=lambda t: (t["due"] is None, t["due"] or "", t["position"]))
-        return {"tasks": tasks}
+        done = []
+        for t in closed.get("items", []):
+            if t.get("status") != "completed" or not t.get("title") or not t.get("completed"):
+                continue
+            done.append({"id": t["id"], "title": t["title"], "due": t["due"][:10] if t.get("due") else None,
+                         "completed": to_local(t["completed"]).date().isoformat()})
+        done.sort(key=lambda t: t["completed"], reverse=True)
+        return {"tasks": tasks, "done": done}
 
     def tasks(self) -> list[dict]:
         return self.data.get("tasks", [])
 
-    async def add(self, title: str, due: date | None = None) -> dict:
+    async def add(self, title: str, due: date | None = None, notes: str | None = None) -> dict:
         body = {"title": title}
         if due:
-            body["due"] = f"{due.isoformat()}T00:00:00.000Z"  # a API só guarda a data
+            body["due"] = due_iso(due)
+        if notes:
+            body["notes"] = notes
         t = await self.account.request("POST", API, json=body)
         await self.refresh()
         return t
 
     async def complete(self, task_id: str) -> None:
         await self.account.request("PATCH", f"{API}/{task_id}", json={"status": "completed"})
+        await self.refresh()
+
+    async def reopen(self, task_id: str) -> None:
+        await self.account.request("PATCH", f"{API}/{task_id}", json={"status": "needsAction", "completed": None})
+        await self.refresh()
+
+    async def update(self, task_id: str, changes: dict) -> None:
+        body = {}
+        if "title" in changes:
+            body["title"] = (changes["title"] or "").strip() or "(sem título)"
+        if "due" in changes:
+            body["due"] = due_iso(changes["due"])
+        if "notes" in changes:
+            body["notes"] = changes["notes"] or ""
+        if body:
+            await self.account.request("PATCH", f"{API}/{task_id}", json=body)
+        await self.refresh()
+
+    async def delete(self, task_id: str) -> None:
+        await self.account.request("DELETE", f"{API}/{task_id}")
         await self.refresh()
 
     # ---------- intenções ----------
@@ -135,20 +184,40 @@ class TasksSkill(GoogleFeature):
         async def get_tasks():
             return self.data
 
-        @r.post("")
-        async def add(body: TaskIn):
+        def need():
             if self.not_ready() is not None:
                 raise HTTPException(400, "Conta Google não conectada")
+
+        @r.post("")
+        async def add(body: TaskIn):
+            need()
             if not body.title.strip():
                 raise HTTPException(400, "título vazio")
-            t = await self.add(body.title.strip(), body.due)
+            t = await self.add(body.title.strip(), body.due, body.notes)
             return {"id": t.get("id")}
+
+        @r.patch("/{task_id}")
+        async def update(task_id: str, body: TaskPatch):
+            need()
+            await self.update(task_id, body.model_dump(include=body.model_fields_set))
+            return {"ok": True}
+
+        @r.delete("/{task_id}")
+        async def delete(task_id: str):
+            need()
+            await self.delete(task_id)
+            return {"ok": True}
 
         @r.post("/{task_id}/complete")
         async def complete(task_id: str):
-            if self.not_ready() is not None:
-                raise HTTPException(400, "Conta Google não conectada")
+            need()
             await self.complete(task_id)
+            return {"ok": True}
+
+        @r.post("/{task_id}/reopen")
+        async def reopen(task_id: str):
+            need()
+            await self.reopen(task_id)
             return {"ok": True}
 
         return r

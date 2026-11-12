@@ -28,8 +28,52 @@ _KIND = re.compile(r"^(?:(?:um|uma|1)\s+)?(?:evento|compromisso)\s+(?:de\s+|com\
 
 class EventIn(BaseModel):
     title: str
-    start: datetime
+    start: datetime | None = None  # com horário
+    day: date | None = None  # dia todo (ou o dia, quando `start` não vem)
+    all_day: bool = False
     minutes: int = 60
+    calendar_id: str = "primary"
+    description: str | None = None
+    meet: bool = False
+
+
+class EventPatch(BaseModel):
+    """Só os campos enviados mudam. Para mudar o horário, mande `start` (e `minutes`) ou `day` + `all_day`."""
+
+    title: str | None = None
+    start: datetime | None = None
+    day: date | None = None
+    all_day: bool | None = None
+    minutes: int | None = None
+    description: str | None = None
+    meet: bool | None = None
+
+
+def naive(dt: datetime) -> datetime:
+    return dt.astimezone().replace(tzinfo=None) if dt.tzinfo else dt
+
+
+def when_body(start: datetime | None, day: date | None, all_day: bool, minutes: int, clear: bool = False) -> dict:
+    """Campos start/end do Google para um evento com horário ou de dia todo.
+
+    `clear` zera o campo do outro tipo (necessário no PATCH ao trocar entre dia todo e com horário)."""
+    if all_day or start is None:
+        d = day or (start.date() if start else date.today())
+        s, e = {"date": d.isoformat()}, {"date": (d + timedelta(days=1)).isoformat()}
+        if clear:
+            s["dateTime"] = e["dateTime"] = None
+    else:
+        start = naive(start)
+        s = {"dateTime": to_rfc3339(start)}
+        e = {"dateTime": to_rfc3339(start + timedelta(minutes=max(5, minutes)))}
+        if clear:
+            s["date"] = e["date"] = None
+    return {"start": s, "end": e}
+
+
+def meet_request() -> dict:
+    return {"createRequest": {"requestId": f"mano-{datetime.now().timestamp():.0f}",
+                              "conferenceSolutionKey": {"type": "hangoutsMeet"}}}
 
 
 def day_label(d: date, today: date) -> str:
@@ -52,22 +96,38 @@ class CalendarSkill(GoogleFeature):
         self._warned: set[str] = set()
 
     def empty(self) -> dict:
-        return {"events": [], "error": None, "updated": None}
+        return {"events": [], "calendars": [], "error": None, "updated": None}
 
     # ---------- dados ----------
 
     async def fetch(self) -> dict:
         start = datetime.combine(date.today(), time())
-        end = start + timedelta(days=DAYS_AHEAD + 1)
+        cals = await self._calendars()
+        events = await self._events(cals, start, start + timedelta(days=DAYS_AHEAD + 1))
+        return {"events": events, "calendars": [self._cal_info(c) for c in cals]}
+
+    async def _calendars(self) -> list[dict]:
         cals = (await self.account.request("GET", f"{API}/users/me/calendarList",
                                            params={"minAccessRole": "reader"})).get("items", [])
-        cals = [c for c in cals if c.get("selected", c.get("primary", False))]
+        return [c for c in cals if c.get("selected", c.get("primary", False))]
 
+    @staticmethod
+    def _cal_info(cal: dict) -> dict:
+        return {"id": cal["id"], "name": cal.get("summaryOverride") or cal.get("summary"),
+                "color": cal.get("backgroundColor"), "primary": bool(cal.get("primary")),
+                "writable": cal.get("accessRole") in ("owner", "writer")}
+
+    async def range(self, start: date, end: date) -> list[dict]:
+        """Eventos de [start, end) em todas as agendas marcadas (para a aba Calendário)."""
+        cals = await self._calendars()
+        return await self._events(cals, datetime.combine(start, time()), datetime.combine(end, time()))
+
+    async def _events(self, cals: list[dict], start: datetime, end: datetime) -> list[dict]:
         async def events_of(cal: dict) -> list[dict]:
             data = await self.account.request(
                 "GET", f"{API}/calendars/{quote(cal['id'], safe='')}/events",
                 params={"timeMin": to_rfc3339(start), "timeMax": to_rfc3339(end), "singleEvents": "true",
-                        "orderBy": "startTime", "maxResults": 100},
+                        "orderBy": "startTime", "maxResults": 250},
             )
             out = []
             for e in data.get("items", []):
@@ -82,14 +142,15 @@ class CalendarSkill(GoogleFeature):
                 out.append({
                     "id": e["id"], "title": e.get("summary") or "(sem título)", "start": ms(st), "end": ms(et),
                     "all_day": all_day, "location": e.get("location"), "link": e.get("htmlLink"),
-                    "calendar": cal.get("summaryOverride") or cal.get("summary"),
+                    "calendar": cal.get("summaryOverride") or cal.get("summary"), "calendar_id": cal["id"],
                     "color": cal.get("backgroundColor"), "meet": e.get("hangoutLink"),
+                    "description": e.get("description"),
+                    "editable": cal.get("accessRole") in ("owner", "writer") and not e.get("locked"),
                 })
             return out
 
         lists = await asyncio.gather(*(events_of(c) for c in cals))
-        events = sorted((e for lst in lists for e in lst), key=lambda e: (e["start"], not e["all_day"]))
-        return {"events": events}
+        return sorted((e for lst in lists for e in lst), key=lambda e: (e["start"], not e["all_day"]))
 
     def events(self) -> list[dict]:
         return self.data.get("events", [])
@@ -218,6 +279,68 @@ class CalendarSkill(GoogleFeature):
         await self.refresh()
         return ev
 
+    @staticmethod
+    def _url(calendar_id: str, event_id: str = "") -> str:
+        u = f"{API}/calendars/{quote(calendar_id, safe='')}/events"
+        return f"{u}/{quote(event_id, safe='')}" if event_id else u
+
+    async def create_full(self, body: EventIn) -> dict:
+        payload = {"summary": body.title.strip() or "(sem título)",
+                   **when_body(body.start, body.day, body.all_day, body.minutes)}
+        if body.description:
+            payload["description"] = body.description
+        params = {}
+        if body.meet:
+            payload["conferenceData"] = meet_request()
+            params["conferenceDataVersion"] = 1
+        ev = await self.account.request("POST", self._url(body.calendar_id), json=payload, params=params)
+        await self.refresh()
+        return ev
+
+    async def update(self, calendar_id: str, event_id: str, changes: dict, current: dict) -> dict:
+        """`current` = o evento como está (start/end em ms, all_day), para completar o que não mudou."""
+        payload: dict = {}
+        if "title" in changes:
+            payload["summary"] = (changes["title"] or "").strip() or "(sem título)"
+        if "description" in changes:
+            payload["description"] = changes["description"] or ""
+        if {"start", "day", "all_day", "minutes"} & changes.keys():
+            cur_start = datetime.fromtimestamp(current["start"] / 1000)
+            all_day = changes.get("all_day")
+            if all_day is None:
+                all_day = current["all_day"]
+            day = changes.get("day") or (naive(changes["start"]).date() if changes.get("start") else cur_start.date())
+            start = changes.get("start")
+            if start is None and not all_day:
+                start = datetime.combine(day, cur_start.time() if not current["all_day"] else time(9))
+            minutes = changes.get("minutes")
+            if minutes is None:
+                minutes = 60 if current["all_day"] else round((current["end"] - current["start"]) / 60000)
+            payload.update(when_body(start, day, all_day, minutes, clear=True))
+        params = {}
+        if changes.get("meet"):
+            payload["conferenceData"] = meet_request()
+            params["conferenceDataVersion"] = 1
+        ev = await self.account.request("PATCH", self._url(calendar_id, event_id), json=payload, params=params)
+        await self.refresh()
+        return ev
+
+    async def get(self, calendar_id: str, event_id: str) -> dict:
+        """O evento como o resto do Mano enxerga (start/end em ms, all_day)."""
+        cached = next((e for e in self.events() if e["id"] == event_id), None)
+        if cached:
+            return cached
+        g = await self.account.request("GET", self._url(calendar_id, event_id))
+        s, e = g.get("start", {}), g.get("end", {})
+        if "date" in s:
+            return {"all_day": True, "start": ms(datetime.combine(date.fromisoformat(s["date"]), time())),
+                    "end": ms(datetime.combine(date.fromisoformat(e["date"]), time()))}
+        return {"all_day": False, "start": ms(to_local(s["dateTime"])), "end": ms(to_local(e["dateTime"]))}
+
+    async def delete(self, calendar_id: str, event_id: str) -> None:
+        await self.account.request("DELETE", self._url(calendar_id, event_id))
+        await self.refresh()
+
     # ---------- API ----------
 
     def router(self) -> APIRouter:
@@ -227,12 +350,37 @@ class CalendarSkill(GoogleFeature):
         async def get_events():
             return self.data
 
-        @r.post("/events")
-        async def create(body: EventIn):
+        def need():
             if self.not_ready() is not None:
                 raise HTTPException(400, "Conta Google não conectada")
-            start = body.start.astimezone().replace(tzinfo=None) if body.start.tzinfo else body.start
-            ev = await self.create(body.title.strip() or "(sem título)", start, max(5, body.minutes))
+
+        @r.get("/range")
+        async def get_range(start: date, end: date):
+            need()
+            if end <= start or (end - start).days > 62:
+                raise HTTPException(400, "intervalo inválido (até 62 dias)")
+            return {"events": await self.range(start, end)}
+
+        @r.post("/events")
+        async def create(body: EventIn):
+            need()
+            if body.start is None and body.day is None:
+                raise HTTPException(400, "falta o dia ou o horário")
+            ev = await self.create_full(body)
             return {"id": ev.get("id")}
+
+        @r.patch("/events/{event_id}")
+        async def update(event_id: str, body: EventPatch, calendar: str = "primary"):
+            need()
+            changes = body.model_dump(include=body.model_fields_set)
+            cur = await self.get(calendar, event_id) if {"start", "day", "all_day", "minutes"} & changes.keys() else {}
+            ev = await self.update(calendar, event_id, changes, cur)
+            return {"id": ev.get("id")}
+
+        @r.delete("/events/{event_id}")
+        async def delete(event_id: str, calendar: str = "primary"):
+            need()
+            await self.delete(calendar, event_id)
+            return {"ok": True}
 
         return r

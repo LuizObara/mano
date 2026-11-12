@@ -15,6 +15,7 @@ import { VideoOverlay } from "./components/VideoOverlay";
 import { useMano, type Mano } from "./lib/mano";
 import { useStored, useTheme } from "./lib/prefs";
 import { BriefingPage } from "./pages/Briefing";
+import { CalendarPage } from "./pages/Calendar";
 import { HabitsPage } from "./pages/Habits";
 import { MedsPage } from "./pages/Meds";
 import { NotesPage } from "./pages/Notes";
@@ -22,6 +23,7 @@ import { SettingsPage } from "./pages/Settings";
 
 const PAGES = [
   { id: "inicio", label: "Início" },
+  { id: "calendario", label: "Calendário" },
   { id: "remedios", label: "Remédios" },
   { id: "habitos", label: "Hábitos" },
   { id: "notas", label: "Notas" },
@@ -237,6 +239,7 @@ export default function App() {
             resetLayout={resetLayout}
           />
         )}
+        {page === "calendario" && <CalendarPage mano={mano} go={go} />}
         {page === "remedios" && <MedsPage mano={mano} />}
         {page === "habitos" && <HabitsPage mano={mano} />}
         {page === "notas" && <NotesPage mano={mano} go={go} />}

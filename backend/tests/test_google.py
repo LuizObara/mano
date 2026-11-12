@@ -29,6 +29,8 @@ class FakeGoogle:
             {"id": "t2", "title": "Pagar internet", "position": "2", "due": f"{TODAY - timedelta(days=1)}T00:00:00.000Z"},
         ]
         self.patched = []
+        self.deleted = []
+        self.event_patches = []
         self.events = [
             {"id": "e1", "summary": "Dentista", "start": {"dateTime": at(TODAY, 15)}, "end": {"dateTime": at(TODAY, 16)},
              "location": "Rua X"},
@@ -50,10 +52,21 @@ class FakeGoogle:
             ]})
         if "/calendars/" in p and p.endswith("/events"):
             if m == "POST":
-                self.created_events.append(json.loads(req.content))
+                self.created_events.append((json.loads(req.content), dict(req.url.params)))
                 return httpx.Response(200, json={"id": "new"})
             assert "eu%40gmail.com" in str(req.url.raw_path, "ascii")
             return httpx.Response(200, json={"items": self.events})
+        if "/calendars/" in p and "/events/" in p:
+            eid = p.rsplit("/", 1)[1]
+            if m == "PATCH":
+                self.event_patches.append((eid, json.loads(req.content)))
+                return httpx.Response(200, json={"id": eid})
+            if m == "DELETE":
+                self.deleted.append(("event", eid))
+                self.events = [e for e in self.events if e["id"] != eid]
+                return httpx.Response(204)
+            if m == "GET":
+                return httpx.Response(200, json=next(e for e in self.events if e["id"] == eid))
         if p.endswith("/labels/INBOX"):
             return httpx.Response(200, json={"messagesUnread": 12})
         if p.endswith("/users/me/messages"):
@@ -74,9 +87,22 @@ class FakeGoogle:
                 return httpx.Response(200, json={"id": "t9"})
             if m == "PATCH":
                 tid = p.rsplit("/", 1)[1]
-                self.patched.append((tid, json.loads(req.content)))
-                self.tasks = [t for t in self.tasks if t["id"] != tid]
+                body = json.loads(req.content)
+                self.patched.append((tid, body))
+                if body.get("status") == "completed":
+                    self.tasks = [t for t in self.tasks if t["id"] != tid]
+                else:
+                    for t in self.tasks:
+                        if t["id"] == tid:
+                            t.update({k: v for k, v in body.items() if v is not None})
+                            if "due" in body and body["due"] is None:
+                                t.pop("due", None)
                 return httpx.Response(200, json={})
+            if m == "DELETE":
+                tid = p.rsplit("/", 1)[1]
+                self.deleted.append(("task", tid))
+                self.tasks = [t for t in self.tasks if t["id"] != tid]
+                return httpx.Response(204)
         raise AssertionError(f"rota inesperada {m} {req.url}")
 
 
@@ -138,7 +164,7 @@ def test_calendar(client, google):
 def test_calendar_create(client, google):
     out = cmd(client, "Mano, coloca na agenda reunião com a Ana amanhã às 15")
     assert out["speech"] == "Marquei Reunião com a Ana amanhã às 15 horas."
-    ev = google.created_events[0]
+    ev = google.created_events[0][0]
     assert ev["summary"] == "Reunião com a Ana"
     assert ev["start"]["dateTime"] == at(TOMORROW, 15) and ev["end"]["dateTime"] == at(TOMORROW, 16)
 
@@ -198,3 +224,69 @@ def test_help_lists_features(client):
     out = cmd(client, "o que você sabe fazer")
     assert out["speech"].startswith("Eu cuido de hora e data, timers, lembretes, remédios, hábitos, agenda, tarefas, e-mail")
     assert "conta google" not in out["speech"] and "avisos" not in out["speech"]
+
+
+def test_tasks_api_edit_delete_reopen(client, google):
+    assert client.get("/api/tasks").json()["done"] == []
+    r = client.patch("/api/tasks/t1", json={"due": str(TOMORROW)})
+    assert r.status_code == 200
+    assert google.patched[-1] == ("t1", {"due": f"{TOMORROW}T00:00:00.000Z"})
+    client.patch("/api/tasks/t1", json={"title": "Comprar pão integral"})
+    assert google.patched[-1] == ("t1", {"title": "Comprar pão integral"})  # só o que veio
+    client.patch("/api/tasks/t2", json={"due": None})
+    assert google.patched[-1] == ("t2", {"due": None})
+    tasks = {t["id"]: t for t in client.get("/api/tasks").json()["tasks"]}
+    assert tasks["t1"]["due"] == str(TOMORROW) and tasks["t2"]["due"] is None
+    client.post("/api/tasks/t1/reopen", json={})
+    assert google.patched[-1] == ("t1", {"status": "needsAction", "completed": None})
+    assert client.delete("/api/tasks/t2").status_code == 200
+    assert ("task", "t2") in google.deleted
+    r = client.post("/api/tasks", json={"title": "Preparar: Dentista", "due": str(TODAY)})
+    assert r.status_code == 200 and google.tasks[-1]["due"] == f"{TODAY}T00:00:00.000Z"
+
+
+def test_tasks_done_list(client, google):
+    google.tasks.append({"id": "t5", "title": "Feita", "status": "completed",
+                         "completed": f"{TODAY}T15:00:00.000Z", "due": f"{TODAY}T00:00:00.000Z"})
+    client.post("/api/google/refresh", json={})
+    data = client.get("/api/tasks").json()
+    assert [t["id"] for t in data["done"]] == ["t5"] and data["done"][0]["due"] == str(TODAY)
+
+
+def test_calendar_api_create_edit_delete(client, google):
+    client.post("/api/google/refresh", json={})
+    data = client.get("/api/calendar").json()
+    assert data["calendars"][0]["name"] == "Pessoal" and data["events"][0]["calendar_id"] == "eu@gmail.com"
+    r = client.post("/api/calendar/events", json={"title": "Feriado", "day": str(TOMORROW), "all_day": True})
+    assert r.status_code == 200
+    ev, params = google.created_events[-1]
+    assert ev["start"] == {"date": str(TOMORROW)} and ev["end"] == {"date": str(TOMORROW + timedelta(days=1))}
+    r = client.post("/api/calendar/events", json={"title": "Call", "start": f"{TODAY}T10:00:00", "minutes": 30,
+                                                  "meet": True, "calendar_id": "eu@gmail.com"})
+    ev, params = google.created_events[-1]
+    assert ev["end"]["dateTime"] == at(TODAY, 10, 30) and params["conferenceDataVersion"] == "1"
+    assert ev["conferenceData"]["createRequest"]["conferenceSolutionKey"]["type"] == "hangoutsMeet"
+    assert client.post("/api/calendar/events", json={"title": "x"}).status_code == 400
+
+    # mudar só o dia mantém o horário e a duração
+    r = client.patch("/api/calendar/events/e1?calendar=eu@gmail.com", json={"day": str(TOMORROW)})
+    assert r.status_code == 200
+    eid, body = google.event_patches[-1]
+    assert eid == "e1" and body["start"]["dateTime"] == at(TOMORROW, 15) and body["end"]["dateTime"] == at(TOMORROW, 16)
+    assert body["start"]["date"] is None
+    # virar dia todo
+    client.patch("/api/calendar/events/e1?calendar=eu@gmail.com", json={"all_day": True})
+    _, body = google.event_patches[-1]
+    assert body["start"] == {"date": str(TODAY), "dateTime": None}
+    # título só
+    client.patch("/api/calendar/events/e3?calendar=eu@gmail.com", json={"title": "Reunião geral"})
+    assert google.event_patches[-1] == ("e3", {"summary": "Reunião geral"})
+    assert client.delete("/api/calendar/events/e3?calendar=eu@gmail.com").status_code == 200
+    assert ("event", "e3") in google.deleted
+
+
+def test_calendar_range(client, google):
+    r = client.get(f"/api/calendar/range?start={TODAY}&end={TODAY + timedelta(days=35)}")
+    assert r.status_code == 200
+    assert [e["title"] for e in r.json()["events"]] == ["Dentista", "Aniversário da Ana", "Reunião"]
+    assert client.get(f"/api/calendar/range?start={TODAY}&end={TODAY}").status_code == 400

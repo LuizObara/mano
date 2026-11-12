@@ -1,6 +1,7 @@
 """Acesso ao vault do Obsidian: índice de busca (SQLite FTS5), leitura e captura na nota diária.
 
-O Mano só ACRESCENTA texto na nota do dia; nunca reescreve nem apaga o que já existe.
+Na nota do dia o Mano só ACRESCENTA capturas e reescreve apenas a própria seção "## Anotações" (a da aba
+Calendário); o resto do arquivo fica como está.
 """
 
 from __future__ import annotations
@@ -11,13 +12,14 @@ import sqlite3
 import threading
 import unicodedata
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 SKIP_DIRS = {".obsidian", ".git", ".trash", "node_modules"}
 DAILY_RE = re.compile(r"^\d{4}-\d{2}-\d{2}\.md$")
 FRONTMATTER_RE = re.compile(r"^---\r?\n.*?\r?\n---\r?\n?", re.S)
 CAPTURE_HEADING = "## Capturas"
+NOTES_HEADING = "## Anotações"
 
 
 def fold(text: str) -> str:
@@ -286,6 +288,67 @@ class Vault:
                 content = content[:start] + section + f"\n{line}\n" + ("\n" + content[end:] if nxt else "")
             path.write_text(content, encoding="utf-8", newline="\n")
         return rel
+
+    # ---------- anotações do dia (aba Calendário) ----------
+
+    @staticmethod
+    def _section(content: str, heading: str) -> tuple[int, int, int] | None:
+        """(início do título, início do corpo, fim) da seção `heading`, que vai até o próximo # ou ## ."""
+        m = re.search(rf"^{re.escape(heading)}[ \t]*\r?$", content, flags=re.M)
+        if not m:
+            return None
+        body = m.end()
+        nxt = re.search(r"^#{1,2} ", content[body:], flags=re.M)
+        return m.start(), body, body + nxt.start() if nxt else len(content)
+
+    def day_notes(self, day: date) -> str:
+        """Texto da seção Anotações da nota do dia ("" se não houver)."""
+        try:
+            content = self.read(self.daily_path(day))
+        except (OSError, ValueError):
+            return ""
+        b = self._section(content, NOTES_HEADING)
+        return content[b[1]:b[2]].strip("\r\n").strip() if b else ""
+
+    def set_day_notes(self, day: date, text: str) -> str:
+        """Troca só a seção Anotações da nota do dia (cria a nota se precisar). Retorna o caminho."""
+        dc = self.daily_config()
+        rel = self.daily_path(day)
+        path = self.root / rel
+        body = text.replace("\r\n", "\n").strip("\n").rstrip()
+        with self._lock:
+            exists = path.exists()
+            if not exists and not body:
+                return rel
+            content = path.read_text(encoding="utf-8") if exists else self._new_daily_content(dc, day)
+            b = self._section(content, NOTES_HEADING)
+            if b:
+                head, start, end = b
+                rest = content[end:]
+                if body:
+                    content = content[:start] + f"\n\n{body}\n" + ("\n" + rest if rest else "")
+                else:
+                    content = content[:head].rstrip("\n") + ("\n\n" + rest if rest else "\n")
+            elif body:
+                sep = "" if not content or content.endswith("\n\n") else ("\n" if content.endswith("\n") else "\n\n")
+                content += f"{sep}{NOTES_HEADING}\n\n{body}\n"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8", newline="\n")
+        return rel
+
+    def days_with_notes(self, year: int, month: int) -> list[str]:
+        """Dias do mês cuja nota diária tem algum texto (fora o frontmatter)."""
+        out = []
+        d = date(year, month, 1)
+        while d.month == month:
+            p = self.root / self.daily_path(d)
+            try:
+                if FRONTMATTER_RE.sub("", p.read_text(encoding="utf-8", errors="replace")).strip():
+                    out.append(d.isoformat())
+            except OSError:
+                pass
+            d += timedelta(days=1)
+        return out
 
     def captures(self, day: date | None = None) -> list[str]:
         rel = self.daily_path(day)

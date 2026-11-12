@@ -126,21 +126,27 @@ export type CalEvent = {
   location?: string | null;
   link?: string | null;
   calendar?: string | null;
+  calendar_id?: string;
   color?: string | null;
   meet?: string | null;
+  description?: string | null;
+  editable?: boolean;
 };
+export type CalInfo = { id: string; name: string | null; color: string | null; primary: boolean; writable: boolean };
 export type Mail = { id: string; from: string; subject: string; snippet: string; date: number; url: string };
 export type Task = { id: string; title: string; notes?: string | null; due: string | null };
+/** Tarefa concluída nas últimas 12 semanas (`completed` = dia em que foi marcada). */
+export type DoneTask = { id: string; title: string; due: string | null; completed: string };
 export type GoogleStatus = { configured: boolean; connected: boolean; email: string | null; redirect_uri: string };
 type Feed = { error: string | null; updated: number | null };
-export type CalendarData = Feed & { events: CalEvent[] };
+export type CalendarData = Feed & { events: CalEvent[]; calendars?: CalInfo[] };
 export type GmailData = Feed & {
   unread: number | null;
   important?: number;
   messages: Mail[];
   summary?: { text: string; at: number } | null;
 };
-export type TasksData = Feed & { tasks: Task[] };
+export type TasksData = Feed & { tasks: Task[]; done?: DoneTask[] };
 
 export type NotesStatus = { configured: boolean; vault: string | null; vault_name: string | null; total: number; daily: string | null };
 export type NoteHit = { path: string; title: string; folder: string; mtime: number; snippet?: string };

@@ -12,6 +12,7 @@ import asyncio
 import json
 import logging
 import re
+from datetime import date
 from pathlib import Path
 from urllib.parse import quote
 
@@ -36,6 +37,11 @@ class ConfigIn(BaseModel):
 
 
 class CaptureIn(BaseModel):
+    text: str
+
+
+class DayIn(BaseModel):
+    day: date
     text: str
 
 
@@ -268,5 +274,31 @@ class NotesSkill(Skill):
         @r.get("/captures")
         async def captures():
             return await asyncio.to_thread(need().captures)
+
+        def day_info(v: Vault, d: date, text: str) -> dict:
+            rel = v.daily_path(d)
+            return {"date": d.isoformat(), "path": rel, "text": text, "exists": (v.root / rel).exists(),
+                    "captures": v.captures(d), "obsidian_url": self.obsidian_url(rel)}
+
+        @r.get("/day")
+        async def get_day(date: date):
+            v = need()
+            return await asyncio.to_thread(lambda: day_info(v, date, v.day_notes(date)))
+
+        @r.put("/day")
+        async def put_day(body: DayIn):
+            v = need()
+            await asyncio.to_thread(v.set_day_notes, body.day, body.text)
+            await self.reindex()
+            return await asyncio.to_thread(lambda: day_info(v, body.day, v.day_notes(body.day)))
+
+        @r.get("/days")
+        async def days(month: str):
+            v = need()
+            try:
+                y, m = (int(x) for x in month.split("-"))
+            except ValueError as e:
+                raise HTTPException(400, "mês no formato AAAA-MM") from e
+            return await asyncio.to_thread(v.days_with_notes, y, m)
 
         return r
