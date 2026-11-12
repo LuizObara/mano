@@ -166,3 +166,36 @@ def test_tree_lists_every_note_by_path(client, notes):
     assert all(not p.startswith(".git/") for p in paths)
     sia = next(n for n in tree if n["title"] == "SIA")
     assert sia["folder"] == "20-29 Craft/21 Projects/SIA"
+
+
+def test_day_notes_only_touch_their_section(client, notes, vault_dir):
+    daily = vault_dir / DAILY / f"{TODAY:%Y-%m-%d}.md"
+    assert client.get(f"/api/notes/day?date={TODAY}").json()["text"] == ""
+    # vazio e sem nota: não cria arquivo
+    client.put("/api/notes/day", json={"day": str(TODAY), "text": "  "})
+    assert not daily.exists()
+    daily.write_text("---\ntags: [Daily]\n---\n\nMeu texto.\n\n## Capturas\n\n- 08:00 a\n", encoding="utf-8")
+    r = client.put("/api/notes/day", json={"day": str(TODAY), "text": "Levar o notebook\n- e o carregador"})
+    assert r.status_code == 200 and r.json()["text"] == "Levar o notebook\n- e o carregador"
+    content = daily.read_text(encoding="utf-8")
+    assert content.startswith("---\ntags: [Daily]\n---\n\nMeu texto.\n\n## Capturas\n\n- 08:00 a\n")
+    assert content.endswith("## Anotações\n\nLevar o notebook\n- e o carregador\n")
+    # trocar o texto não mexe nas capturas
+    client.put("/api/notes/day", json={"day": str(TODAY), "text": "Só isso"})
+    notes.vault.capture("b", datetime.combine(TODAY, datetime.min.time()).replace(hour=9))
+    client.put("/api/notes/day", json={"day": str(TODAY), "text": "Agora isso"})
+    day = client.get(f"/api/notes/day?date={TODAY}").json()
+    assert day["text"] == "Agora isso" and day["captures"] == ["a", "b"]
+    assert day["obsidian_url"].startswith("obsidian://open?")
+    # apagar o texto tira a seção
+    client.put("/api/notes/day", json={"day": str(TODAY), "text": ""})
+    content = daily.read_text(encoding="utf-8")
+    assert "## Anotações" not in content and "Meu texto." in content and "- 09:00 b" in content
+
+
+def test_days_with_notes(client, notes, vault_dir):
+    d = date(2026, 11, 3)
+    client.put("/api/notes/day", json={"day": str(d), "text": "oi"})
+    (vault_dir / DAILY / "2026-11-04.md").write_text("---\ntags: [Daily]\n---\n\n", encoding="utf-8")
+    assert client.get("/api/notes/days?month=2026-11").json() == ["2026-11-03"]
+    assert client.get("/api/notes/days?month=nov").status_code == 400
