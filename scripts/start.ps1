@@ -4,10 +4,11 @@
 #   .\scripts\start.ps1            -> uso normal: backend escondido, log em data\logs\mano.log
 #   .\scripts\start.ps1 -Here      -> backend neste terminal (ex.: terminal do VS Code); Ctrl+C para
 #   .\scripts\start.ps1 -Build     -> força recompilar o visor
-#   .\scripts\start.ps1 -NoWindow  -> só o backend, sem abrir o visor (ex.: iniciado no logon)
+#   .\scripts\start.ps1 -NoWindow  -> só o backend, sem abrir o visor (é o que o "Iniciar com o Windows" usa)
+#   .\scripts\start.ps1 -Open      -> se o Mano já está no ar, só abre o visor; senão sobe normalmente (atalho)
 #   .\scripts\start.ps1 -Stop      -> só fecha o Mano que estiver no ar
-# Para abrir sem nenhum terminal (duplo clique ou atalho): scripts\mano.vbs
-param([switch]$Build, [switch]$NoWindow, [switch]$Here, [switch]$Stop)
+# Para abrir sem nenhum terminal (duplo clique ou atalho): scripts\mano.vbs (aceita /abrir e /segundo-plano)
+param([switch]$Build, [switch]$NoWindow, [switch]$Here, [switch]$Stop, [switch]$Open)
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
@@ -33,6 +34,33 @@ function Stop-Mano {
         Start-Sleep -Milliseconds 250
     }
     return $true
+}
+
+function Find-Browser {
+    # MANO_BROWSER: "chrome", "edge" ou o caminho de um .exe baseado no Chromium
+    $pref = $env:MANO_BROWSER
+    if ($pref -and $pref -notin @("chrome", "edge")) { return $pref }
+    if ($pref -ne "edge") {
+        $chrome = @(
+            "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+            "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+        ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
+        if ($chrome) { return $chrome }
+    }
+    return "msedge"
+}
+# janela de app (sem abas nem barra); links externos, como as notícias, abrem no mesmo navegador
+$visorArgs = "--app=$url --start-maximized"
+
+if ($Open) {
+    # atalho da Área de Trabalho: com o Mano já no ar (ex.: iniciado com o Windows), só abre o visor, sem reiniciar
+    $up = $false
+    try { Invoke-RestMethod "$url/api/health" -TimeoutSec 2 | Out-Null; $up = $true } catch { }
+    if ($up) {
+        Start-Process (Find-Browser) $visorArgs
+        return
+    }
 }
 
 if ($Stop) {
@@ -80,23 +108,6 @@ if ($Build -or $stale) {
 }
 
 if (Stop-Mano) { Write-Host "Fechei o Mano que estava no ar para abrir o novo." }
-
-function Find-Browser {
-    # MANO_BROWSER: "chrome", "edge" ou o caminho de um .exe baseado no Chromium
-    $pref = $env:MANO_BROWSER
-    if ($pref -and $pref -notin @("chrome", "edge")) { return $pref }
-    if ($pref -ne "edge") {
-        $chrome = @(
-            "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
-            "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
-            "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
-        ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
-        if ($chrome) { return $chrome }
-    }
-    return "msedge"
-}
-# janela de app (sem abas nem barra); links externos, como as notícias, abrem no mesmo navegador
-$visorArgs = "--app=$url --start-maximized"
 
 $env:PYTHONUNBUFFERED = "1"
 $backendDir = Join-Path $root "backend"

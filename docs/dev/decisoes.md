@@ -55,3 +55,9 @@ Registro curto do porquê de cada escolha, para não rediscutir à toa e saber q
 **Decisão:** escolher automaticamente o melhor modelo instalado, com o `gemma4:e2b-it-qat` no topo da lista.
 **Por quê:** num teste lado a lado neste notebook, o `gemma3:1b` foi 2× mais rápido mas inverteu um fato num resumo ("manteve" virou "elevou") e errou o plano B; o Gemma 4 E2B acertou os dois a 5–6 tokens/s.
 **Revisitar se:** aparecer um modelo pequeno melhor em português, ou se o Ollama for para o mini servidor.
+
+## 11. Iniciar com o Windows pelo registro do usuário
+
+**Decisão:** valor `Mano` em `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` apontando para `wscript.exe scripts\mano.vbs /segundo-plano`; no logon sobe só o backend, e o visor abre pelo atalho da Área de Trabalho, que não reinicia um Mano já no ar.
+**Por quê:** o `winreg` é da biblioteca padrão (o atalho em `shell:startup` exigiria COM), não precisa de administrador e aparece em Gerenciador de Tarefas → Aplicativos de inicialização, onde o usuário também consegue desligar. Só o backend no logon porque os alarmes e a voz não dependem do visor, e uma janela abrindo a cada boot incomoda.
+**Revisitar se:** o Mano precisar subir antes do logon (aí um serviço ou tarefa agendada) ou ganhar ícone na bandeja (ver decisão 1).

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AlarmSettings } from "../components/AlarmSettings";
+import { SystemSettings } from "../components/SystemSettings";
 import { Card, btn, input } from "../components/ui";
 import { api, type Mano } from "../lib/mano";
 
@@ -111,6 +112,8 @@ export function SettingsPage({ mano }: { mano: Mano }) {
           <p className="text-sm text-muted">Voz indisponível: {mano.voiceStatus?.reason ?? "conectando…"}</p>
         )}
       </Card>
+
+      <SystemSettings />
     </div>
   );
 }

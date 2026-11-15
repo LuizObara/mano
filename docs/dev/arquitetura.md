@@ -25,7 +25,7 @@ flowchart LR
 ```
 backend/
   mano/
-    __main__.py        python -m mano → uvicorn
+    __main__.py        python -m mano → uvicorn (e ctx.request_exit, usado pelo "Fechar o Mano")
     main.py            create_app(): monta Ctx, registra skills, rotas do núcleo, WebSocket, serve o visor
     config.py          Settings (MANO_* / .env)
     context.py         Ctx: o que toda skill recebe (settings, db, hub, scheduler, speaker, registry, llm)
@@ -67,6 +67,18 @@ docs/
 6. **Saída.** O comando vai para `CommandLog`, a resposta é anunciada como `reply` no WebSocket e, se `speak`, falada.
 
 Ações proativas (remédio na hora, timer acabando, lembrete, compromisso chegando) não passam por aqui: o agendador chama a skill, que usa `ctx.alarms.ring(tipo, texto)` (`mano/alarms.py`): tela, notificação do Windows, som (winsound, no backend) e voz conforme os ajustes daquele tipo, respeitando o horário silencioso. O som contínuo para com `ctx.alarms.stop(tipo)` quando o aviso é respondido. Avisos que não são alarme (estoque baixo, briefing) usam `ctx.notify()`.
+
+## Inicialização no Windows
+
+Tudo sobe pelo `scripts/start.ps1`; o `scripts/mano.vbs` só o chama escondido (`wscript` não abre janela, e o PowerShell vai com `-WindowStyle Hidden`), passando um modo:
+
+| Quem chama | Comando | O que acontece |
+|---|---|---|
+| Logon do Windows (`HKCU\…\Run`, valor `Mano`) | `wscript.exe mano.vbs /segundo-plano` | `start.ps1 -NoWindow`: sobe só o backend, sem visor |
+| Atalho da Área de Trabalho (`Mano.lnk`) | `wscript.exe mano.vbs /abrir` | `start.ps1 -Open`: se `/api/health` responde, só abre o visor; senão sobe tudo |
+| Dois cliques no `mano.vbs` | `wscript.exe mano.vbs` | `start.ps1`: recompila se precisar, reinicia e abre o visor |
+
+A skill `sistema` grava e apaga o valor do registro, cria o atalho (pelo COM `WScript.Shell`, via PowerShell) e gera o ícone `data/mano.ico` a partir do mesmo desenho do `icon.svg`. O registro é a fonte da verdade: nada fica guardado em `data/`, então desativar pelo Gerenciador de Tarefas aparece na tela. **Fechar o Mano** chama `ctx.request_exit()`, que pede ao uvicorn o mesmo desligamento organizado do Ctrl+C (as skills param e o agendador fecha).
 
 ## Voz
 

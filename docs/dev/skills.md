@@ -98,6 +98,7 @@ E o que ela recebe em `self.ctx`:
 | `registry.get("intent")` | Chamar o handler de outra intenção |
 | `llm` | Modelo local: `await ctx.llm.generate(prompt, label=..., interactive=...)`; confira `ctx.llm.ready` antes |
 | `open_url(url)` | Abrir no navegador do PC (trocado nos testes) |
+| `request_exit()` | Encerrar o Mano de forma organizada (definido em `__main__.py`; `None` nos testes e fora do `python -m mano`) |
 
 ## Boas práticas
 

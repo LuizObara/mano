@@ -164,6 +164,20 @@ export type LLMStatus = {
   installed: boolean;
 };
 
+export type SystemStatus = {
+  /** o Mano está rodando no Windows (fora dele, só o "Fechar o Mano" funciona) */
+  supported: boolean;
+  can_exit: boolean;
+  autostart: boolean;
+  /** o registro aponta para outra pasta do Mano */
+  outdated: boolean;
+  /** desativado em Gerenciador de Tarefas → Aplicativos de inicialização */
+  blocked: boolean;
+  command: string | null;
+  shortcut: boolean;
+  shortcut_path: string | null;
+};
+
 export type BriefItem = {
   id: number;
   feed_id: number;

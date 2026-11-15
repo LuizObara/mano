@@ -13,7 +13,7 @@ Nada disso exige código; tudo se faz pelo visor (ver [Configuração](guia/conf
 - [ ] Clicar em **Usar** no vault do Obsidian em **Ajustes** (se ainda não fez).
 - [ ] Escolher os feeds do briefing na aba **Briefing**.
 - [ ] Testar a frase de ativação com o microfone real e calibrar `MANO_WAKE_CONF`.
-- [ ] Deixar o Mano iniciando com o Windows e o notebook sem suspender na tomada (ver [Instalação](guia/instalacao.md#iniciar-junto-com-o-windows)).
+- [ ] Ligar **Iniciar com o Windows** e **Criar atalho** em Ajustes → Inicialização (testado só com o Windows simulado; confira num logon de verdade) e deixar o notebook sem suspender na tomada (ver [Instalação](guia/instalacao.md#iniciar-junto-com-o-windows)).
 
 ## Fase 7 (opcional, não iniciada)
 
@@ -42,7 +42,7 @@ Usa o mini servidor (Ubuntu Server, 8 GB, `192.168.15.85`).
 
 ## Ideias (sem compromisso)
 
-- Script `scripts/install.ps1` que cria o atalho de inicialização e confere requisitos.
+- Script `scripts/install.ps1` que confere requisitos numa máquina nova (o atalho e o iniciar com o Windows já estão em Ajustes).
 - Busca semântica nas notas (embeddings locais) e "relacionadas" na nota aberta.
 - Voz Piper e palavra de ativação dedicada (openWakeWord).
 - Previsão do tempo no "bom dia" (Open-Meteo não precisa de chave).

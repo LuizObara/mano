@@ -39,6 +39,10 @@ Em Hábitos só se escolhe o som e o volume: quando e como cobrar fica em cada h
 
 O som sai pelo próprio PC, então toca com o visor fechado. Com o notebook desligado ou suspenso não há aviso.
 
+## Inicialização
+
+Em **Ajustes → Inicialização**: **Iniciar com o Windows** (o Mano sobe sozinho no logon, só em segundo plano), **Criar atalho** na Área de Trabalho (abre o visor e sobe o Mano se preciso) e **Fechar o Mano**. Detalhes em [Instalação](instalacao.md#iniciar-junto-com-o-windows).
+
 ## Falando com o Mano
 
 1. Diga **"fala Mano"** (ou "ei Mano", "oi Mano") e espere o *plim*.

@@ -207,6 +207,25 @@ export function Chip({ on, onClick, children }: { on: boolean; onClick: () => vo
   );
 }
 
+/** Liga/desliga (Ajustes): pílula de mel quando ligado. */
+export function Switch({ on, set, label, disabled = false }: { on: boolean; set: (v: boolean) => void; label: string; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => set(!on)}
+      className="flex min-h-11 items-center disabled:opacity-50"
+    >
+      <span className={`flex h-7.5 w-13 rounded-full p-[3px] ${on ? "justify-end bg-ember" : "justify-start bg-line"}`}>
+        <span className="size-6 rounded-full bg-panel shadow" />
+      </span>
+    </button>
+  );
+}
+
 export const btn = {
   primary: "rounded-full bg-ember px-5 py-2 font-semibold text-on-ember disabled:opacity-40",
   ghost: "rounded-full border border-line px-4 py-1.5 text-sm hover:bg-soft disabled:opacity-40",
@@ -325,6 +344,13 @@ const ICONS: Record<string, ReactNode> = {
     </>
   ),
   note: <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9zM14 3v6h6M8 13h8M8 17h5" />,
+  power: <path d="M12 2v10M18.4 6.6a9 9 0 1 1-12.8 0" />,
+  monitor: (
+    <>
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </>
+  ),
   clock: (
     <>
       <circle cx="12" cy="12" r="9" />

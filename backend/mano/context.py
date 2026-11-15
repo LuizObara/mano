@@ -34,6 +34,7 @@ class Ctx:
     alarms: Alarms = field(default=None)  # type: ignore[assignment]
     voice_state: str = "idle"  # idle | listening | thinking | speaking
     open_url: Callable[[str], object] = webbrowser.open  # abre no navegador padrão do PC (trocado nos testes)
+    request_exit: Callable[[], object] | None = None  # encerra o processo (definido no __main__; trocado nos testes)
 
     def skill(self, name: str):
         return next((s for s in self.registry.skills if s.name == name), None)

@@ -17,6 +17,17 @@ Há uma interface interativa da API em <http://127.0.0.1:8765/docs>, útil para 
 | Mudança no visor não aparece | Rode `.\scripts\start.ps1` de novo: ele recompila o que mudou e reinicia o Mano. A página não fica mais guardada em cache, mas uma janela aberta antes desta correção pode precisar de um Ctrl+F5 uma última vez |
 | "A porta 8765 está ocupada por outro programa" | Outro programa usa a porta. Feche-o ou escolha outra com `MANO_PORT` |
 
+## Iniciar com o Windows e atalho
+
+| Sintoma | O que fazer |
+|---|---|
+| Ligado em Ajustes, mas o Mano não sobe no logon | Veja `data\logs\mano.log`. Confira em Gerenciador de Tarefas → Aplicativos de inicialização se "Mano" está como Habilitado. Rode o comando do registro à mão: `wscript.exe "<pasta>\scripts\mano.vbs" /segundo-plano` |
+| "Aponta para outra pasta do Mano" | O projeto mudou de lugar. Clique em **Corrigir** em Ajustes → Inicialização |
+| O Mano sobe duas vezes no logon | Sobrou um `Mano.lnk` antigo em `shell:startup` (Win+R → `shell:startup`). Apague-o |
+| O atalho abre, mas nada aparece | Na primeira vez depois de uma atualização ele pode estar compilando o visor (alguns segundos). Se persistir, veja o log |
+| "Não consegui criar o atalho" | O PowerShell foi bloqueado (antivírus ou política). Crie à mão: atalho para `wscript.exe` com o argumento `"<pasta>\scripts\mano.vbs" /abrir` |
+| **Fechar o Mano** apagado | O Mano não foi aberto pelo atalho nem pelo `start.ps1` (ex.: `uvicorn` direto). Feche pelo terminal |
+
 ## Voz
 
 | Sintoma | O que fazer |

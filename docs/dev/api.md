@@ -115,6 +115,17 @@ Convenções:
 | `POST /api/briefing/config` | `{"morning_at": "07:30" \| ""}` | |
 | `GET /api/briefing/day` | — | Texto do "bom dia" sem falar |
 
+## Sistema (Windows)
+
+Skill `sistema` (`backend/mano/skills/system.py`). Fora do Windows, `supported` vem `false` e as rotas de mudança respondem 400.
+
+| Método e rota | Corpo / parâmetros | Observação |
+|---|---|---|
+| `GET /api/system` | — | `{"supported", "can_exit", "autostart", "outdated", "blocked", "command", "shortcut", "shortcut_path"}`. `outdated`: o registro aponta para outra pasta; `blocked`: desativado no Gerenciador de Tarefas |
+| `POST /api/system/autostart` | `{"enabled": bool}` | Grava/apaga `Mano` em `HKCU\…\CurrentVersion\Run` (e reativa se estava desativado no Gerenciador de Tarefas). Devolve o status |
+| `POST /api/system/shortcut` | — | Cria (ou recria) `Mano.lnk` na Área de Trabalho. Devolve o status |
+| `POST /api/system/shutdown` | — | Avisa os visores (`system.shutdown`) e encerra o processo meio segundo depois. 409 se o Mano não foi iniciado por `python -m mano` |
+
 ## WebSocket `/ws`
 
 Ao conectar, o servidor manda um **`hello`** com o estado completo: `voice`, `voice_status` e a junção dos `snapshot()` de todas as skills. Depois, cada mudança vem como `{"type": "<tipo>", ...}`. O visor (`frontend/src/lib/mano.ts`) aplica as chaves conhecidas no estado.
@@ -138,6 +149,7 @@ Ao conectar, o servidor manda um **`hello`** com o estado completo: `voice`, `vo
 | `youtube` · `youtube.results` · `youtube.close` | `{"video"}` · `{"q", "results"}` · `{}` | YouTube |
 | `llm` | `{"llm": {...}}` | Modelo local (inclui `busy` e `pull`) |
 | `briefing` | `{"briefing": {...}}` | Briefing (contagens, progresso, manchetes) |
+| `system.shutdown` | `{}` | O Mano vai fechar (botão **Fechar o Mano** em Ajustes) |
 
 Chaves do `hello`: `timers`, `reminders`, `meds`, `doses`, `habits`, `spotify`, `google`, `calendar`, `gmail`, `tasks`, `notes`, `llm`, `briefing`.
 

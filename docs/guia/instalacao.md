@@ -40,8 +40,9 @@ Opções do script:
 | `.\scripts\start.ps1 -Here` | Backend neste terminal, com os logs (bom para o terminal do VS Code); Ctrl+C fecha |
 | `.\scripts\start.ps1 -Stop` | Fecha o Mano que estiver no ar |
 | `.\scripts\start.ps1 -Build` | Força recompilar o visor (normalmente não precisa) |
-| `.\scripts\start.ps1 -NoWindow` | Só o backend, sem abrir o visor |
-| `scripts\mano.vbs` | Dois cliques: abre o Mano sem nenhuma janela de terminal |
+| `.\scripts\start.ps1 -NoWindow` | Só o backend, sem abrir o visor (é o que roda no logon) |
+| `.\scripts\start.ps1 -Open` | Se o Mano já está no ar, só abre o visor; senão sobe normalmente (é o que o atalho usa) |
+| `scripts\mano.vbs` | Dois cliques: abre o Mano sem nenhuma janela de terminal. Aceita `/abrir` (= `-Open`) e `/segundo-plano` (= `-NoWindow`) |
 
 No VS Code há tarefas prontas (`.vscode\tasks.json`): Ctrl+Shift+P → "Tasks: Run Task" → **Mano: iniciar (logs neste terminal)**, **Mano: iniciar em segundo plano**, **Mano: fechar** ou **Mano: ver o log**.
 
@@ -87,16 +88,33 @@ Sem Ollama tudo continua funcionando; só ficam de fora o plano B dos comandos e
 
 ## Iniciar junto com o Windows
 
-> Ainda não existe um script de instalação para isso (ver [O que falta](../pendencias.md)). O jeito mais simples, sem precisar de administrador, é um atalho na pasta Inicializar:
+Com o Mano aberto, vá em **Ajustes → Inicialização**:
 
-```powershell
-$lnk = (New-Object -ComObject WScript.Shell).CreateShortcut("$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\Mano.lnk")
-$lnk.TargetPath = "wscript.exe"
-$lnk.Arguments = '"C:\Users\gustavo\Documents\projetos\mano\scripts\mano.vbs"'
-$lnk.Save()
+- **Iniciar com o Windows**: liga ou desliga. Ligado, o Mano sobe sozinho quando você entra no Windows, **só o backend e em segundo plano** (sem janela nem terminal): voz, alarmes e lembretes já funcionam. Não precisa de administrador.
+- **Criar atalho**: põe um atalho **Mano** na Área de Trabalho, com o ícone do Mano. Dois cliques abrem o visor; se o Mano estiver fechado, ele sobe antes. Se ele já estiver no ar (por exemplo, iniciado com o Windows), o atalho **não reinicia** nada, só abre a janela.
+- **Fechar o Mano**: encerra o Mano de vez (pede confirmação). Para abrir de novo, use o atalho.
+
+### Como funciona por dentro
+
+O interruptor grava um valor `Mano` em `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` (o registro do seu usuário) com o comando:
+
+```
+"C:\Windows\System32\wscript.exe" "<pasta do Mano>\scripts\mano.vbs" /segundo-plano
 ```
 
-Troque o caminho se o projeto estiver em outra pasta. O `mano.vbs` abre o Mano sem piscar nenhuma janela de terminal; o mesmo atalho na Área de Trabalho serve para abrir com dois cliques. Para desfazer, apague `Mano.lnk` da pasta `shell:startup`.
+O `wscript` roda o `mano.vbs` sem janela, e ele chama `start.ps1 -NoWindow` com o PowerShell escondido. O atalho da Área de Trabalho chama o mesmo `mano.vbs`, com `/abrir`. O log continua em `data\logs\mano.log`.
+
+O item aparece também em **Gerenciador de Tarefas → Aplicativos de inicialização** como "Mano" (com o ícone do Windows Script Host). Se você desativá-lo por lá, a tela de Ajustes mostra isso e religar pela tela reativa. Se mudar a pasta do projeto de lugar, a tela avisa que o item aponta para a pasta antiga e oferece **Corrigir**.
+
+Sem abrir o Mano, dá para ligar pelo PowerShell (troque o caminho se o projeto estiver em outra pasta):
+
+```powershell
+Set-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" Mano '"C:\Windows\System32\wscript.exe" "C:\Users\gustavo\Documents\projetos\mano\scripts\mano.vbs" /segundo-plano'
+```
+
+Para desfazer: desligue em Ajustes ou rode `Remove-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" Mano`.
+
+> Quem seguiu a versão antiga deste guia tem um `Mano.lnk` na pasta `shell:startup`, que abre o Mano com o visor. Apague esse atalho para não subir o Mano duas vezes no logon.
 
 Para os avisos de remédio funcionarem, o notebook precisa estar ligado e **sem suspender**: em Configurações → Sistema → Energia, ajuste "Suspender" para "Nunca" quando estiver na tomada.
 
@@ -127,5 +145,7 @@ Tudo o que é pessoal fica em `data\` (fora do git):
 | `google_client.json`, `google_token.json` | Credencial OAuth e login do Google |
 | `llm.json` | Modelo escolhido e liga/desliga do modelo local |
 | `briefing.json` | Horário do "bom dia" automático |
+| `mano.ico` | Ícone do atalho da Área de Trabalho (gerado ao criar o atalho) |
+| `logs\` | Log do backend quando roda escondido (`mano.log`) |
 
 Backup = copiar a pasta `data\`. As notas continuam no seu vault; o Mano só acrescenta texto nelas.

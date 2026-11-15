@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api, type AlarmCfg, type AlarmKind, type AlarmsState, type QuietCfg } from "../lib/mano";
-import { Card, Icon, Modal, ModalHeader, btn } from "./ui";
+import { Card, Icon, Modal, ModalHeader, Switch, btn } from "./ui";
 
 const ORDER: AlarmKind[] = ["med", "timer", "reminder", "habit"];
 const HINT: Record<AlarmKind, string> = {
@@ -138,16 +138,6 @@ function TestButton({ active, onTest, onStop, big = false }: { active: boolean; 
   ) : (
     <button type="button" onClick={onTest} className={big ? `${btn.primary} flex items-center gap-2` : `${btn.ghost} flex items-center gap-1.5`}>
       <Icon name="play" className="size-4" /> Testar
-    </button>
-  );
-}
-
-function Switch({ on, set, label }: { on: boolean; set: (v: boolean) => void; label: string }) {
-  return (
-    <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => set(!on)} className="flex min-h-11 items-center">
-      <span className={`flex h-7.5 w-13 rounded-full p-[3px] ${on ? "justify-end bg-ember" : "justify-start bg-line"}`}>
-        <span className="size-6 rounded-full bg-panel shadow" />
-      </span>
     </button>
   );
 }

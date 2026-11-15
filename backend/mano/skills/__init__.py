@@ -10,6 +10,7 @@ from .notes import NotesSkill
 from .reminders import ReminderSkill
 from .search import SearchSkill
 from .spotify import SpotifySkill
+from .system import SystemSkill
 from .timers import TimerSkill
 from .youtube import YouTubeSkill
 
@@ -18,5 +19,5 @@ ALL_SKILLS = [
     ClockSkill, TimerSkill, ReminderSkill, MedSkill, HabitSkill,
     GoogleSkill, CalendarSkill, TasksSkill, GmailSkill, NotesSkill,
     SpotifySkill, YouTubeSkill, SearchSkill, BriefingSkill, LLMSkill,
-    AlertSkill, HelpSkill,
+    SystemSkill, AlertSkill, HelpSkill,
 ]
