@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import array
 import asyncio
 import json
 import logging
@@ -16,6 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from .loop import SAMPLE_RATE, VoiceConfig, VoiceLoop
+from .output import WavPlayer
 
 if TYPE_CHECKING:
     from ..context import Ctx
@@ -58,6 +60,10 @@ class VoiceService:
         self._muted_until = 0.0
         self._earcon: Path | None = None
         self._cfg_path = ctx.settings.data_dir / "voice.json"
+        self._mic_lock = threading.Lock()
+        self._earcon_out = WavPlayer()
+        self._level = 0.0
+        self._level_at = 0.0
         self.mic_muted = self._load_cfg().get("mic_muted", False)
 
     # ---------- microfone mudo ----------
@@ -120,12 +126,8 @@ class VoiceService:
 
     async def stop(self) -> None:
         self._stop.set()
-        if self._stream is not None:
-            try:
-                self._stream.stop()
-                self._stream.close()
-            except Exception:
-                pass
+        self._close_mic()
+        self._earcon_out.stop()
 
     def status(self) -> dict:
         return {
@@ -152,6 +154,7 @@ class VoiceService:
         return Model(str(path))
 
     def _open_mic(self) -> None:
+        """Abre o microfone escolhido em Ajustes; se ele não abrir, tenta o padrão do Windows."""
         import sounddevice as sd
 
         def callback(indata, frames, time_info, status):  # thread de áudio
@@ -160,11 +163,60 @@ class VoiceService:
             except queue.Full:
                 pass  # processamento atrasado: descarta em vez de acumular latência
 
-        self._stream = sd.RawInputStream(
-            samplerate=SAMPLE_RATE, blocksize=BLOCK, channels=1, dtype="int16",
-            device=self.ctx.settings.mic_device, callback=callback,
-        )
-        self._stream.start()
+        def open_on(device):
+            stream = sd.RawInputStream(
+                samplerate=SAMPLE_RATE, blocksize=BLOCK, channels=1, dtype="int16",
+                device=device, callback=callback,
+            )
+            stream.start()
+            return stream
+
+        device = self.ctx.audio.mic_device()
+        try:
+            self._stream = open_on(device)
+        except Exception:
+            if device is None:
+                raise
+            log.exception("não consegui abrir o microfone escolhido; usando o padrão do Windows")
+            self._stream = open_on(None)
+
+    def _close_mic(self) -> None:
+        s, self._stream = self._stream, None
+        if s is not None:
+            try:
+                s.stop()
+                s.close()
+            except Exception:
+                pass
+
+    def reopen_mic(self, reinit=None) -> str | None:
+        """Troca de microfone sem reiniciar o Mano. `reinit` roda com o microfone fechado
+        (reiniciar o PortAudio para achar aparelho novo). Devolve o erro, se houver."""
+        with self._mic_lock:
+            self._close_mic()
+            if reinit:
+                reinit()
+            if not self.available:
+                return None
+            while not self._q.empty():  # o áudio do aparelho antigo não serve mais
+                try:
+                    self._q.get_nowait()
+                except queue.Empty:
+                    break
+            try:
+                self._open_mic()
+                return None
+            except Exception as e:
+                log.exception("microfone indisponível")
+                self.available = False
+                self.reason = f"não consegui abrir o microfone: {e}"
+                self.ctx.hub.broadcast_threadsafe("voice.status", self.status())
+                return self.reason
+
+    @property
+    def level(self) -> float:
+        """Pico do último bloco do microfone (0–1); 0 se o áudio parou de chegar."""
+        return self._level if time.monotonic() - self._level_at < 0.5 else 0.0
 
     def _run(self) -> None:
         assert self.loop
@@ -173,6 +225,10 @@ class VoiceService:
                 chunk = self._q.get(timeout=0.5)
             except queue.Empty:
                 continue
+            samples = array.array("h", chunk)
+            if samples:
+                self._level = max(max(samples), -min(samples)) / 32768
+                self._level_at = time.monotonic()
             try:
                 self.loop.feed(chunk)
             except Exception:
@@ -189,6 +245,13 @@ class VoiceService:
 
     def _play_earcon(self) -> None:
         if sys.platform == "win32" and self._earcon:
+            device = self.ctx.audio.out_device()
+            if device is not None:
+                try:
+                    self._earcon_out.play(self._earcon, device)
+                    return
+                except Exception:
+                    log.exception("não consegui tocar o aviso no alto-falante escolhido")
             import winsound
 
             winsound.PlaySound(str(self._earcon), winsound.SND_FILENAME | winsound.SND_ASYNC)

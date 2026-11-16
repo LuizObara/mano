@@ -1,26 +1,162 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AlarmSettings } from "../components/AlarmSettings";
+import { AudioSettings } from "../components/AudioSettings";
 import { SystemSettings } from "../components/SystemSettings";
-import { Card, btn, input } from "../components/ui";
+import { Card, Icon, Row, Switch, btn, input } from "../components/ui";
 import { api, type Mano } from "../lib/mano";
 
+const SECTIONS = [
+  { id: "geral", label: "Geral", icon: "gear", sub: "Como o Mano liga, abre e fecha neste PC." },
+  { id: "voz", label: "Voz e áudio", icon: "mic", sub: "Microfone, alto-falante e as frases que acordam o Mano." },
+  { id: "alarmes", label: "Alarmes", icon: "bell", sub: "Som, voz e repetição de cada tipo de aviso, e o horário silencioso." },
+  { id: "integracoes", label: "Integrações", icon: "plug", sub: "Contas e pastas que o Mano usa: Google, Spotify e o seu vault." },
+  { id: "modelo", label: "Modelo local", icon: "cpu", sub: "O modelo de linguagem que roda nesta máquina, pelo Ollama." },
+  { id: "aparencia", label: "Aparência", icon: "palette", sub: "Tema e cores do visor." },
+] as const;
+type SectionId = (typeof SECTIONS)[number]["id"];
+
+/** Seção pedida no endereço: #/ajustes?s=voz */
+function sectionFromHash(): SectionId {
+  const s = new URLSearchParams(location.hash.split("?")[1] ?? "").get("s");
+  return SECTIONS.some((x) => x.id === s) ? (s as SectionId) : "geral";
+}
+
 export function SettingsPage({ mano }: { mano: Mano }) {
-  const sp = mano.spotify;
-  const [clientId, setClientId] = useState("");
-  const [error, setError] = useState("");
+  const [section, setSection] = useState<SectionId>(sectionFromHash);
   const [flash, setFlash] = useState("");
 
-  // volta do login do Spotify: /#/ajustes?spotify=ok|erro
+  // volta do login do Spotify/Google: /#/ajustes?spotify=ok|erro → abre Integrações com o aviso
   useEffect(() => {
     const q = location.hash.split("?")[1];
     if (!q) return;
     const p = new URLSearchParams(q);
-    if (p.get("spotify") === "ok") setFlash("Spotify conectado!");
-    if (p.get("spotify") === "erro") setFlash(`O Spotify recusou a conexão (${p.get("motivo") ?? "erro"}).`);
-    if (p.get("google") === "ok") setFlash("Conta Google conectada! Agenda, e-mail e tarefas já estão no início.");
-    if (p.get("google") === "erro") setFlash(`O Google recusou a conexão (${p.get("motivo") ?? "erro"}).`);
-    history.replaceState(null, "", "#/ajustes");
+    let msg = "";
+    if (p.get("spotify") === "ok") msg = "Spotify conectado!";
+    if (p.get("spotify") === "erro") msg = `O Spotify recusou a conexão (${p.get("motivo") ?? "erro"}).`;
+    if (p.get("google") === "ok") msg = "Conta Google conectada! Agenda, e-mail e tarefas já estão no início.";
+    if (p.get("google") === "erro") msg = `O Google recusou a conexão (${p.get("motivo") ?? "erro"}).`;
+    if (!msg) return;
+    setFlash(msg);
+    setSection("integracoes");
+    history.replaceState(null, "", "#/ajustes?s=integracoes");
   }, []);
+
+  // trocar a seção pelo endereço (link de outro lugar, voltar do navegador)
+  useEffect(() => {
+    const on = () => setSection(sectionFromHash());
+    window.addEventListener("hashchange", on);
+    return () => window.removeEventListener("hashchange", on);
+  }, []);
+
+  const go = (id: SectionId) => {
+    setSection(id);
+    setFlash("");
+    history.replaceState(null, "", `#/ajustes?s=${id}`);
+  };
+
+  const current = SECTIONS.find((s) => s.id === section)!;
+
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 md:grid md:grid-cols-[12rem_minmax(0,1fr)] md:items-start md:gap-8">
+      <nav aria-label="Seções dos Ajustes" className="flex flex-wrap gap-2 md:sticky md:top-4 md:flex-col md:gap-1">
+        {SECTIONS.map((s) => {
+          const on = s.id === section;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => go(s.id)}
+              aria-current={on ? "page" : undefined}
+              className={`flex min-h-9 items-center gap-2.5 rounded-full border px-3.5 text-sm font-medium md:min-h-10 md:rounded-xl md:border-0 md:px-3 md:text-[15px] ${
+                on
+                  ? "border-text bg-text text-ink md:bg-soft md:text-text"
+                  : "border-line text-muted hover:text-text md:hover:bg-soft/60"
+              }`}
+            >
+              <Icon name={s.icon} className="hidden size-[18px] shrink-0 md:block" />
+              {s.label}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="flex min-w-0 flex-col gap-6">
+        <header>
+          <h1 className="font-display text-2xl font-medium">{current.label}</h1>
+          <p className="mt-1 text-sm text-muted">{current.sub}</p>
+        </header>
+
+        {flash && <div className="rounded-xl border border-ember/50 bg-ember-soft px-4 py-3 text-sm">{flash}</div>}
+
+        {section === "geral" && <SystemSettings />}
+        {section === "voz" && (
+          <>
+            <AudioSettings mano={mano} />
+            <VoiceSettings mano={mano} />
+          </>
+        )}
+        {section === "alarmes" && <AlarmSettings />}
+        {section === "integracoes" && (
+          <>
+            <GoogleSettings mano={mano} />
+            <SpotifySettings mano={mano} />
+            <VaultSettings mano={mano} />
+          </>
+        )}
+        {section === "modelo" && <LLMSettings mano={mano} />}
+        {section === "aparencia" && <AppearanceSettings />}
+      </div>
+    </div>
+  );
+}
+
+function VoiceSettings({ mano }: { mano: Mano }) {
+  const vs = mano.voiceStatus;
+  const kbd = (k: ReactNode) => <kbd className="rounded border border-line px-1.5 text-[12px]">{k}</kbd>;
+  return (
+    <Card title="Voz">
+      <div className="flex flex-col gap-3 text-sm">
+        {vs?.available ? (
+          <Row
+            icon="mic"
+            title="Frases de ativação"
+            sub={
+              <>
+                {vs.wake_phrases.map((p) => `“${p}”`).join(", ")}. Para falar sem a frase: {kbd("Ctrl")}+{kbd("Espaço")}.
+              </>
+            }
+          />
+        ) : (
+          <p className="text-muted">Voz indisponível: {vs?.reason ?? "conectando…"}</p>
+        )}
+        <Row
+          icon="mic-off"
+          title="Microfone mudo"
+          sub="O Mano ignora o microfone (nem a frase de ativação nem o atalho) até você ligar de novo. Fica salvo."
+        >
+          <Switch on={!!vs?.muted} set={(v) => mano.setMicMuted(v)} label="Microfone mudo" disabled={!vs} />
+        </Row>
+      </div>
+    </Card>
+  );
+}
+
+function AppearanceSettings() {
+  return (
+    <Card title="Tema e cores">
+      <Row
+        icon="palette"
+        title="Em breve"
+        sub="Temas e cores do visor chegam aqui. Por enquanto, o claro/escuro fica no botão do topo da tela."
+      />
+    </Card>
+  );
+}
+
+function SpotifySettings({ mano }: { mano: Mano }) {
+  const sp = mano.spotify;
+  const [clientId, setClientId] = useState("");
+  const [error, setError] = useState("");
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,87 +170,64 @@ export function SettingsPage({ mano }: { mano: Mano }) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      {flash && <div className="rounded-xl border border-ember/50 bg-ember-soft px-4 py-3 text-sm">{flash}</div>}
-
-      <AlarmSettings />
-      <VaultSettings mano={mano} />
-      <GoogleSettings mano={mano} />
-      <LLMSettings mano={mano} />
-
-      <Card title="Spotify">
-        {sp?.connected ? (
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="flex items-center gap-2 text-sm">
-              <span className="size-2 rounded-full bg-ok" /> Conta conectada
-            </span>
-            <button className={`${btn.danger} ml-auto`} onClick={() => api("/api/spotify/logout", {})}>
-              Desconectar
-            </button>
-          </div>
-        ) : (
-          <ol className="flex list-decimal flex-col gap-3 pl-5 text-sm">
-            <li>
-              Entre em{" "}
-              <a className="text-accent underline-offset-2 hover:underline" href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">
-                developer.spotify.com/dashboard
-              </a>{" "}
-              com sua conta e clique em <b>Create app</b>.
-            </li>
-            <li>
-              Preencha nome (ex.: Mano) e descrição. Em <b>Redirect URIs</b> adicione exatamente:
-              <code className="mt-1 block select-all break-all rounded-lg bg-ink px-3 py-2 text-accent">
-                {sp?.redirect_uri ?? "http://127.0.0.1:8765/api/spotify/callback"}
-              </code>
-              Marque <b>Web API</b>, aceite os termos e salve.
-            </li>
-            <li>
-              Abra o app criado, copie o <b>Client ID</b> e cole aqui:
-              <form onSubmit={save} className="mt-2 flex flex-wrap gap-2">
-                <input
-                  className={`${input} min-w-0 flex-1 font-mono`}
-                  placeholder={sp?.configured ? "Client ID já salvo — cole outro para trocar" : "32 caracteres"}
-                  value={clientId}
-                  onChange={(e) => setClientId(e.target.value.trim())}
-                  aria-label="Client ID do Spotify"
-                />
-                <button className={btn.primary} disabled={!clientId}>
-                  Salvar
-                </button>
-              </form>
-              {error && <p className="mt-1 text-alert">{error}</p>}
-              <p className="mt-1 text-xs text-muted">Não precisa do Client Secret: o Mano usa o login PKCE.</p>
-            </li>
-            <li>
-              {sp?.configured ? (
-                <a href="/api/spotify/login" className={`${btn.primary} inline-block`}>
-                  Conectar minha conta
-                </a>
-              ) : (
-                <span className="text-muted">Depois de salvar o Client ID, aparece aqui o botão para conectar.</span>
-              )}
-            </li>
-          </ol>
-        )}
-        <p className="mt-4 text-xs text-muted">
-          Controlar a música exige Spotify Premium. Se nenhum aparelho estiver tocando, o Mano abre o Spotify deste PC.
-        </p>
-      </Card>
-
-      <Card title="Voz">
-        {mano.voiceStatus?.available ? (
-          <p className="text-sm">
-            Ouvindo pelas frases: {mano.voiceStatus.wake_phrases.map((p) => `“${p}”`).join(", ")}. Atalho para falar sem
-            ativação: <kbd className="rounded border border-line px-1.5">Ctrl</kbd>+
-            <kbd className="rounded border border-line px-1.5">Espaço</kbd>.
-          </p>
-        ) : (
-          <p className="text-sm text-muted">Voz indisponível: {mano.voiceStatus?.reason ?? "conectando…"}</p>
-        )}
-      </Card>
-
-      <SystemSettings />
-    </div>
+    <Card title="Spotify">
+      {sp?.connected ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="flex items-center gap-2 text-sm">
+            <span className="size-2 rounded-full bg-ok" /> Conta conectada
+          </span>
+          <button className={`${btn.danger} ml-auto`} onClick={() => api("/api/spotify/logout", {})}>
+            Desconectar
+          </button>
+        </div>
+      ) : (
+        <ol className="flex list-decimal flex-col gap-3 pl-5 text-sm">
+          <li>
+            Entre em{" "}
+            <a className="text-accent underline-offset-2 hover:underline" href="https://developer.spotify.com/dashboard" target="_blank" rel="noreferrer">
+              developer.spotify.com/dashboard
+            </a>{" "}
+            com sua conta e clique em <b>Create app</b>.
+          </li>
+          <li>
+            Preencha nome (ex.: Mano) e descrição. Em <b>Redirect URIs</b> adicione exatamente:
+            <code className="mt-1 block select-all break-all rounded-lg bg-ink px-3 py-2 text-accent">
+              {sp?.redirect_uri ?? "http://127.0.0.1:8765/api/spotify/callback"}
+            </code>
+            Marque <b>Web API</b>, aceite os termos e salve.
+          </li>
+          <li>
+            Abra o app criado, copie o <b>Client ID</b> e cole aqui:
+            <form onSubmit={save} className="mt-2 flex flex-wrap gap-2">
+              <input
+                className={`${input} min-w-0 flex-1 font-mono`}
+                placeholder={sp?.configured ? "Client ID já salvo — cole outro para trocar" : "32 caracteres"}
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value.trim())}
+                aria-label="Client ID do Spotify"
+              />
+              <button className={btn.primary} disabled={!clientId}>
+                Salvar
+              </button>
+            </form>
+            {error && <p className="mt-1 text-alert">{error}</p>}
+            <p className="mt-1 text-xs text-muted">Não precisa do Client Secret: o Mano usa o login PKCE.</p>
+          </li>
+          <li>
+            {sp?.configured ? (
+              <a href="/api/spotify/login" className={`${btn.primary} inline-block`}>
+                Conectar minha conta
+              </a>
+            ) : (
+              <span className="text-muted">Depois de salvar o Client ID, aparece aqui o botão para conectar.</span>
+            )}
+          </li>
+        </ol>
+      )}
+      <p className="mt-4 text-xs text-muted">
+        Controlar a música exige Spotify Premium. Se nenhum aparelho estiver tocando, o Mano abre o Spotify deste PC.
+      </p>
+    </Card>
   );
 }
 

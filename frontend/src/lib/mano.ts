@@ -229,6 +229,21 @@ export type Reply = {
 };
 export type VoiceState = "idle" | "listening" | "thinking" | "speaking";
 export type VoiceStatus = { available: boolean; reason: string; wake_phrases: string[]; muted?: boolean };
+/** Ajustes → Voz e áudio (GET /api/audio e evento `audio`). Aparelhos pelo nome; "" = padrão do Windows. */
+export type AudioStatus = {
+  inputs: string[];
+  outputs: string[];
+  default_input: string | null;
+  default_output: string | null;
+  input: string;
+  output: string;
+  /** o aparelho escolhido não está conectado agora: o Mano usa o padrão até ele voltar */
+  missing_input: boolean;
+  missing_output: boolean;
+  voice_available: boolean;
+  /** só na resposta do PUT: o microfone novo não abriu */
+  error?: string | null;
+};
 export type Notice = { id: number; text: string; level: string; title: string };
 
 export async function api<T = unknown>(path: string, body?: unknown, method?: string): Promise<T> {
@@ -255,6 +270,7 @@ export function useMano() {
   const [connected, setConnected] = useState(false);
   const [voice, setVoice] = useState<VoiceState>("idle");
   const [voiceStatus, setVoiceStatus] = useState<VoiceStatus | null>(null);
+  const [audio, setAudio] = useState<AudioStatus | null>(null);
   const [partial, setPartial] = useState("");
   const [timers, setTimers] = useState<Timer[]>([]);
   const [meds, setMeds] = useState<Med[]>([]);
@@ -302,6 +318,7 @@ export function useMano() {
       if ("notes" in msg) setNotes(msg.notes as NotesStatus);
       if ("llm" in msg) setLlm(msg.llm as LLMStatus);
       if ("briefing" in msg) setBriefing(msg.briefing as BriefingState);
+      if ("audio" in msg) setAudio(msg.audio as AudioStatus);
     };
 
     const connect = () => {
@@ -336,6 +353,7 @@ export function useMano() {
           case "notes":
           case "llm":
           case "briefing":
+          case "audio":
             apply(msg);
             break;
           case "notes.open":
@@ -409,7 +427,7 @@ export function useMano() {
     connected, voice, voiceStatus, partial, timers, meds, doses, medSnoozeMin, habits, habitsPausedUntil, nudge, setNudge, reminders, notices,
     lastReply, clearReply, history, busy, send, listen, setMicMuted, dismissNotice,
     spotify, video, setVideo, videoResults, setVideoResults,
-    google, calendar, gmail, tasks, notes, llm, briefing,
+    google, calendar, gmail, tasks, notes, llm, briefing, audio, setAudio,
   };
 }
 

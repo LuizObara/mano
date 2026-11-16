@@ -1,4 +1,5 @@
 from .alerts import AlertSkill
+from .audio import AudioSkill
 from .briefing import BriefingSkill
 from .clock import ClockSkill
 from .google import CalendarSkill, GmailSkill, GoogleSkill, TasksSkill
@@ -19,5 +20,5 @@ ALL_SKILLS = [
     ClockSkill, TimerSkill, ReminderSkill, MedSkill, HabitSkill,
     GoogleSkill, CalendarSkill, TasksSkill, GmailSkill, NotesSkill,
     SpotifySkill, YouTubeSkill, SearchSkill, BriefingSkill, LLMSkill,
-    SystemSkill, AlertSkill, HelpSkill,
+    SystemSkill, AudioSkill, AlertSkill, HelpSkill,
 ]

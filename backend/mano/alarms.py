@@ -29,6 +29,8 @@ from typing import TYPE_CHECKING, Literal
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from .voice.output import WavPlayer
+
 if TYPE_CHECKING:
     from .context import Ctx
 
@@ -167,13 +169,17 @@ def slugify(name: str) -> str:
 # ---------- tocador ----------
 
 class SoundPlayer:
-    """Toca WAV pelo winsound. `played` guarda o que foi pedido (útil nos testes, onde o som fica desligado)."""
+    """Toca WAV no alto-falante escolhido em Ajustes (sounddevice) ou, no padrão do Windows, pelo winsound.
+    `played` guarda o que foi pedido (útil nos testes, onde o som fica desligado)."""
 
     def __init__(self, data_dir: Path, enabled: bool):
         self.dir = data_dir / "sounds"
         self.enabled = enabled and sys.platform == "win32"
         self.played: list[tuple[str, int, bool]] = []
         self.looping = False
+        self.device: int | None = None  # índice do PortAudio; None = padrão do Windows (winsound)
+        self._out = WavPlayer()
+        self._last: tuple[str, int] | None = None
 
     @property
     def custom_dir(self) -> Path:
@@ -217,14 +223,23 @@ class SoundPlayer:
     def play(self, sound: str, volume: int, loop: bool = False) -> float:
         """Toca e devolve a duração (0 quando não tocou de verdade)."""
         self.played.append((sound, volume, loop))
+        self._last = (sound, volume)
         if not self.enabled:
             return 0.0
         try:
             path = self.path_for(sound, volume)
             if path is None:
                 return 0.0
+            if self.device is not None:
+                try:
+                    dur = self._out.play(path, self.device, loop)
+                    self.looping = loop
+                    return dur
+                except Exception:
+                    log.exception("não consegui tocar no alto-falante escolhido; usando o padrão do Windows")
             import winsound
 
+            self._out.stop()
             flags = winsound.SND_FILENAME | winsound.SND_ASYNC | winsound.SND_NODEFAULT
             if loop:
                 flags |= winsound.SND_LOOP
@@ -235,10 +250,21 @@ class SoundPlayer:
             log.exception("não consegui tocar o som %s", sound)
             return 0.0
 
+    def set_device(self, device: int | None) -> None:
+        """Troca o alto-falante. Um alarme contínuo que estava tocando continua no aparelho novo."""
+        if device == self.device:
+            return
+        was_looping = self.looping
+        self.stop()
+        self.device = device
+        if was_looping and self._last:
+            self.play(*self._last, loop=True)
+
     def stop(self) -> None:
         self.looping = False
         if not self.enabled:
             return
+        self._out.stop()
         try:
             import winsound
 

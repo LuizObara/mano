@@ -126,6 +126,18 @@ Skill `sistema` (`backend/mano/skills/system.py`). Fora do Windows, `supported` 
 | `POST /api/system/shortcut` | — | Cria (ou recria) `Mano.lnk` na Área de Trabalho. Devolve o status |
 | `POST /api/system/shutdown` | — | Avisa os visores (`system.shutdown`) e encerra o processo meio segundo depois. 409 se o Mano não foi iniciado por `python -m mano` |
 
+## Áudio
+
+Skill `áudio` (`backend/mano/skills/audio.py`); lista e escolha em `backend/mano/voice/devices.py` (`ctx.audio`). Os aparelhos vão **pelo nome** (o índice do PortAudio muda quando um fone conecta); `""` = padrão do Windows.
+
+| Método e rota | Corpo / parâmetros | Observação |
+|---|---|---|
+| `GET /api/audio` | — | `{"inputs", "outputs", "default_input", "default_output", "input", "output", "missing_input", "missing_output", "voice_available"}`. `missing_*`: o aparelho escolhido não está conectado agora (o Mano usa o padrão e guarda a escolha) |
+| `PUT /api/audio` | `{"input"?, "output"?}` | Só o que vier muda. Salva em `data/voice.json` e aplica na hora: o microfone reabre e a saída vale para a voz (SAPI), os alarmes e o *plim*. 400 se o nome não está na lista. Devolve o mesmo do GET com `error` (o microfone novo não abriu) |
+| `POST /api/audio/refresh` | — | Reinicia o PortAudio (com o microfone fechado) para achar aparelhos novos; devolve a lista |
+| `GET /api/audio/level` | — | `{"level": 0–1}`: pico do último bloco do microfone (0 sem voz). O visor consulta a cada 150 ms só com a seção aberta |
+| `POST /api/audio/test` | — | Toca o *plim* e fala uma frase no alto-falante escolhido |
+
 ## WebSocket `/ws`
 
 Ao conectar, o servidor manda um **`hello`** com o estado completo: `voice`, `voice_status` e a junção dos `snapshot()` de todas as skills. Depois, cada mudança vem como `{"type": "<tipo>", ...}`. O visor (`frontend/src/lib/mano.ts`) aplica as chaves conhecidas no estado.
@@ -150,7 +162,8 @@ Ao conectar, o servidor manda um **`hello`** com o estado completo: `voice`, `vo
 | `llm` | `{"llm": {...}}` | Modelo local (inclui `busy` e `pull`) |
 | `briefing` | `{"briefing": {...}}` | Briefing (contagens, progresso, manchetes) |
 | `system.shutdown` | `{}` | O Mano vai fechar (botão **Fechar o Mano** em Ajustes) |
+| `audio` | `{"audio": {...}}` (o mesmo do `GET /api/audio`) | Microfone ou alto-falante trocado, lista atualizada |
 
-Chaves do `hello`: `timers`, `reminders`, `meds`, `doses`, `habits`, `spotify`, `google`, `calendar`, `gmail`, `tasks`, `notes`, `llm`, `briefing`.
+Chaves do `hello`: `timers`, `reminders`, `meds`, `doses`, `habits`, `spotify`, `google`, `calendar`, `gmail`, `tasks`, `notes`, `llm`, `briefing`. O áudio não vai no `hello` (listar aparelhos consulta o PortAudio): o visor pede `GET /api/audio` ao abrir a seção Voz e áudio.
 
 O visor também pode mandar `{"type": "command", "text", "speak"}` pelo WebSocket, equivalente a `POST /api/command`.

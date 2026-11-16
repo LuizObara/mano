@@ -24,7 +24,7 @@ Avisos (remédio, timer, lembrete, compromisso) aparecem no canto da tela, tocam
 
 ## Alarmes e avisos
 
-Em **Ajustes → Alarmes e avisos** cada tipo de alarme (Remédio, Timer, Lembrete e Hábitos) tem o seu jeito de tocar. **Testar** toca o alarme como ele vai soar de verdade; **Ajustar** abre o editor, que salva sozinho a cada mudança:
+Em **Ajustes → Alarmes** cada tipo de alarme (Remédio, Timer, Lembrete e Hábitos) tem o seu jeito de tocar. **Testar** toca o alarme como ele vai soar de verdade; **Ajustar** abre o editor, que salva sozinho a cada mudança:
 
 - **Som**: Sino, Despertador, Bipe digital, Plim, Suave, Cristal ou "Sem som". O ▶ ao lado ouve antes de escolher. **Usar um som meu** aceita um `.wav` (PCM 16 bits, até 2 min e 8 MB); a lixeira apaga.
 - **Volume**: de 0 a 100%, relativo ao volume do Windows. Ao soltar o controle, toca uma amostra.
@@ -39,9 +39,32 @@ Em Hábitos só se escolhe o som e o volume: quando e como cobrar fica em cada h
 
 O som sai pelo próprio PC, então toca com o visor fechado. Com o notebook desligado ou suspenso não há aviso.
 
+## Ajustes
+
+A aba **Ajustes** é dividida em seções: no computador, um menu à esquerda; no celular, botões no topo. O endereço guarda a seção (`#/ajustes?s=voz`), então dá para voltar direto a ela.
+
+| Seção | O que tem |
+|---|---|
+| **Geral** | Inicialização: iniciar com o Windows, atalho na Área de Trabalho, fechar o Mano |
+| **Voz e áudio** | Microfone e alto-falante, frases de ativação e microfone mudo |
+| **Alarmes** | Som, volume e repetição de cada tipo de aviso; horário silencioso |
+| **Integrações** | Google, Spotify e o vault do Obsidian |
+| **Modelo local** | Ollama: liga/desliga, modelo, teste e download |
+| **Aparência** | Reservada para os temas (por enquanto o claro/escuro fica no botão do topo) |
+
+## Microfone e alto-falante
+
+Em **Ajustes → Voz e áudio**:
+
+- **Microfone**: onde o Mano escuta. "Padrão do Windows" segue o que está escolhido no Windows (o nome aparece entre parênteses). A troca vale na hora, sem reiniciar. A barra **Nível** mostra o que o microfone está captando: fale algo e ela deve se mexer.
+- **Alto-falante**: onde o Mano fala e toca os alarmes, os avisos e o *plim*. **Testar** toca o plim e fala uma frase no aparelho escolhido.
+- **Atualizar lista**: procura aparelhos de novo (um fone ligado depois de abrir o Mano só aparece assim). O microfone para por um instante.
+- A escolha é guardada pelo nome do aparelho. Se ele sumir (fone desligado), o Mano usa o padrão do Windows e mostra um aviso; quando o fone voltar e a lista for atualizada, ele volta a ser usado sozinho.
+- Fone Bluetooth: escutar pelo microfone dele faz o Windows trocar o fone para o modo de ligação, com som de telefone. Se o PC tem microfone próprio, escolha ele e deixe o fone só como alto-falante.
+
 ## Inicialização
 
-Em **Ajustes → Inicialização**: **Iniciar com o Windows** (o Mano sobe sozinho no logon, só em segundo plano), **Criar atalho** na Área de Trabalho (abre o visor e sobe o Mano se preciso) e **Fechar o Mano**. Detalhes em [Instalação](instalacao.md#iniciar-junto-com-o-windows).
+Em **Ajustes → Geral → Inicialização**: **Iniciar com o Windows** (o Mano sobe sozinho no logon, só em segundo plano), **Criar atalho** na Área de Trabalho (abre o visor e sobe o Mano se preciso) e **Fechar o Mano**. Detalhes em [Instalação](instalacao.md#iniciar-junto-com-o-windows).
 
 ## Falando com o Mano
 

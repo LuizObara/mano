@@ -27,12 +27,19 @@ class Speaker:
     def stop(self) -> None:
         pass
 
+    def set_output(self, name: str | None) -> None:
+        """Alto-falante pelo nome (como aparece em Ajustes); None = padrão do Windows."""
+
 
 class NullSpeaker(Speaker):
     """Não fala nada; guarda as frases (útil em testes)."""
 
     def __init__(self) -> None:
         self.said: list[str] = []
+        self.output: str | None = None
+
+    def set_output(self, name: str | None) -> None:
+        self.output = name
 
     def say(self, text: str) -> None:
         self.said.append(text)
@@ -45,7 +52,7 @@ class SapiSpeaker(Speaker):
         self.voice_hint = voice_hint
         self.rate = rate
         self.on_state = on_state or (lambda _s: None)
-        self._q: queue.Queue[str | None] = queue.Queue()
+        self._q: queue.Queue[str | tuple[str, str | None] | None] = queue.Queue()
         self._pending = 0  # frases na fila + a que está sendo falada
         self._lock = threading.Lock()
         self._thread = threading.Thread(target=self._run, name="tts", daemon=True)
@@ -64,21 +71,49 @@ class SapiSpeaker(Speaker):
     def stop(self) -> None:
         self._q.put(None)
 
-    def _run(self) -> None:
-        import pythoncom
+    def set_output(self, name: str | None) -> None:
+        # o objeto COM vive na thread do TTS: o pedido vai pela mesma fila, depois do que já estava para falar
+        self._q.put(("output", name))
+
+    def _new_voice(self):
         import win32com.client
 
-        pythoncom.CoInitialize()
         voice = win32com.client.Dispatch("SAPI.SpVoice")
         for v in voice.GetVoices():
             if self.voice_hint.lower() in v.GetDescription().lower():
                 voice.Voice = v
                 break
         voice.Rate = self.rate
+        return voice
+
+    def _apply_output(self, voice, name: str | None):
+        """Devolve a voz já apontando para o aparelho (uma nova, no padrão do Windows)."""
+        if not name:
+            return self._new_voice()
+        outs = list(voice.GetAudioOutputs())
+        found = next((o for o in outs if o.GetDescription() == name), None) or next(
+            (o for o in outs if o.GetDescription().lower().startswith(name.lower()[:31])), None)
+        if found is None:
+            log.warning("alto-falante %r não encontrado no SAPI; usando o padrão", name)
+            return self._new_voice()
+        voice.AudioOutput = found
+        return voice
+
+    def _run(self) -> None:
+        import pythoncom
+
+        pythoncom.CoInitialize()
+        voice = self._new_voice()
         while True:
             text = self._q.get()
             if text is None:
                 break
+            if isinstance(text, tuple):
+                try:
+                    voice = self._apply_output(voice, text[1])
+                except Exception:
+                    log.exception("falha ao trocar o alto-falante da voz")
+                continue
             try:
                 self.on_state("speaking")
                 voice.Speak(text)

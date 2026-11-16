@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { api, type SystemStatus } from "../lib/mano";
-import { Card, Icon, Switch, btn } from "./ui";
+import { Card, Row, Switch, btn } from "./ui";
 
 /** Ajustes → Inicialização: iniciar com o Windows, atalho na Área de Trabalho e fechar o Mano. */
 export function SystemSettings() {
@@ -123,17 +123,4 @@ function autostartText(st: SystemStatus) {
   if (st.blocked) return "Desativado no Gerenciador de Tarefas. Ligue aqui para reativar.";
   if (st.autostart) return "Liga sozinho quando você entra no Windows, em segundo plano e sem abrir janela. O visor abre pelo atalho.";
   return "Desligado: o Mano só sobe quando você abrir pelo atalho.";
-}
-
-function Row({ icon, title, sub, children }: { icon: string; title: string; sub: string; children: ReactNode }) {
-  return (
-    <section className="flex items-center gap-3 rounded-[20px] bg-soft p-4">
-      <Icon name={icon} className="size-5 shrink-0 text-muted" />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <span className="font-medium">{title}</span>
-        <span className="text-[13px] text-muted">{sub}</span>
-      </div>
-      {children}
-    </section>
-  );
 }

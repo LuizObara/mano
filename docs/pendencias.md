@@ -13,6 +13,7 @@ Nada disso exige código; tudo se faz pelo visor (ver [Configuração](guia/conf
 - [ ] Clicar em **Usar** no vault do Obsidian em **Ajustes** (se ainda não fez).
 - [ ] Escolher os feeds do briefing na aba **Briefing**.
 - [ ] Testar a frase de ativação com o microfone real e calibrar `MANO_WAKE_CONF`.
+- [ ] Em **Ajustes → Voz e áudio**, escolher o microfone do notebook (hoje o padrão do Windows é o do fone JBL, que deixa o som dele com qualidade de telefone).
 - [ ] Ligar **Iniciar com o Windows** e **Criar atalho** em Ajustes → Inicialização (testado só com o Windows simulado; confira num logon de verdade) e deixar o notebook sem suspender na tomada (ver [Instalação](guia/instalacao.md#iniciar-junto-com-o-windows)).
 
 ## Fase 7 (opcional, não iniciada)
@@ -36,6 +37,7 @@ Usa o mini servidor (Ubuntu Server, 8 GB, `192.168.15.85`).
 | E-mail é só leitura | De propósito (permissão mínima). Responder/arquivar exigiria outra permissão do Google |
 | Notas: só acrescenta, sem busca por significado | Busca por palavras (FTS5). Busca semântica com embeddings do Ollama está nas ideias |
 | Tecnoblog e outros feeds com texto completo mostram legendas no "começo do artigo" | Só até o resumo do modelo ficar pronto |
+| Fone Bluetooth ligado com o Mano aberto não aparece sozinho em Ajustes → Voz e áudio | O PortAudio só relê os aparelhos quando é reiniciado: use **Atualizar lista** (o microfone para por um instante) |
 | Sem migração de banco | Colunas novas em tabelas existentes exigem migração manual (ver [Convenções](dev/convencoes.md#banco-de-dados)) |
 | Login Google em modo "Teste" expira a cada 7 dias | Publicar o app como "Em produção" (passo 3 da configuração) |
 | Nos testes de voz aparecem linhas "Windows fatal exception: code 0xe0000002" | Ruído do faulthandler com o COM/Vosk; os testes passam. Use `-p no:faulthandler` para esconder |

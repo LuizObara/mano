@@ -61,3 +61,9 @@ Registro curto do porquê de cada escolha, para não rediscutir à toa e saber q
 **Decisão:** valor `Mano` em `HKCU\Software\Microsoft\Windows\CurrentVersion\Run` apontando para `wscript.exe scripts\mano.vbs /segundo-plano`; no logon sobe só o backend, e o visor abre pelo atalho da Área de Trabalho, que não reinicia um Mano já no ar.
 **Por quê:** o `winreg` é da biblioteca padrão (o atalho em `shell:startup` exigiria COM), não precisa de administrador e aparece em Gerenciador de Tarefas → Aplicativos de inicialização, onde o usuário também consegue desligar. Só o backend no logon porque os alarmes e a voz não dependem do visor, e uma janela abrindo a cada boot incomoda.
 **Revisitar se:** o Mano precisar subir antes do logon (aí um serviço ou tarefa agendada) ou ganhar ícone na bandeja (ver decisão 1).
+
+## 12. Aparelhos de áudio escolhidos pelo nome, no backend
+
+**Decisão:** o visor só escolhe; quem abre o microfone e toca o som continua sendo o backend. A escolha fica em `data/voice.json` pelo **nome** do aparelho; a lista vem da API DirectSound do PortAudio e o padrão do Windows, do WASAPI. Com um alto-falante escolhido, alarmes e o *plim* passam do `winsound` para o `sounddevice` (`WavPlayer`), e o SAPI troca o `AudioOutput`; no "padrão do Windows" nada muda (`winsound`).
+**Por quê:** o áudio precisa funcionar com o visor fechado (alarmes, voz), então não pode depender da Web Audio do navegador. O índice do PortAudio muda quando um fone Bluetooth conecta; o nome não. O MME corta os nomes em 31 caracteres e o WASAPI compartilhado exige a taxa nativa do aparelho, enquanto o DirectSound aceita os 16 kHz do Vosk. O `winsound` não escolhe aparelho, mas segue no padrão porque é o caminho já testado.
+**Revisitar se:** o PortAudio passar a avisar aparelho novo sozinho (aí o **Atualizar lista** some) ou se a voz trocar de SAPI para Piper (aí ela também toca pelo `WavPlayer`).

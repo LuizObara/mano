@@ -88,7 +88,7 @@ Sem Ollama tudo continua funcionando; só ficam de fora o plano B dos comandos e
 
 ## Iniciar junto com o Windows
 
-Com o Mano aberto, vá em **Ajustes → Inicialização**:
+Com o Mano aberto, vá em **Ajustes → Geral → Inicialização**:
 
 - **Iniciar com o Windows**: liga ou desliga. Ligado, o Mano sobe sozinho quando você entra no Windows, **só o backend e em segundo plano** (sem janela nem terminal): voz, alarmes e lembretes já funcionam. Não precisa de administrador.
 - **Criar atalho**: põe um atalho **Mano** na Área de Trabalho, com o ícone do Mano. Dois cliques abrem o visor; se o Mano estiver fechado, ele sobe antes. Se ele já estiver no ar (por exemplo, iniciado com o Windows), o atalho **não reinicia** nada, só abre a janela.

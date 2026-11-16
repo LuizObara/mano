@@ -226,6 +226,37 @@ export function Switch({ on, set, label, disabled = false }: { on: boolean; set:
   );
 }
 
+/**
+ * Linha de ajuste: ícone, título e explicação à esquerda, controle à direita. Com `below`, o controle
+ * desce para baixo do texto (selects largos, que não cabem ao lado em 375 px).
+ */
+export function Row({ icon, title, sub, children, below = false }: { icon: string; title: string; sub: ReactNode; children?: ReactNode; below?: boolean }) {
+  const text = (
+    <div className="flex min-w-0 flex-1 flex-col">
+      <span className="font-medium">{title}</span>
+      <span className="text-[13px] text-muted">{sub}</span>
+    </div>
+  );
+  if (below) {
+    return (
+      <section className="flex flex-col gap-3 rounded-[20px] bg-soft p-4">
+        <div className="flex items-start gap-3">
+          <Icon name={icon} className="mt-0.5 size-5 shrink-0 text-muted" />
+          {text}
+        </div>
+        {children}
+      </section>
+    );
+  }
+  return (
+    <section className="flex items-center gap-3 rounded-[20px] bg-soft p-4">
+      <Icon name={icon} className="size-5 shrink-0 text-muted" />
+      {text}
+      {children}
+    </section>
+  );
+}
+
 export const btn = {
   primary: "rounded-full bg-ember px-5 py-2 font-semibold text-on-ember disabled:opacity-40",
   ghost: "rounded-full border border-line px-4 py-1.5 text-sm hover:bg-soft disabled:opacity-40",
@@ -355,6 +386,29 @@ const ICONS: Record<string, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l3 2" />
+    </>
+  ),
+  plug: <path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0zM12 17v5" />,
+  cpu: (
+    <>
+      <rect x="5" y="5" width="14" height="14" rx="2" />
+      <rect x="9" y="9" width="6" height="6" rx="1" />
+      <path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3" />
+    </>
+  ),
+  palette: (
+    <>
+      <path d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A5.6 5.6 0 0 0 22 9.8C22 5.5 17.5 2 12 2z" />
+      <circle cx="7.5" cy="11.5" r="1" />
+      <circle cx="10.5" cy="7" r="1" />
+      <circle cx="15.5" cy="7.5" r="1" />
+    </>
+  ),
+  speaker: (
+    <>
+      <rect x="5" y="2" width="14" height="20" rx="2" />
+      <circle cx="12" cy="14" r="4" />
+      <path d="M12 6h.01" />
     </>
   ),
 };

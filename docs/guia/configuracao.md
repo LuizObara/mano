@@ -6,7 +6,7 @@ Quase tudo se configura pela aba **Ajustes** do visor. O resto fica no arquivo `
 
 ### Obsidian (segundo cérebro)
 
-1. Abra **Ajustes → Segundo cérebro (Obsidian)**. O Mano procura sozinho pastas com `.obsidian` em Documentos, Área de Trabalho, OneDrive, Dropbox, Google Drive e iCloud (até 4 níveis de profundidade).
+1. Abra **Ajustes → Integrações → Segundo cérebro (Obsidian)**. O Mano procura sozinho pastas com `.obsidian` em Documentos, Área de Trabalho, OneDrive, Dropbox, Google Drive e iCloud (até 4 níveis de profundidade).
 2. Clique em **Usar** no vault certo (ou cole o caminho da pasta).
 3. Pronto: a aba **Notas** passa a buscar no vault e "anota que…" escreve na nota do dia.
 
@@ -21,7 +21,7 @@ O Mano **só acrescenta** texto (numa seção `## Capturas`), nunca reescreve ne
 
 1. Entre em <https://developer.spotify.com/dashboard> e clique em **Create app**.
 2. Em **Redirect URIs** coloque exatamente `http://127.0.0.1:8765/api/spotify/callback` e marque **Web API**.
-3. Copie o **Client ID** e cole em **Ajustes → Spotify**. Não precisa do Client Secret (o login usa PKCE).
+3. Copie o **Client ID** e cole em **Ajustes → Integrações → Spotify**. Não precisa do Client Secret (o login usa PKCE).
 4. Clique em **Conectar minha conta**.
 
 Sem nenhum aparelho tocando, o Mano abre o Spotify do PC antes de mandar tocar.
@@ -34,7 +34,7 @@ O passo a passo também aparece na tela:
 2. Ative **Gmail API**, **Google Calendar API** e **Google Tasks API**.
 3. Em **Google Auth Platform**: público **Externo**, nome Mano e seu e-mail. Em **Branding**, preencha **Página inicial** com `https://github.com/LuizObara/mano`, **Política de Privacidade** com `https://github.com/LuizObara/mano/blob/main/PRIVACIDADE.md` e adicione `github.com` em **Domínios autorizados**. Depois, em **Público-alvo**, clique em **Publicar app** ("Em produção"). No modo "Teste" o Google desconecta a cada 7 dias.
 4. Em **Clientes**, crie um cliente OAuth do tipo **App para computador**. Na janela "Cliente OAuth criado", clique em **Baixar JSON**: é a única vez que o Google mostra a chave secreta. Se fechou sem baixar, abra o cliente, clique em **Adicionar chave secreta** e baixe de novo.
-5. Envie o JSON em **Ajustes → Google** e clique em **Conectar**.
+5. Envie o JSON em **Ajustes → Integrações → Google** e clique em **Conectar**.
 
 Permissões pedidas: Gmail só leitura; Agenda leitura e criação de eventos; Tarefas leitura e escrita. O app fica "não verificado" (é só seu); na tela de login clique em **Avançado → Acessar Mano**.
 
@@ -86,7 +86,7 @@ Reinicie o Mano depois de mudar o `.env`. A lista completa está em `backend/man
 | `MANO_WAKE_CONF` | `0.75` | Confiança mínima (0–1). Suba se disparar à toa; desça se não te ouvir |
 | `MANO_LISTEN_TIMEOUT_S` | `6` | Espera pelo começo da fala depois do "plim" |
 | `MANO_MAX_UTTERANCE_S` | `15` | Duração máxima de um comando falado |
-| `MANO_MIC_DEVICE` | padrão do Windows | Índice ou nome do microfone |
+| `MANO_MIC_DEVICE` | padrão do Windows | Índice ou nome do microfone. Só vale enquanto nenhum microfone foi escolhido em **Ajustes → Voz e áudio** (a escolha fica em `dataoice.json` e vale mais) |
 | `MANO_VOSK_MODEL_PATH` | `data/models/vosk-model-small-pt-0.3` | Outro modelo Vosk (ex.: o grande, mais preciso e mais pesado) |
 
 ### Avisos e rotina
@@ -102,7 +102,7 @@ Reinicie o Mano depois de mudar o `.env`. A lista completa está em `backend/man
 | `MANO_TIMER_RING_MAX_S` | `300` | Padrão: para de tocar depois disso |
 | `MANO_EVENT_HEADS_UP_MIN` | `10` | Aviso falado antes de compromissos da agenda |
 
-Os valores marcados com "Padrão" só valem enquanto o alarme não foi mexido em **Ajustes → Alarmes e avisos**. O que é escolhido lá (som, volume, tipo, repetição, horário silencioso) fica em `data\alarms.json` e vale mais que o `.env`. Sons próprios ficam em `data\sounds\custom`.
+Os valores marcados com "Padrão" só valem enquanto o alarme não foi mexido em **Ajustes → Alarmes**. O que é escolhido lá (som, volume, tipo, repetição, horário silencioso) fica em `data\alarms.json` e vale mais que o `.env`. Sons próprios ficam em `data\sounds\custom`.
 
 ### Integrações
 

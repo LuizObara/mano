@@ -40,7 +40,9 @@ backend/
       when.py          "amanhã às 10", "sexta", "em 20 minutos" → datetime
       fallback.py      Plano B pelo modelo local
     voice/
-      service.py       Microfone, thread de escuta, earcon, liga ao handle_command
+      service.py       Microfone (trocado na hora), thread de escuta, nível, earcon, liga ao handle_command
+      devices.py       AudioDevices (ctx.audio): lista os aparelhos, guarda a escolha pelo nome, resolve o índice
+      output.py        WavPlayer: toca WAV no alto-falante escolhido (sounddevice)
       loop.py          Máquina de estados: espera ativação → ouve → transcreve
       tts.py           SapiSpeaker (fila própria, avisa quando fala) e NullSpeaker (testes)
     skills/            Uma skill por arquivo ou pasta (ver skills.md)
@@ -86,6 +88,7 @@ A skill `sistema` grava e apaga o valor do registro, cria o atalho (pelo COM `WS
 - **Comando:** um segundo reconhecedor Vosk, livre, transcreve até o silêncio ou `MANO_MAX_UTTERANCE_S`. A transcrição parcial vai para o visor (`voice.partial`).
 - **Eco:** enquanto o `SapiSpeaker` tem frases na fila (mais 0,4 s), o microfone é ignorado.
 - **Estados** (`idle`, `listening`, `thinking`, `speaking`) vão para o visor e animam o orbe.
+- **Aparelhos:** microfone e alto-falante são escolhidos em Ajustes → Voz e áudio e guardados **pelo nome** em `voice.json` (`mic_device`, `out_device`). `AudioDevices` lista pela API DirectSound do PortAudio (nomes completos, aceita 16 kHz; o MME corta em 31 caracteres) e pega o nome do padrão do Windows pelo WASAPI. A saída escolhida vale para tudo: o SAPI troca o `AudioOutput` (o pedido vai pela fila da thread do TTS) e os alarmes e o *plim* tocam pelo `WavPlayer` (`sounddevice`); no "padrão do Windows", continuam no `winsound`. Aparelho que sumiu → padrão, sem perder a escolha. O PortAudio só vê aparelho novo depois de reiniciado (**Atualizar lista**, com o microfone fechado).
 
 ## Agendador
 
@@ -129,7 +132,7 @@ SQLite em `data/mano.db`, criado no início (`SQLModel.metadata.create_all`).
 | `feed`, `article` | Feeds do briefing e notícias (texto extraído, resumo, lida, salva) |
 | `notes_meta`, `notes_fts` | Índice do vault (SQLite FTS5, sem acento) — criadas pelo `Vault`, não pelo SQLModel |
 
-Configurações pequenas ficam em JSON ao lado (`notes.json`, `spotify.json`, `llm.json`, `briefing.json`, `voice.json`, `alarms.json`; sons gerados em `sounds/cache`, sons próprios em `sounds/custom`), e os tokens OAuth em `*_token.json`.
+Configurações pequenas ficam em JSON ao lado (`notes.json`, `spotify.json`, `llm.json`, `briefing.json`, `voice.json`, `alarms.json`; `voice.json` guarda o microfone mudo e os aparelhos de áudio; sons gerados em `sounds/cache`, sons próprios em `sounds/custom`), e os tokens OAuth em `*_token.json`.
 
 ## Visor
 

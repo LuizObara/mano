@@ -20,6 +20,7 @@ from .intents.registry import Registry
 from .llm import LLM
 from .models import CommandLog
 from .skills import ALL_SKILLS
+from .voice.devices import AudioDevices
 from .voice.service import VoiceService
 from .voice.tts import Speaker, make_speaker
 
@@ -49,6 +50,7 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
             on_state=lambda state: ctx.set_voice_state(state),
         ),
     )
+    ctx.audio = AudioDevices(settings.data_dir / "voice.json", settings.mic_device)
     ctx.alarms = Alarms(ctx)
     registry = Registry()
     ctx.registry = registry
@@ -57,6 +59,7 @@ def create_app(settings: Settings | None = None, speaker: Speaker | None = None)
     for skill_cls in ALL_SKILLS:
         registry.add(skill_cls(ctx))
     voice = VoiceService(ctx)
+    ctx.voice = voice
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

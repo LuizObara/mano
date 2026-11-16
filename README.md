@@ -36,7 +36,7 @@ O visor fica em http://127.0.0.1:8765. No Edge, menu ⋯ → Aplicativos → "In
   Por voz: "fiz exercício", "desmarca leitura", "quais hábitos faltam?".
 - **Lembretes**: "me lembra de pagar o boleto amanhã às 10", "me lembra em 20 minutos de tirar o bolo",
   "quais são meus lembretes?", "cancela o lembrete do boleto". "Ok"/"para" dispensa o que estiver tocando.
-- **Alarmes** (Ajustes → Alarmes e avisos): som, volume, toque único ou contínuo, voz, notificação, repetição e horário silencioso para cada tipo de aviso, com botão de testar.
+- **Alarmes** (Ajustes → Alarmes): som, volume, toque único ou contínuo, voz, notificação, repetição e horário silencioso para cada tipo de aviso, com botão de testar.
 - Com o notebook desligado ou suspenso não há aviso (aviso no celular está previsto na fase 7).
 
 ## Mídia e pesquisa

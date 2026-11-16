@@ -10,6 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .config import Settings
 from .db import Database
 from .events import Hub
+from .voice.devices import AudioDevices
 from .voice.tts import Speaker
 
 if TYPE_CHECKING:
@@ -17,6 +18,7 @@ if TYPE_CHECKING:
     from .intents.fallback import Fallback
     from .intents.registry import Registry
     from .llm import LLM
+    from .voice.service import VoiceService
 
 
 @dataclass
@@ -32,6 +34,8 @@ class Ctx:
     llm: LLM = field(default=None)  # type: ignore[assignment]
     fallback: Fallback | None = None
     alarms: Alarms = field(default=None)  # type: ignore[assignment]
+    audio: AudioDevices = field(default=None)  # type: ignore[assignment]  # microfone e alto-falante escolhidos
+    voice: VoiceService | None = None
     voice_state: str = "idle"  # idle | listening | thinking | speaking
     open_url: Callable[[str], object] = webbrowser.open  # abre no navegador padrão do PC (trocado nos testes)
     request_exit: Callable[[], object] | None = None  # encerra o processo (definido no __main__; trocado nos testes)

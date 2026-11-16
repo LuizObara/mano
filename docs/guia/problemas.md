@@ -22,7 +22,7 @@ Há uma interface interativa da API em <http://127.0.0.1:8765/docs>, útil para 
 | Sintoma | O que fazer |
 |---|---|
 | Ligado em Ajustes, mas o Mano não sobe no logon | Veja `data\logs\mano.log`. Confira em Gerenciador de Tarefas → Aplicativos de inicialização se "Mano" está como Habilitado. Rode o comando do registro à mão: `wscript.exe "<pasta>\scripts\mano.vbs" /segundo-plano` |
-| "Aponta para outra pasta do Mano" | O projeto mudou de lugar. Clique em **Corrigir** em Ajustes → Inicialização |
+| "Aponta para outra pasta do Mano" | O projeto mudou de lugar. Clique em **Corrigir** em Ajustes → Geral → Inicialização |
 | O Mano sobe duas vezes no logon | Sobrou um `Mano.lnk` antigo em `shell:startup` (Win+R → `shell:startup`). Apague-o |
 | O atalho abre, mas nada aparece | Na primeira vez depois de uma atualização ele pode estar compilando o visor (alguns segundos). Se persistir, veja o log |
 | "Não consegui criar o atalho" | O PowerShell foi bloqueado (antivírus ou política). Crie à mão: atalho para `wscript.exe` com o argumento `"<pasta>\scripts\mano.vbs" /abrir` |
@@ -32,12 +32,15 @@ Há uma interface interativa da API em <http://127.0.0.1:8765/docs>, útil para 
 
 | Sintoma | O que fazer |
 |---|---|
-| Ajustes → Voz diz "Voz indisponível" | O motivo aparece ao lado. Normalmente falta o modelo: rode `.\scripts\get-models.ps1` |
-| Não reage ao "fala Mano" | Desça `MANO_WAKE_CONF` (ex.: 0.6). Confira o microfone padrão do Windows ou defina `MANO_MIC_DEVICE` |
+| Ajustes → Voz e áudio diz "Voz indisponível" | O motivo aparece ao lado. Normalmente falta o modelo: rode `.\scripts\get-models.ps1` |
+| Não reage ao "fala Mano" | Desça `MANO_WAKE_CONF` (ex.: 0.6). Em **Ajustes → Voz e áudio**, confira se a barra de **Nível** se mexe quando você fala; se não, escolha outro microfone |
 | Dispara sozinho com conversa ou TV | Suba `MANO_WAKE_CONF` (ex.: 0.85) |
 | Corta o comando no meio | Fale sem pausas longas; aumente `MANO_MAX_UTTERANCE_S` se forem frases longas |
 | Não fala nada | Confira `MANO_TTS_ENABLED` e se a voz "Microsoft Maria" está instalada (Configurações → Hora e idioma → Fala) |
-| Para descobrir o índice do microfone | `cd backend; .\.venv\Scripts\python.exe -c "import sounddevice; print(sounddevice.query_devices())"` |
+| O fone Bluetooth fica com som de telefone | O Mano está escutando pelo microfone do fone (perfil "Hands-Free"). Em **Ajustes → Voz e áudio**, escolha o microfone do PC |
+| "… não está conectado" em Voz e áudio | O aparelho escolhido sumiu (fone desligado). O Mano usa o padrão do Windows até ele voltar; ao reconectar, toque em **Atualizar lista** |
+| O fone conectado não aparece na lista | O Windows só avisa aparelhos novos quando a lista é refeita: toque em **Atualizar lista** |
+| A voz ou o alarme sai no aparelho errado | Confira **Ajustes → Voz e áudio → Alto-falante** e use **Testar**. "Padrão do Windows" segue o que está escolhido no ícone de som da barra de tarefas |
 
 ## Remédios e avisos
 
@@ -52,7 +55,7 @@ Há uma interface interativa da API em <http://127.0.0.1:8765/docs>, útil para 
 |---|---|
 | "INVALID_CLIENT: Invalid redirect URI" | O Redirect URI no painel do Spotify tem que ser exatamente `http://127.0.0.1:8765/api/spotify/callback` |
 | "Nenhum aparelho" ou não toca | Abra o Spotify do PC uma vez; o Mano tenta abrir sozinho. Controle exige Premium |
-| Desconectou | Ajustes → Spotify → Conectar de novo |
+| Desconectou | Ajustes → Integrações → Spotify → Conectar de novo |
 
 ## Google
 
@@ -61,7 +64,7 @@ Há uma interface interativa da API em <http://127.0.0.1:8765/docs>, útil para 
 | "Esse não parece o JSON de credenciais" | Baixe o JSON do cliente OAuth do tipo **App para computador** (não "Aplicativo da Web", não conta de serviço) |
 | "Acesso bloqueado" ou "app não verificado" | Normal para app pessoal: Avançado → Acessar Mano. Se bloquear de vez, seu e-mail precisa estar em "Usuários de teste" ou o app publicado |
 | Desconecta toda semana | O app está em modo "Teste". Publique como "Em produção" |
-| Cards com "Não consegui atualizar agora" | Sem internet ou token expirado. Ajustes → Google → Conectar de novo |
+| Cards com "Não consegui atualizar agora" | Sem internet ou token expirado. Ajustes → Integrações → Google → Conectar de novo |
 
 ## Notas (Obsidian)
 

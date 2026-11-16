@@ -35,6 +35,7 @@ npm run build
 | `test_notes.py` | Índice do vault, busca, captura só por acréscimo, nota do dia, links |
 | `test_llm_briefing.py` | Plano B do modelo local, resumos, feeds, notícias por voz, "bom dia", resumo de e-mails |
 | `test_system.py` | Iniciar com o Windows (ligar, desligar, pasta antiga, desativado no Gerenciador de Tarefas), atalho, ícone `.ico`, fechar o Mano, fora do Windows |
+| `test_audio.py` | Aparelhos de áudio: lista sem repetição e com o padrão pelo nome, escolha salva por nome e depois de reiniciar, nome inválido, aparelho que some e volta, saída aplicada na voz e nos alarmes, microfone reaberto na hora (e o padrão quando o escolhido não abre), `MANO_MIC_DEVICE` |
 | `test_docs.py` | Cada frase de `docs/guia/comandos.md` cai na intenção documentada, e toda intenção tem exemplo |
 
 ## Fixtures (`tests/conftest.py`)
@@ -65,6 +66,7 @@ Nenhum teste usa a internet. Cada integração aceita trocar o cliente HTTP por 
 | `FakeOllama` | `test_llm_briefing.py` | `/api/tags` e `/api/generate` (respostas por tipo de prompt) |
 | `FakeWeb` | `test_llm_briefing.py` | Um blog com página, feed RSS e artigos |
 | `FakeSpotify` | `test_media.py` | Cliente spotipy (aparelhos, busca, controles) |
+| `FakeAudio` | `test_audio.py` | Aparelhos do PortAudio no desenho deste notebook: MME com nomes cortados, DirectSound com os apelidos "primário", WASAPI com o padrão (troca `ctx.audio.host`). O microfone é trocado por um `RawInputStream` falso com `monkeypatch` |
 | `FakeWindows` | `test_system.py` | Registro do usuário e criação do atalho (troca `SystemSkill.host`; roda em qualquer sistema) |
 
 Exemplo de uso:
