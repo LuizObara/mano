@@ -40,6 +40,7 @@ Usa o mini servidor (Ubuntu Server, 8 GB, `192.168.15.85`).
 | Fone Bluetooth ligado com o Mano aberto não aparece sozinho em Ajustes → Voz e áudio | O PortAudio só relê os aparelhos quando é reiniciado: use **Atualizar lista** (o microfone para por um instante) |
 | Sem migração de banco | Colunas novas em tabelas existentes exigem migração manual (ver [Convenções](dev/convencoes.md#banco-de-dados)) |
 | Login Google em modo "Teste" expira a cada 7 dias | Publicar o app como "Em produção" (passo 3 da configuração) |
+| A aparência (claro/escuro, paleta, destaque) não passa de um navegador para outro | Fica no `localStorage` de cada navegador e endereço (`localhost` e `127.0.0.1` contam como dois). De propósito; ver decisão 13 |
 | Nos testes de voz aparecem linhas "Windows fatal exception: code 0xe0000002" | Ruído do faulthandler com o COM/Vosk; os testes passam. Use `-p no:faulthandler` para esconder |
 
 ## Ideias (sem compromisso)
@@ -52,3 +53,4 @@ Usa o mini servidor (Ubuntu Server, 8 GB, `192.168.15.85`).
 - Resumo semanal das capturas do Obsidian pelo modelo local.
 - Briefing por tema (agrupar notícias parecidas de feeds diferentes).
 - Empacotar o visor com Tauri se um dia quiser um executável.
+- Aparência igual em todos os aparelhos (guardar no backend) quando houver acesso pela rede.

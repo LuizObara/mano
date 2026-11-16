@@ -4,8 +4,10 @@
 @import "@fontsource-variable/figtree/index.css";
 
 /*
- * Paleta "Mel & Café". As classes do Tailwind (bg-panel, text-muted...) apontam para variáveis,
- * e as variáveis mudam com o tema: <html data-theme="light|dark">.
+ * As classes do Tailwind (bg-panel, text-muted...) apontam para variáveis --m-*, e as variáveis mudam com
+ * <html data-palette="mel|salvia|mare|ameixa|grafite" data-theme="light|dark">. Os seletores não exigem
+ * :root de propósito: a prévia das paletas em Ajustes → Aparência usa os mesmos atributos numa <div>.
+ * Paleta nova: um bloco claro e um escuro completos (todas as --m-*), e o id em lib/theme.ts.
  */
 @theme inline {
   --font-sans: "Figtree Variable", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
@@ -39,7 +41,9 @@
   --color-area-4: var(--m-alert);
 }
 
-:root {
+/* Mel & Café (padrão) */
+:root,
+[data-palette="mel"] {
   /* dia */
   --m-ink: #f5eddc; /* creme: fundo */
   --m-panel: #fffaf0; /* papel: painéis */
@@ -66,8 +70,9 @@
   color-scheme: light;
 }
 
-:root[data-theme="dark"] {
-  /* noite */
+[data-theme="dark"],
+[data-palette="mel"][data-theme="dark"] {
+  /* noite (on-ember, deep-text e deep-muted ficam os do dia) */
   --m-ink: #1a140f;
   --m-panel: #241c15;
   --m-line: #3a2d21;
@@ -87,6 +92,234 @@
   --m-notice: #3b2e22; /* terroso, um pouco mais claro que o fundo */
   --m-veil: #0b0806b3;
   color-scheme: dark;
+}
+
+/* Sálvia & Linho: verde de erva sobre linho */
+[data-palette="salvia"] {
+  --m-ink: #eef0e6;
+  --m-panel: #fbfcf7;
+  --m-line: #d6dccb;
+  --m-soft: #e4e9da;
+  --m-muted: #535e49;
+  --m-text: #1f261b;
+  --m-ember: #86ab6b;
+  --m-ember-soft: #86ab6b33;
+  --m-on-ember: #1f261b;
+  --m-accent: #3f6630;
+  --m-alert: #a8432f;
+  --m-on-alert: #fbfcf7;
+  --m-ok: #2f6f5c;
+  --m-think: #b8743a;
+  --m-deep: #1f261b;
+  --m-deep-text: #eef1e4;
+  --m-deep-muted: #a9b39b;
+  --m-deep-line: #323b2c;
+  --m-glow: #a6cb8a;
+  --m-area-2: #6b5a8e;
+  --m-notice: #e0e5d2;
+  --m-veil: #1f261b66;
+  color-scheme: light;
+}
+[data-palette="salvia"][data-theme="dark"] {
+  --m-ink: #141811;
+  --m-panel: #1c2118;
+  --m-line: #2f3729;
+  --m-soft: #262c21;
+  --m-muted: #a9b39b;
+  --m-text: #e9eddf;
+  --m-ember: #9cc27f;
+  --m-ember-soft: #9cc27f2e;
+  --m-on-ember: #141811;
+  --m-accent: #b5d69a;
+  --m-alert: #e5836b;
+  --m-on-alert: #141811;
+  --m-ok: #7fc2a5;
+  --m-think: #dc9a5e;
+  --m-deep: #20261b;
+  --m-deep-text: #e9eddf;
+  --m-deep-muted: #a9b39b;
+  --m-deep-line: #36402e;
+  --m-glow: #b5d69a;
+  --m-area-2: #a595cc;
+  --m-notice: #2c3326;
+  --m-veil: #070906b3;
+  color-scheme: dark;
+}
+
+/* Maré & Areia: azul-petróleo sobre areia */
+[data-palette="mare"] {
+  --m-ink: #f1ede4;
+  --m-panel: #fdfbf6;
+  --m-line: #ddd5c4;
+  --m-soft: #e9e2d3;
+  --m-muted: #57564f;
+  --m-text: #1b2430;
+  --m-ember: #2a7484;
+  --m-ember-soft: #2a748426;
+  --m-on-ember: #fdfbf6;
+  --m-accent: #1f5f6e;
+  --m-alert: #b04530;
+  --m-on-alert: #fdfbf6;
+  --m-ok: #4a7a3e;
+  --m-think: #d9764f;
+  --m-deep: #1b2a36;
+  --m-deep-text: #eaf0f2;
+  --m-deep-muted: #9fb0bb;
+  --m-deep-line: #2a3b48;
+  --m-glow: #6cc0cd;
+  --m-area-2: #8a5a9e;
+  --m-notice: #e6dfcf;
+  --m-veil: #1b243066;
+  color-scheme: light;
+}
+[data-palette="mare"][data-theme="dark"] {
+  --m-ink: #0f161c;
+  --m-panel: #16212a;
+  --m-line: #26343f;
+  --m-soft: #1e2b35;
+  --m-muted: #9fb0bb;
+  --m-text: #e6edf0;
+  --m-ember: #5fb3c1;
+  --m-ember-soft: #5fb3c12e;
+  --m-on-ember: #0f161c;
+  --m-accent: #86cdd8;
+  --m-alert: #ec8c73;
+  --m-on-alert: #0f161c;
+  --m-ok: #8fc07f;
+  --m-think: #e8956f;
+  --m-deep: #1a2833;
+  --m-deep-text: #e6edf0;
+  --m-deep-muted: #9fb0bb;
+  --m-deep-line: #2c3d4a;
+  --m-glow: #86cdd8;
+  --m-area-2: #c19ad3;
+  --m-notice: #1f2d38;
+  --m-veil: #05090cb3;
+  color-scheme: dark;
+}
+
+/* Ameixa & Nata: ameixa sobre nata */
+[data-palette="ameixa"] {
+  --m-ink: #f4ede9;
+  --m-panel: #fffaf7;
+  --m-line: #e3d3cf;
+  --m-soft: #eee1dc;
+  --m-muted: #664e5c;
+  --m-text: #2a1a24;
+  --m-ember: #9c4f7a;
+  --m-ember-soft: #9c4f7a26;
+  --m-on-ember: #fffaf7;
+  --m-accent: #84365f;
+  --m-alert: #b23a2e;
+  --m-on-alert: #fffaf7;
+  --m-ok: #4f6b3c;
+  --m-think: #d0713f;
+  --m-deep: #2a1a24;
+  --m-deep-text: #f5e9ee;
+  --m-deep-muted: #c1a8b5;
+  --m-deep-line: #3d2834;
+  --m-glow: #dc96ba;
+  --m-area-2: #3f6b6a;
+  --m-notice: #ebdcd6;
+  --m-veil: #2a1a2466;
+  color-scheme: light;
+}
+[data-palette="ameixa"][data-theme="dark"] {
+  --m-ink: #191216;
+  --m-panel: #231920;
+  --m-line: #3a2a33;
+  --m-soft: #2e2129;
+  --m-muted: #c1a8b5;
+  --m-text: #f3e7ec;
+  --m-ember: #d48ab0;
+  --m-ember-soft: #d48ab02e;
+  --m-on-ember: #191216;
+  --m-accent: #e8a9c9;
+  --m-alert: #e98a72;
+  --m-on-alert: #191216;
+  --m-ok: #93b37d;
+  --m-think: #e09564;
+  --m-deep: #2b1e26;
+  --m-deep-text: #f3e7ec;
+  --m-deep-muted: #c1a8b5;
+  --m-deep-line: #45323d;
+  --m-glow: #e8a9c9;
+  --m-area-2: #6fa3a0;
+  --m-notice: #34252e;
+  --m-veil: #0a0609b3;
+  color-scheme: dark;
+}
+
+/* Grafite & Giz: cinzas neutros com destaque coral */
+[data-palette="grafite"] {
+  --m-ink: #eeeeec;
+  --m-panel: #fafaf9;
+  --m-line: #d9d9d5;
+  --m-soft: #e6e6e2;
+  --m-muted: #575753;
+  --m-text: #1d1d1b;
+  --m-ember: #e8774f;
+  --m-ember-soft: #e8774f2e;
+  --m-on-ember: #1d1d1b;
+  --m-accent: #a8431e;
+  --m-alert: #b0263a;
+  --m-on-alert: #fafaf9;
+  --m-ok: #3f7a4a;
+  --m-think: #8a6fd6;
+  --m-deep: #1d1d1b;
+  --m-deep-text: #f0f0ee;
+  --m-deep-muted: #a8a8a3;
+  --m-deep-line: #31312e;
+  --m-glow: #f29470;
+  --m-area-2: #3f6b8a;
+  --m-notice: #e2e2de;
+  --m-veil: #1d1d1b66;
+  color-scheme: light;
+}
+[data-palette="grafite"][data-theme="dark"] {
+  --m-ink: #121212;
+  --m-panel: #1b1b1a;
+  --m-line: #2f2f2d;
+  --m-soft: #262625;
+  --m-muted: #a8a8a3;
+  --m-text: #ececea;
+  --m-ember: #f29470;
+  --m-ember-soft: #f294702e;
+  --m-on-ember: #121212;
+  --m-accent: #f5a888;
+  --m-alert: #ef8090;
+  --m-on-alert: #121212;
+  --m-ok: #86c08f;
+  --m-think: #a594e6;
+  --m-deep: #222221;
+  --m-deep-text: #ececea;
+  --m-deep-muted: #a8a8a3;
+  --m-deep-line: #383836;
+  --m-glow: #f5a888;
+  --m-area-2: #7fb0d4;
+  --m-notice: #2a2a28;
+  --m-veil: #000000b3;
+  color-scheme: dark;
+}
+
+/*
+ * Destaque livre: lib/theme.ts deriva da cor escolhida as variáveis --u-* (uma versão para o dia e outra para a
+ * noite, com a claridade ajustada para o texto ter contraste) e liga <html data-accent>. Só no :root, para a
+ * prévia das paletas continuar mostrando o destaque de cada uma.
+ */
+:root[data-accent] {
+  --m-ember: var(--u-ember-l);
+  --m-ember-soft: color-mix(in srgb, var(--u-ember-l) 20%, transparent);
+  --m-on-ember: var(--u-on-l);
+  --m-accent: var(--u-accent-l);
+  --m-glow: var(--u-glow);
+}
+:root[data-accent][data-theme="dark"] {
+  --m-ember: var(--u-ember-d);
+  --m-ember-soft: color-mix(in srgb, var(--u-ember-d) 18%, transparent);
+  --m-on-ember: var(--u-on-d);
+  --m-accent: var(--u-accent-d);
+  --m-glow: var(--u-glow);
 }
 
 html,

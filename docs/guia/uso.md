@@ -9,7 +9,7 @@ Abas no topo: **Início**, **Remédios**, **Hábitos**, **Notas**, **Briefing**,
 - **Conectado**: o ponto verde indica que o visor está ligado ao Mano.
 - **Microfone**: silencia o microfone. Mudo, o Mano não ouve o "fala Mano" nem o Ctrl+Espaço, e uma faixa discreta avisa isso no topo (o × oculta a faixa até você ligar o microfone de novo). A barra de comando continua funcionando e os avisos de remédio continuam falando. Fica salvo até você ligar de novo, mesmo reiniciando o Mano.
 - **Alto-falante**: decide se a resposta de um comando digitado também é falada.
-- **Sol/lua**: tema claro ou escuro. Na primeira vez segue o tema do Windows; depois fica o que você escolher, neste aparelho.
+- **Sol/lua**: tema claro ou escuro. Na primeira vez segue o tema do Windows; depois fica o que você escolher, neste aparelho. Paleta e cor de destaque ficam em **Ajustes → Aparência**.
 - **Painéis** (só no Início): escolhe quais painéis aparecem e tem o **Restaurar layout original**.
 
 **Início**:
@@ -50,7 +50,18 @@ A aba **Ajustes** é dividida em seções: no computador, um menu à esquerda; n
 | **Alarmes** | Som, volume e repetição de cada tipo de aviso; horário silencioso |
 | **Integrações** | Google, Spotify e o vault do Obsidian |
 | **Modelo local** | Ollama: liga/desliga, modelo, teste e download |
-| **Aparência** | Reservada para os temas (por enquanto o claro/escuro fica no botão do topo) |
+| **Aparência** | Claro, escuro ou do sistema; paleta; cor de destaque |
+
+## Aparência
+
+Em **Ajustes → Aparência**:
+
+- **Claro ou escuro**: **Claro**, **Escuro** ou **Sistema** (acompanha o claro/escuro do Windows na hora). O botão sol/lua do topo continua trocando entre claro e escuro; usado no **Sistema**, ele fixa o modo que você escolheu.
+- **Paleta**: cinco conjuntos de cores, cada um com versão clara e escura (a prévia mostra as duas): **Mel & Café** (o padrão), **Sálvia & Linho**, **Maré & Areia**, **Ameixa & Nata** e **Grafite & Giz**.
+- **Cor de destaque**: troca a cor dos botões, interruptores, links e do brilho do relógio, mantendo fundos e textos da paleta. **Cor da paleta** (a primeira bolinha) volta ao destaque original; o **+** abre o seletor para qualquer cor. O Mano ajusta a claridade sozinho para o texto continuar legível no claro e no escuro, então a cor de links e textos pode sair um pouco mais escura ou mais clara que a escolhida.
+- **Restaurar o padrão**: Mel & Café, cor da paleta e claro/escuro do sistema.
+
+Tudo fica salvo **neste aparelho** (no navegador). Outro computador, o celular ou outro navegador guardam a própria escolha.
 
 ## Microfone e alto-falante
 

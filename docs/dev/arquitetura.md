@@ -50,6 +50,7 @@ backend/
 frontend/
   src/
     lib/mano.ts        useMano(): WebSocket, estado ao vivo, api()
+    lib/theme.ts       Aparência: claro/escuro/sistema, paleta e cor de destaque (localStorage)
     App.tsx            Abas (hash routing) e a Home
     pages/             Remédios, Hábitos, Notas, Briefing, Ajustes
     components/        Cards e peças do visor (PanelGrid: grade arrastável dos painéis do Início, react-grid-layout)
@@ -137,3 +138,5 @@ Configurações pequenas ficam em JSON ao lado (`notes.json`, `spotify.json`, `l
 ## Visor
 
 React 19 + Vite + Tailwind 4, servido pelo FastAPI a partir de `frontend/dist`. `useMano()` mantém um WebSocket com reconexão e guarda o estado de tudo; as páginas leem desse estado e chamam `api()` para agir. Navegação por hash (`#/inicio`, `#/notas?n=...`), então o backend só precisa servir `index.html`. Para desenvolver com recarga automática, `npm run dev` (porta 5173, com proxy para o backend).
+
+A aparência (claro/escuro, paleta e cor de destaque) é só do visor: `lib/theme.ts` guarda no `localStorage` e escreve `data-theme`, `data-palette` e `data-accent` no `<html>`; as cores são variáveis CSS em `index.css` (ver [Convenções](convencoes.md#aparência-do-visor)). O backend não sabe dela.

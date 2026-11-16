@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { AlarmSettings } from "../components/AlarmSettings";
+import { AppearanceSettings } from "../components/AppearanceSettings";
 import { AudioSettings } from "../components/AudioSettings";
 import { SystemSettings } from "../components/SystemSettings";
 import { Card, Icon, Row, Switch, btn, input } from "../components/ui";
@@ -11,7 +12,7 @@ const SECTIONS = [
   { id: "alarmes", label: "Alarmes", icon: "bell", sub: "Som, voz e repetição de cada tipo de aviso, e o horário silencioso." },
   { id: "integracoes", label: "Integrações", icon: "plug", sub: "Contas e pastas que o Mano usa: Google, Spotify e o seu vault." },
   { id: "modelo", label: "Modelo local", icon: "cpu", sub: "O modelo de linguagem que roda nesta máquina, pelo Ollama." },
-  { id: "aparencia", label: "Aparência", icon: "palette", sub: "Tema e cores do visor." },
+  { id: "aparencia", label: "Aparência", icon: "palette", sub: "Claro ou escuro, paleta e cor de destaque do visor." },
 ] as const;
 type SectionId = (typeof SECTIONS)[number]["id"];
 
@@ -137,18 +138,6 @@ function VoiceSettings({ mano }: { mano: Mano }) {
           <Switch on={!!vs?.muted} set={(v) => mano.setMicMuted(v)} label="Microfone mudo" disabled={!vs} />
         </Row>
       </div>
-    </Card>
-  );
-}
-
-function AppearanceSettings() {
-  return (
-    <Card title="Tema e cores">
-      <Row
-        icon="palette"
-        title="Em breve"
-        sub="Temas e cores do visor chegam aqui. Por enquanto, o claro/escuro fica no botão do topo da tela."
-      />
     </Card>
   );
 }

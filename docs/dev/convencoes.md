@@ -17,17 +17,26 @@
 ## Frontend
 
 - React 19 com componentes de função e hooks; estado global só em `useMano()`.
-- Paleta "Mel & Café" com tema claro e escuro. As cores são tokens em `index.css` que apontam para variáveis trocadas por `<html data-theme>`; **nunca escreva cor fixa** (hex, `emerald-400`), use os tokens:
+- Cinco paletas ("Mel & Café" é a padrão), cada uma com tema claro e escuro. As cores são tokens em `index.css` que apontam para variáveis `--m-*` trocadas por `<html data-palette data-theme>` (e pela cor de destaque, `data-accent`; ver [Aparência](#aparência-do-visor)); **nunca escreva cor fixa** (hex, `emerald-400`), use os tokens:
   - fundos: `ink` (página e campos), `panel` (cartões), `soft` (hover e itens), `deep` (bloco do relógio, com `deep-text`, `deep-muted`, `deep-line`, `glow`);
   - texto: `text`, `muted`, `accent` (links e destaques em texto);
   - destaque: `ember` (mel, só preenchimento) com `on-ember` por cima; `alert` com `on-alert`; `ok`; `think` (orbe pensando); `area-0`…`area-4` (cores das áreas do vault);
   - `notice`: fundo das faixas de aviso (microfone mudo, cobranças pausadas), discreto nos dois temas.
   - `veil`: fundo escurecido atrás de um `Modal`.
+- Um mesmo token vale para todas as paletas, então nada de "no tema X fica melhor com tal cor": se um token não funciona numa paleta, ajuste a paleta.
 - Fontes: `font-display` (Fraunces) no relógio, títulos de painel e de nota; o resto em Figtree (`font-sans`). Ambas vêm do npm (`@fontsource-variable`), então funcionam sem internet.
-- Use as peças de `components/ui.tsx`: `Card` (dentro do Início ganha sozinho o botão de ocultar e, na grade de `components/PanelGrid.tsx`, a alça de arrastar no título, a altura medida pelo conteúdo e o corpo com rolagem), `Modal` + `ModalHeader` (overlay com Esc, clique fora e foco devolvido), `Chip` (filtro aceso/apagado), `Switch` (liga/desliga dos Ajustes), `btn.*`, `input`, `Icon`. Preferências do aparelho (tema, painéis ocultos, layout dos painéis) com `useStored` de `lib/prefs.ts`.
+- Use as peças de `components/ui.tsx`: `Card` (dentro do Início ganha sozinho o botão de ocultar e, na grade de `components/PanelGrid.tsx`, a alça de arrastar no título, a altura medida pelo conteúdo e o corpo com rolagem), `Modal` + `ModalHeader` (overlay com Esc, clique fora e foco devolvido), `Chip` (filtro aceso/apagado), `Switch` (liga/desliga dos Ajustes), `btn.*`, `input`, `Icon`. Preferências do aparelho (painéis ocultos, layout dos painéis) com `useStored` de `lib/prefs.ts`; a aparência com `useAppearance` de `lib/theme.ts`.
 - Datas com `toLocaleString("pt-BR")` e os helpers `hhmm`, `ago`, `isoDay` de `lib/mano.ts`.
 - HTML vindo de fora (notas) sempre passa pelo DOMPurify.
 - Tudo precisa caber em 375 px de largura sem rolagem lateral.
+
+### Aparência do visor
+
+- `lib/theme.ts` é o dono da aparência: modo (`light`, `dark`, `system`), paleta e cor de destaque, num estado só (`useSyncExternalStore`), para o botão sol/lua do topo e Ajustes → Aparência andarem juntos. Ele escreve `data-theme`, `data-palette` e `data-accent` no `<html>`, acompanha o claro/escuro do sistema no modo `system` e outras abas pelo evento `storage`.
+- Fica no `localStorage`: `mano.theme` (`"light"`/`"dark"`; ausente = sistema), `mano.palette` (ausente = `mel`) e `mano.accent` (`{color, vars}`). O script do `index.html` lê as mesmas chaves antes do React, para não piscar; mudou uma, mude as duas.
+- **Paleta nova:** um bloco `[data-palette="id"]` e um `[data-palette="id"][data-theme="dark"]` em `index.css`, **com todas as `--m-*`**, e o id em `PALETTES`. Os seletores não usam `:root` porque a prévia em Ajustes aplica os mesmos atributos numa `<div>`. Confira o contraste: texto ≥ 7 sobre `ink`/`panel`, `muted` e `accent` ≥ 4,5 sobre `panel` e `soft`, `on-ember` e `on-alert` ≥ 4,5 sobre o preenchimento.
+- **Destaque livre:** `accentVars()` deriva da cor escolhida, em OKLCH, as variáveis `--u-*` (preenchimento, texto de destaque, brilho e o texto sobre o preenchimento, para o dia e para a noite), mexendo só na claridade até passar dos mesmos mínimos de contraste. O `index.css` liga `--m-ember`, `--m-ember-soft`, `--m-on-ember`, `--m-accent` e `--m-glow` a elas com `:root[data-accent]`.
+- As bolinhas de cor do seletor de destaque são o único lugar com cor fixa (`style`), porque a cor ali é o dado escolhido.
 
 ## Versões
 

@@ -8,11 +8,19 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Mano</title>
     <script>
-      // aplica o tema salvo antes de desenhar, para o visor não piscar claro/escuro
+      // aplica a aparência salva antes de desenhar, para o visor não piscar (as mesmas chaves de src/lib/theme.ts)
       try {
+        var d = document.documentElement;
         var t = JSON.parse(localStorage.getItem("mano.theme") || "null");
         if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        document.documentElement.dataset.theme = t;
+        d.dataset.theme = t;
+        var p = JSON.parse(localStorage.getItem("mano.palette") || "null");
+        if (typeof p === "string") d.dataset.palette = p;
+        var a = JSON.parse(localStorage.getItem("mano.accent") || "null");
+        if (a && a.vars) {
+          for (var k in a.vars) if (k.indexOf("--u-") === 0) d.style.setProperty(k, String(a.vars[k]));
+          d.dataset.accent = "";
+        }
       } catch (e) {}
     </script>
   </head>

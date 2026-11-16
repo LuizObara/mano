@@ -19,20 +19,3 @@ export function useStored<T>(key: string, initial: T) {
   }, [key, value]);
   return [value, setValue] as const;
 }
-
-export type Theme = "light" | "dark";
-
-const THEME_COLOR: Record<Theme, string> = { light: "#f5eddc", dark: "#1a140f" };
-
-/** Tema claro/escuro. O index.html aplica o salvo antes de o React carregar, para não piscar. */
-export function useTheme() {
-  const [theme, setTheme] = useStored<Theme>(
-    "mano.theme",
-    window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light",
-  );
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLOR[theme]);
-  }, [theme]);
-  return [theme, () => setTheme(theme === "dark" ? "light" : "dark")] as const;
-}
